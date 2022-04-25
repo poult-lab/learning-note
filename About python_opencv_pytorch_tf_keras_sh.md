@@ -2969,6 +2969,198 @@ torch.Size([32, 150])
 
 ![](/home/jiang/桌面/About Python and some image algorithm/pictures source/zero_grad.webp)
 
+#### 49. about with torch.no_grad()
+
+torch.no_grad() 是一个上下文管理器，被该语句 wrap 起来的部分将不会track 梯度。
+
+例如：
+
+```python
+a = torch.tensor([1.1], requires_grad=True)
+b = a * 2
+```
+
+打印b可看到其 grad_fn 为 mulbackward 表示是做的乘法。
+
+```python
+b
+Out[63]: tensor([2.2000], grad_fn=<MulBackward0>)
+```
+
+```python
+b.add_(2)
+Out[64]: tensor([4.2000], grad_fn=<AddBackward0>)
+```
+
+可以看到不被wrap的情况下，b.grad_fn 为 addbackward 表示这个add 操作被track了
+
+```python
+with torch.no_grad():
+    b.mul_(2)
+```
+
+
+在被包裹的情况下可以看到 b.grad_fn 还是为 add，mul 操作没有被 track. 但是注意，乘法操作是被执行了的。(4.2 -> 8.4)
+
+```python
+b
+Out[66]: tensor([8.4000], grad_fn=<AddBackward0>)
+```
+
+
+所以如果有不想被track的计算部分可以通过这么一个上下文管理器包裹起来。这样可以执行计算，但该计算不会在反向传播中被记录。
+
+同时 torch.no_grad() 还可以作为一个装饰器。
+比如在网络测试的函数前加上
+
+```python
+@torch.no_grad()
+def eval():
+	...
+```
+
+
+扩展：
+同样还可以用 torch.set_grad_enabled()来实现不计算梯度。
+例如：
+
+```python
+def eval():
+	torch.set_grad_enabled(False)
+	...	# your test code
+	torch.set_grad_enabled(True)
+```
+
+
+
+#### 50. about torch.cat()
+
+1.字面理解：torch.cat是将两个张量（tensor）拼接在一起，cat是concatenate的意思，即拼接，联系在一起。
+
+2. 例子理解(1)
+
+```python
+import torch
+
+A=torch.ones(2,3) #2x3的张量（矩阵）                                     
+
+print(f"This is A:{A}")
+
+
+
+B=2*torch.ones(4,3)#4x3的张量（矩阵）                                    
+
+print(f"This is B:{B}")
+
+
+
+C=torch.cat((A,B),0)#按维数0（行）拼接
+
+print(f"This is C:{C}")
+
+print(f"This is C size:{C.size()}")
+
+
+
+D=2*torch.ones(2,4) #2x4的张量（矩阵）
+
+C=torch.cat((A,D),1)#按维数1（列）拼接，此时的tensor 行数必须一致
+
+print(f"This is C:{C}")
+
+print(f"This is C size:{C.size()}")
+```
+
+output:
+
+```bash
+This is A:tensor([[1., 1., 1.],        [1., 1., 1.]]) 
+
+This is B:tensor([[2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.]]) 
+
+This is C:tensor([[1., 1., 1.],        [1., 1., 1.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.]]) 
+This is C size:torch.Size([6, 3]) 
+
+This is C:tensor([[1., 1., 1., 2., 2., 2., 2.], [1., 1., 1., 2., 2., 2., 2.]]) 
+
+This is C size:torch.Size([2, 7])
+```
+
+
+
+上面给出了两个张量A和B，分别是2行3列，4行3列。即他们都是2维张量。因为只有两维，这样在用torch.cat拼接的时候就有两种拼接方式：按行拼接和按列拼接。即所谓的维数0和维数1. 
+
+C=torch.cat((A,B),0)就表示按维数0（行）拼接A和B，也就是竖着拼接，A上B下。此时需要注意：列数必须一致，即维数1数值要相同，这里都是3列，方能列对齐。拼接后的C的第0维是两个维数0数值和，即2+4=6.
+
+C=torch.cat((A,B),1)就表示按维数1（列）拼接A和B，也就是横着拼接，A左B右。此时需要注意：行数必须一致，即维数0数值要相同，这里都是2行，方能行对齐。拼接后的C的第1维是两个维数1数值和，即3+4=7.
+
+从2维例子可以看出，使用torch.cat((A,B),dim)时，除拼接维数dim数值可不同外其余维数数值需相同，方能对齐。
+
+**例子理解，区分append函数(2)**
+
+```python
+import torch
+
+A=torch.zeros(2,5) #2x5的张量（矩阵）                                     
+
+print(A)
+
+B=torch.ones(3,5)
+
+print(B)
+
+list=[]
+
+list.append(A)
+
+list.append(B)
+
+print(f"This is list{list}")
+
+C=torch.cat(list,dim=0)#按照行进行拼接,此时所有tensor的列数需要相同
+
+print(C,C.shape)
+```
+
+output:
+
+```python
+tensor([[0., 0., 0., 0., 0.],        [0., 0., 0., 0., 0.]]) 
+
+tensor([[1., 1., 1., 1., 1.],        [1., 1., 1., 1., 1.],        [1., 1., 1., 1., 1.]]) 
+
+This is list[tensor([[0., 0., 0., 0., 0.],        
+                     [0., 0., 0., 0., 0.]]), tensor([[1., 1., 1., 1., 1.],        
+[1., 1., 1., 1., 1.],[1., 1., 1., 1., 1.]])] 
+
+tensor([[0., 0., 0., 0., 0.],        
+
+[0., 0., 0., 0., 0.],        
+
+[1., 1., 1., 1., 1.],        
+
+[1., 1., 1., 1., 1.],        
+
+[1., 1., 1., 1., 1.]]) torch.Size([5, 5])
+```
+
+
+
+3.实例
+
+在深度学习处理图像时，常用的有3通道的RGB彩色图像及单通道的灰度图。张量size为cxhxw,即通道数x图像高度x图像宽度。在用torch.cat拼接两张图像时一般要求图像大小一致而通道数可不一致，即h和w同，c可不同。当然实际有3种拼接方式，另两种好像不常见。比如经典网络结构：U-Net
+
+​     ![U-Net](/home/jiang/桌面/About Python and some image algorithm/pictures source/U-Net.png)                               
+
+里面用到4次torch.cat,其中copy and crop操作就是通过torch.cat来实现的。可以看到通过上采样（up-conv 2x2）将原始图像h和w变为原来2倍，再和左边直接copy过来的同样h,w的图像拼接。这样做，可以有效利用原始结构信息。
+
+4.总结
+
+使用torch.cat((A,B),dim)时，除拼接维数dim数值可不同外其余维数数值需相同，方能
+
+
+
+
 
 
 ## About python syntax
@@ -4055,6 +4247,71 @@ this output:
 
 
 
+#### 16. About [:,integer]
+
+```python
+import numpy as np
+
+y_predprob =np.array([[0.9,0.1],[0.6,0.4],[0.65,0.35],[0.2,0.8]])
+y_scores=y_predprob[:,1] 
+print(f"This is y_scroes:{y_scores}") 
+x_scores=y_predprob[1,:] 
+x_scores
+```
+
+output:
+
+```bash
+This is y_scroes:[0.1  0.4  0.35 0.8 ]
+
+array([0.6, 0.4])
+```
+
+
+
+#### 17.About python 中单引号和双引号区别
+
+在Python中使用单引号或双引号是没有区别的，都可以用来表示一个[字符串](https://so.csdn.net/so/search?q=字符串&spm=1001.2101.3001.7020)。但是这两种通用的表达方式可以避免出错之外，还可以减少转义字符的使用，使程序看起来更清晰。
+
+举两个例子：
+1、包含单引号的字符串
+定义一个字符串my_str，其值为： I’m a student，可以用转义字符和不用转义字符\
+
+```python
+my_str = 'I\ 'm a student'
+my_str = "I'm a student"
+```
+
+2、包含双引号的字符串
+定义一个字符串my_str，其值为： Jason said “I like you” ，可以用转义字符和不用转义字符\
+
+```python
+my_str = "Jason said \"I like you\""
+my_str = 'Jason said "I like you"'
+```
+
+
+
+#### 18.删减字符串其中的内容: string.replace() 函数
+
+
+
+```python
+string="./data/short-audio-master/short_audio/0_1-100038-A-14.wav"
+
+ret=string.replace("./","")# 这里将'./'转化为空.
+
+print(f"This is the answer: {ret}")
+```
+
+output:
+
+```bash
+This is the answer: data/short-audio-master/short_audio/0_1-100038-A-14.wav
+```
+
+
+
 ## About opencv4
 
 #### Regular Contour detection
@@ -5107,6 +5364,41 @@ This is X_train.min(axis=0):  [ 0. -1. -1.] This is X1:  [[1] [2] [3]] This is X
 
 
 
+#### 2.sklearn.metrics.roc_auc_score()
+
+```python
+sklearn.metrics.roc_auc_score(y_true, y_score, *, average='macro', sample_weight=None, max_fpr=None, multi_class='raise', labels=None)
+```
+
+y_true：样本的真实标签，形状（样本数）
+y_score：预测为1的概率值，形状（样本数）
+
+```python
+import numpy as np
+
+from sklearn.metrics import roc_auc_score
+
+y_true = np.array([0, 0, 1, 1])
+
+print(y_true.shape) #(4,)
+
+y_predprob =np.array([[0.9,0.1],[0.6,0.4],[0.65,0.35],[0.2,0.8]])
+
+\#print(y_predprob)
+
+y_scores=y_predprob[:,1] #取预测标签为1的概率
+
+print(f"This is y_scroes:{y_scores}") 
+
+auc=roc_auc_score(y_true, y_scores)
+
+print(auc)#0.75
+```
+
+
+
+
+
 ## About os
 
 #### 1. os.makedir(path)和os.makedirs(path)
@@ -5522,7 +5814,7 @@ sample rate of waveform:44100
 
 ![waveform](/home/jiang/桌面/About Python and some image algorithm/pictures source/waveform.png)
 
-#### 2. torchaudio.transforms.MelSpectrogram()
+#### 2.torchaudio.transforms.MelSpectrogram()
 
 Create MelSpectrogram for a raw audio signal.
 
@@ -5551,6 +5843,69 @@ Parameters:
 - **onesided** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – controls whether to return half of results to avoid redundancy. (Default: `True`)
 - **norm** ([*str*](https://docs.python.org/3/library/stdtypes.html#str) *or* [*None*](https://docs.python.org/3/library/constants.html#None)*,* *optional*) – If ‘slaney’, divide the triangular mel weights by the width of the mel band (area normalization). (Default: `None`)
 - **mel_scale** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Scale to use: `htk` or `slaney`. (Default: `htk`)
+
+
+
+#### 3.torchaudio.compliance.kaldi.fbank()
+
+Create a fbank from a raw audio signal. This matches the input/output of Kaldi’s compute-fbank-feats. *总而言之用这个函数我们可以得到filterbank的特征*
+
+- Parameters
+
+  - **waveform** (*Tensor*) – Tensor of audio of size (c, n) where c is in the range [0,2)
+  - **blackman_coeff** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Constant coefficient for generalized Blackman window. (Default: `0.42`)
+  - **channel** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* *optional*) – Channel to extract (-1 -> expect mono, 0 -> left, 1 -> right) (Default: `-1`)
+  - **dither** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Dithering constant (0.0 means no dither). If you turn this off, you should set the energy_floor option, e.g. to 1.0 or 0.1 (Default: `0.0`)
+  - **energy_floor** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Floor on energy (absolute, not relative) in Spectrogram computation. Caution: this floor is applied to the zeroth component, representing the total signal energy. The floor on the individual spectrogram elements is fixed at std::numeric_limits<float>::epsilon(). (Default: `1.0`)
+  - **frame_length** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Frame length in milliseconds (Default: `25.0`)
+  - **frame_shift** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Frame shift in milliseconds (Default: `10.0`)
+  - **high_freq** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – High cutoff frequency for mel bins (if <= 0, offset from Nyquist) (Default: `0.0`)
+  - **htk_compat** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If true, put energy last. Warning: not sufficient to get HTK compatible features (need to change other parameters). (Default: `False`)
+  - **low_freq** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Low cutoff frequency for mel bins (Default: `20.0`)
+  - **min_duration** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Minimum duration of segments to process (in seconds). (Default: `0.0`)
+  - **num_mel_bins** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* *optional*) – Number of triangular mel-frequency bins (Default: `23`)
+  - **preemphasis_coefficient** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Coefficient for use in signal preemphasis (Default: `0.97`)
+  - **raw_energy** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, compute energy before preemphasis and windowing (Default: `True`)
+  - **remove_dc_offset** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – Subtract mean from waveform on each frame (Default: `True`)
+  - **round_to_power_of_two** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, round window size to power of two by zero-padding input to FFT. (Default: `True`)
+  - **sample_frequency** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Waveform data sample frequency (must match the waveform file, if specified there) (Default: `16000.0`)
+  - **snip_edges** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, end effects will be handled by outputting only frames that completely fit in the file, and the number of frames depends on the frame_length. If False, the number of frames depends only on the frame_shift, and we reflect the data at the ends. (Default: `True`)
+  - **subtract_mean** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – Subtract mean of each feature file [CMS]; not recommended to do it this way. (Default: `False`)
+  - **use_energy** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – Add an extra dimension with energy to the FBANK output. (Default: `False`)
+  - **use_log_fbank** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If true, produce log-filterbank, else produce linear. (Default: `True`)
+  - **use_power** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If true, use power, else use magnitude. (Default: `True`)
+  - **vtln_high** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – High inflection point in piecewise linear VTLN warping function (if negative, offset from high-mel-freq (Default: `-500.0`)
+  - **vtln_low** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Low inflection point in piecewise linear VTLN warping function (Default: `100.0`)
+  - **vtln_warp** ([*float*](https://docs.python.org/3/library/functions.html#float)*,* *optional*) – Vtln warp factor (only applicable if vtln_map not specified) (Default: `1.0`)
+  - **window_type** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Type of window (‘hamming’|’hanning’|’povey’|’rectangular’|’blackman’) (Default: `'povey'`)
+
+- Returns
+
+  A fbank identical to what Kaldi would output. The shape is (m, `num_mel_bins + use_energy`) where m is calculated in _get_strided
+
+- Return type
+
+  Tensor
+
+- Example:
+
+
+
+```python
+import torchaudio
+import matplotlib.pyplot as plt
+
+
+filename='/home/jiang/桌面/ast-master/egs/short_audio/data/short-audio-master/short_audio/0_1-100038-A-14.wav'
+
+waveform, sample_rate = torchaudio.load(filename)
+fbank = torchaudio.compliance.kaldi.fbank(waveform)
+print("Shape of fbank: {}".format(fbank.size()))
+
+plt.figure()
+plt.imshow(fbank.t().numpy(), cmap='gray')
+plt.show()
+```
 
 
 
@@ -5659,11 +6014,45 @@ array([[0.41919451, 0.6852195 , 0.20445225],
 
 
 
+## About matplotlib
+
+1. plot histogram by matplotlib
+
+```python
+import matplotlib.pyplot as plt
+
+import mpl_toolkits.axisartist.axislines as axislines
+
+import numpy as np
 
 
 
 
 
+listA=[10]*13+[20]*25+[30]*42+[40]*50+[50]*58+[60]*72+[70]*47+[80]*63+[90]*45+[100]*41
+
+\# An "interface" to matplotlib.axes.Axes.hist() method
+
+n, bins, patches = plt.hist(x=listA, bins=10, color='#0504aa',
+
+​                            alpha=0.7, rwidth=0.8, orientation='horizontal',histtype='barstacked')
+
+plt.grid(axis='y', alpha=0.75)
+
+plt.xticks(np.arange(0,110,10))
+
+plt.xlabel('Numbers of intervals')
+
+
+
+plt.yticks([0,10,20,30,40,50,60,70,80,90,100,110],['','40ms-140ms','140ms-240ms','240ms-340ms','340ms-440ms','440ms-540ms','540ms-640ms','640ms-740ms','740ms-840ms','840ms-940ms','940ms-inf',''])
+
+plt.ylabel('Sound length interval')
+
+
+
+plt.title('Figure 1: Interval histograms of different sound lengths at millisecond level(DatasetA)',y=-0.3)
+```
 
 
 
