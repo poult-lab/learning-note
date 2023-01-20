@@ -63,10 +63,22 @@ conda list
 conda install package
 ```
 
-#### 11.pip install a specific version, type the package name followed by the required version:
+#### 11. pip install a specific version, type the package name followed by the required version:
 
 ```bash
 pip install 'PackageName==1.4'
+```
+
+#### 12. The following command will install the packages according to the configuration file `requirements.txt`.
+
+```bash
+$ pip install -r requirements.txt
+```
+
+#### 13. NVIDIA System Management Interface program
+
+```bash
+nvidia-smi
 ```
 
 
@@ -74,12 +86,6 @@ pip install 'PackageName==1.4'
 ## Slurm Workload Manager
 
 The **Slurm Workload Manager**, formerly known as **Simple Linux Utility for Resource Management** (**SLURM**), or simply **Slurm**, is a [free and open-source](https://en.wikipedia.org/wiki/Free_and_open-source) [job scheduler](https://en.wikipedia.org/wiki/Job_scheduler) for [Linux](https://en.wikipedia.org/wiki/Linux) and [Unix-like](https://en.wikipedia.org/wiki/Unix-like) [kernels](https://en.wikipedia.org/wiki/Kernel_(operating_system)), used by many of the world's [supercomputers](https://en.wikipedia.org/wiki/Supercomputer) and [computer clusters](https://en.wikipedia.org/wiki/Computer_cluster).
-
-
-
-
-
-
 
 
 
@@ -132,38 +138,19 @@ See this example:
 **examples/shell/set-x.sh**
 
 ```bash
-#!/bin/bash -x 
-
-name="Foo"
-echo $name 
-
-set +x 
-
-age=42
-echo $age  
-
-set -x 
-
-language=Bash
-echo $language
+set -x
+a=1
+b=2
 ```
-
-
 
 and the output it generates:
 
 ```shell
-$ ./examples/shell/set-x.sh
-
-+ name=Foo
-+ echo Foo
-Foo
-+ set +x
-42
-+ language=Bash
-+ echo Bash
-Bash
++ a=1
++ b=2
 ```
+
+Hint: not will be shown if use "set +x" or doesn't use "set" command
 
 
 
@@ -371,21 +358,15 @@ Pickle in Python is primarily used in **serializing and deserializing a Python o
 import pickle
 
 f = open('data_one.pkl','wb')  # 写入一个文件，用写入二进制的格式
-
 datas = {'name':'Bruce','age':25,'high':175}  # 待写入数据
-
 data_one = pickle.dump(datas,f,-1)  #dump函数将obj数据datas导入到file文件f中
-
 f.close() #完整的f文件操作结束
 
 
 
 f = open('data_one.pkl','rb')  #打开一个data_one文件
-
 output=pickle.load(f)  #使用load的方法将数据从pkl文件中读取出来
-
 print(output)
-
 f.close()
 ```
 
@@ -848,12 +829,11 @@ This is i:  torch.Size([1, 2, 3, 4, 5, 1])
 
 
 ```python
+import h5py
+
 dir_video = "data/visual_feature.h5"
-
 dir_audio = "data/audio_feature.h5"
-
 dir_labels = "data/labels.h5"
-
 dir_order_test = "data/test_order.h5"
 
 # with h5py.File(dir_video, "r") as hf:
@@ -865,68 +845,15 @@ dir_order_test = "data/test_order.h5"
 
 
 # HDF5的读取：
-
 f = h5py.File(dir_video, "r") # 打开h5文件
 
 # 可以查看所有的主键
-
 for key in f.keys():
-
   print("This is key: ", key)
-
   # print(f[key].name)
-
   print("This is shape of dir_video: ", f[key].shape)
-
   # print(f[key].value)
 
-
-
-f = h5py.File(dir_audio, "r") # 打开h5文件
-
-# 可以查看所有的主键
-
-for key in f.keys():
-
-  print("This is key: ", key)
-
-  # print(f[key].name)
-
-  print("This is shape of dir_audio: ", f[key].shape)
-
-  # print(f[key].value)
-
-
-
-f = h5py.File(dir_labels, "r") # 打开h5文件
-
-# 可以查看所有的主键
-
-for key in f.keys():
-
-  print("This is key: ", key)
-
-  # print(f[key].name)
-
-  print("This is shape of dir_labels: ", f[key].shape)
-
-  # print(f[key].value)
-
-
-
-f = h5py.File(dir_order_test, "r") # 打开h5文件
-
-# 可以查看所有的主键
-
-for key in f.keys():
-
-  print("This is key: ", key)
-
-  # print(f[key].name)
-
-  print("This is shape of dir_order_test: ", f[key].shape)
-
-  # print(f[key].value)
 ```
 
 
@@ -1133,7 +1060,9 @@ print("when dim is -1 :",d)
 
 
 
-#### 9. about item() from pytorch
+#### 9. about item() from pytorch/ tensor.item()
+
+这个方法可以解决从tensor 转换成int
 
 文档中给了例子，说是一个元素张量可以用item得到元素值，请注意这里的print(x)和print(x.item())值是不一样的，一个是打印张量，一个是打印元素的值：
 
@@ -3700,9 +3629,9 @@ print(a.long())
 output:
 
 ```bash
-tensor([[1., 2., 3.],        [4., 5., 6.]]) 
+tensor([[1., 2., 3.], [4., 5., 6.]]) 
 ---------------
-tensor([[1, 2, 3],        [4, 5, 6]])
+tensor([[1, 2, 3], [4, 5, 6]])
 ```
 
 
@@ -3752,7 +3681,7 @@ print(f'This is the big X:{X}')
 net = MLP()
 print(net)
 print("-----------------Divider-------------")
-net(X)# 当给对象传入tensor的时候，会自动调用forword函数
+net(X)# 当给对象传入tensor的时候，会自动调用forword函数,这里面的net(X)就是forward函数的返回值
 ```
 
 output:
@@ -3895,6 +3824,157 @@ output:
 
 
 
+#### 67. torch.roll(input, shifts, dims=None) → Tensor
+
+-  input (Tensor) —— 输入张量。
+- shifts (python:int 或 tuple of python:int) —— 张量元素移位的位数。如果该参数是一个元组（例如shifts=(x,y)），dims必须是一个相同大小的元组（例如dims=(a,b)），相当于在第a维度移x位，在b维度移y位
+- dims (int 或 tuple of python:int) 确定的维度。
+
+沿给定维数滚动张量，移动到最后一个位置以外的元素将在第一个位置重新引入。如果没有指定尺寸，张量将在轧制前被压平，然后恢复到原始形状。
+
+
+>>> ```python
+>>> x = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8]).view(4, 2)
+>>> x
+>>> tensor([[1, 2],
+>>> [3, 4],
+>>> [5, 6],
+>>> [7, 8]])
+>>> '''第0维度向下移1位，多出的[7,8]补充到顶部'''
+>>> torch.roll(x, 1, 0)
+>>> tensor([[7, 8],
+>>> [1, 2],
+>>> [3, 4],
+>>> [5, 6]])
+>>> '''第0维度向上移1位，多出的[1,2]补充到底部'''
+>>> torch.roll(x, -1, 0)
+>>> tensor([[3, 4],
+>>> [5, 6],
+>>> [7, 8],
+>>> [1, 2]])
+>>> '''tuple元祖,维度一一对应：
+>>> 第0维度向下移2位，多出的[5,6][7,8]补充到顶部，
+>>> 第1维向右移1位，多出的[6,8,2,4]补充到最左边'''
+>>> torch.roll(x, shifts=(2, 1), dims=(0, 1))
+>>> tensor([[6, 5],
+>>> [8, 7],
+>>> [2, 1],
+>>> [4, 3]])
+>>> ```
+
+简单理解：shifts的值为正数相当于向下挤牙膏，挤出的牙膏又从顶部塞回牙膏里面；shifts的值为负数相当于向上挤牙膏，挤出的牙膏又从底部塞回牙膏里面
+
+
+
+#### 68. torch.save() & torch.load()
+
+##### 一、保存方式
+
+首先我们知道不论是保存模型还是参数都需要用到torch.save()。
+
+对于torch.save()有两种保存方式：
+
+只保存神经网络的训练模型的参数，save的对象是model.state_dict()；
+既保存整个神经网络的的模型结构又保存模型参数，那么save的对象就是整个模型；
+
+**Eg.** 假设我有一个训练好的模型名叫model，如何来保存参数以及结构？
+
+```python
+import torch
+
+# 保存模型步骤
+torch.save(model, 'net.pth')  # 保存整个神经网络的模型结构以及参数
+torch.save(model, 'net.pkl')  # 同上
+torch.save(model.state_dict(), 'net_params.pth')  # 只保存模型参数
+torch.save(model.state_dict(), 'net_params.pkl')  # 同上
+
+# 加载模型步骤
+model = torch.load('net.pth')  # 加载整个神经网络的模型结构以及参数
+model = torch.load('net.pkl')  # 同上
+model.load_state_dict(torch.load('net_params.pth')) # 仅加载参数
+model.load_state_dict(torch.load('net_params.pkl')) # 同上
+
+```
+
+上面例子也可以看出若使用`torch.save()`来进行模型参数的保存，那保存文件的后缀其实没有任何影响，**.pkl** 文件和 **.pth** 文件一模一样。
+
+##### 二、pkl、pth文件区别
+
+实际上，这两种格式的文件还是有区别的。
+
+###### 2.1 .pkl文件
+
+ 首先介绍 **.pkl** 文件，它若直接打开会显示一堆序列化的东西，以二进制形式存储的。如果去 **read** 这些文件，需要用`'rb'`而不是`'r'`模式。
+
+```python
+import pickle as pkl
+
+file = os.path.join('annot',model.pkl) # 打开pkl文件
+with open(file, 'rb') as anno_file:
+	result = pkl.load(anno_file)
+```
+
+or:
+
+```python
+import pickle as pkl
+
+file = os.path.join('annot',model.pkl) # 打开pkl文件
+anno_file = open(file, 'rb')
+result = pkl.load(anno_file)
+```
+
+###### 2.2 .pth文件
+
+```python
+import torch
+
+filename = r'E:\anaconda\model.pth' # 字符串前面加r，表示的意思是禁止字符串转义
+model = torch.load(filename)
+print(model)
+
+```
+
+但其实不管pkl文件还是pth文件，都是以二进制形式存储的，没有本质上的区别，你用pickle这个库去加载pkl文件或pth文件，效果都是一样的。
+
+
+
+#### 69. torch.set_printoptions
+
+printing all the contents of a tensor.
+
+```python
+torch.set_printoptions(threshold=np.inf)
+```
+
+
+
+#### 70.torch.empty().random_()
+
+Example:
+
+其中如果函数有下标“_”这个表示时[Tensor](https://so.csdn.net/so/search?q=Tensor&spm=1001.2101.3001.7020)里的内建函数，其中产生一个0到1的整数值来随机初始化y
+
+```python
+import torch
+
+# 将y取0或1
+y = torch.empty(3).random_(2)
+print(y)
+```
+
+output:
+
+```bash
+tensor([1., 1., 2.])
+```
+
+
+
+#### 71. torch.nn.CrossEntropyLoss
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -3971,6 +4051,8 @@ Downloading: "https://github.com/rwightman/pytorch-image-models/releases/downloa
 
 
 #### 2. timm.models.layers.to_2tuple,to_3tuple
+
+这两个内置函数的作用是将输入转为元组(tuple)
 
 ```python
 from timm.models.layers import to_2tuple,to_3tuple  # 导入
@@ -4617,6 +4699,8 @@ print "PI=%*.*f" % (06,3,math.pi)   # output: PI=_3.142
 
 #### 6. split()
 
+Split a string into a list where each word is a list item
+
 split()：拆分字符串。通过指定分隔符对字符串进行切片，并返回分割后的字符串列表（list）
 os.path.split()：按照路径将文件名和路径分割开
 
@@ -4643,10 +4727,7 @@ print("The dataset contains %d samples" % (len(dataset)))
 
 f.close()
 
-
-
 data = dataset[test_order[0]]
-
 x = data.split("&")
 
 print("This is x1:", x[1])
@@ -4904,7 +4985,7 @@ output:
 
 
 
-#### 12.try ... excapt ... finally
+#### 12.try ... except ... finally
 
 在编码中难免会遇到各种各样的问题，尤其是在对数据进行处理的时候会因为数据的各种问题而抛出异常，如果将数据舍弃太可以，所以数据都过一遍逻辑又太费时间。如果只是对出错的部分进行处理的话会很好的解决问题。
 
@@ -5477,6 +5558,8 @@ zero("-2")  #但是如果a是小于0的，程序会抛出AssertionError错误，
 
 ##### 获取tensor中一共包含多少个元素
 
+numel就是"number of elements"的简写。numel()可以直接返回**int类型的元素个数**
+
 ```python
 import` `torch``
 x ``=` `torch.randn(``3``,``3``)``
@@ -5585,6 +5668,8 @@ sum(iterable[, start])
 
 #### 29. for in if (遍历加判断)
 
+先遍历再判断, 最后提取.
+
 ```python
 int_list=[1,2,3,4,5,6]
 # return sum(p.numel() for p in module.parameters() if p.requires_grad)
@@ -5595,6 +5680,185 @@ output:
 
 ```bash
 15
+```
+
+
+
+#### 30. "/" &"//"
+
+/ 是除法
+python语法中， / 是除法，
+例如：2/3 = 0.6666。
+/ 返回的是浮点类型的结果
+
+//表示向下取整的除法
+python语法中, //是表示向下取整的除法，
+例如3//2=1，6.0//4 = 1。
+// 返回的是整数结果(可以理解为/的整数部分)。
+
+//等价于int函数
+int()函数就是将一个要取整的数向下取整为最接近的整数
+
+
+
+#### 31. Convert string to list
+
+```python
+# Python code to convert string to list
+
+
+def Convert(string):
+ li = list(string.split(" "))
+ return li
+
+
+# Driver code
+
+str1 = "Geeks for Geeks"
+print(Convert(str1))
+```
+
+output:
+
+```bash
+['Geeks', 'for', 'Geeks']
+```
+
+
+
+#### 32. Remove Specified Index from list
+
+```python
+thislist = ["apple", "banana", "cherry"]
+thislist.pop(1)
+print(thislist)
+```
+
+output:
+
+```bash
+['apple', 'cherry']
+```
+
+
+
+#### 33. file.readlines()
+
+The `readlines()` method returns a list containing each line in the file as a list item.
+
+Use the hint parameter to limit the number of lines returned. If the total number of bytes returned exceeds the specified number, no more lines are returned.
+
+Running uses a lot computer memory 
+
+```python
+*file*.readlines(*hint*)
+```
+
+
+
+```python
+with open('./data/speech_commands_v0.02/train_list_1.txt', 'r') as f:
+	filelist = f.readlines()
+
+print(filelist) #the output is a list 
+```
+
+
+
+output:
+
+```bash
+['one/333784b7_nohash_2.wav\n', 'one/a04817c2_nohash_2.wav\n', 'one/fb7c9b3b_nohash_1.wav\n', 'one/fb8c31a9_nohash_2.wav\n', 'one/cc1e9101_nohash_0.wav\n', 'one/fe31cb13_nohash_0.wav\n', 'one/c1b7c224_nohash_0.wav\n', 'one/890cc926_nohash_3.wav\n', 'one/bbbf4fbd_nohash_1.wav\n', 'one/5fe4a278_nohash_0.wav\n', 'one/61ab8fbc_nohash_1.wav\n', 'one/6c429c7b_nohash_0.wav\n', 'one/ec5ab5d5_nohash_0.wav\n', 'one/7fb8d703_nohash_4.wav\n', 'one/616420be_nohash_0.wav\n', 'one/39833acb_nohash_1.wav\n', 'one/b0ae6326_nohash_3.wav\n', 'one/6ace4fe1_nohash_1.wav\n', 'one/b5552931_nohash_4.wav\n', 'one/a243fcc2_nohash_1.wav\n', 'one/195c120a_nohash_1.wav\n', 'one/cd7f8c1b_nohash_3.wav\n', 'one/3b3d2f59_nohash_1.wav\n', 'one/de3fe344_nohash_3.wav\n', 'one/5c39594f_nohash_1.wav\n']
+```
+
+
+
+#### 34. file.read()
+
+Running uses less computer memory 
+
+```python
+with open('train_list_1.txt') as f:
+    test_list = f.read()	
+    
+print(test_list)# the outputs are string, meanwhile, the last element is empty
+```
+
+
+
+output:
+
+```bash
+one/333784b7_nohash_2.wav 
+one/a04817c2_nohash_2.wav 
+one/fb7c9b3b_nohash_1.wav 
+one/fb8c31a9_nohash_2.wav 
+one/cc1e9101_nohash_0.wav 
+one/fe31cb13_nohash_0.wav 
+one/c1b7c224_nohash_0.wav 
+one/890cc926_nohash_3.wav 
+one/bbbf4fbd_nohash_1.wav 
+one/5fe4a278_nohash_0.wav 
+one/61ab8fbc_nohash_1.wav 
+one/6c429c7b_nohash_0.wav 
+one/ec5ab5d5_nohash_0.wav 
+one/7fb8d703_nohash_4.wav 
+one/616420be_nohash_0.wav 
+one/39833acb_nohash_1.wav 
+one/b0ae6326_nohash_3.wav 
+one/6ace4fe1_nohash_1.wav 
+one/b5552931_nohash_4.wav 
+one/a243fcc2_nohash_1.wav 
+one/195c120a_nohash_1.wav 
+one/cd7f8c1b_nohash_3.wav 
+one/3b3d2f59_nohash_1.wav 
+one/de3fe344_nohash_3.wav 
+one/5c39594f_nohash_1.wav 
+
+---------------------------
+```
+
+
+
+#### 35. dictionary.items()
+
+```python
+label_dictionary={"beater": "bea","cooking":"coo","cupboard/wardrobe": "cup","dishwasher":"dis","door":"doo",
+"drawer":"dra","furniture movement":"fur","microwave":"mic","object falling":"obj","smoke extractor":"smo","speech":"spe",
+"switch":"swi","television":"tel","vacuum cleaner":"vac","walking":"wal","washing machine":"was",
+"water tap":"wat","window":"win"}
+
+print(label_dictionary.items())
+```
+
+
+
+output:
+
+```
+dict_items([('beater', 'bea'), ('cooking', 'coo'), ('cupboard/wardrobe', 'cup'), ('dishwasher', 'dis'), ('door', 'doo'), ('drawer', 'dra'), ('furniture movement', 'fur'), ('microwave', 'mic'), ('object falling', 'obj'), ('smoke extractor', 'smo'), ('speech', 'spe'), ('switch', 'swi'), ('television', 'tel'), ('vacuum cleaner', 'vac'), ('walking', 'wal'), ('washing machine', 'was'), ('water tap', 'wat'), ('window', 'win')])
+```
+
+
+
+#### 36. how to enumerate a dictionary **through both keys and values**
+
+
+
+```python
+example_dict = {1:'a', 2:'b', 3:'c', 4:'d'}
+
+for index, (key, value) in enumerate(example_dict.items()):
+    print(index, key, value)
+```
+
+output:
+
+```py
+0 1 a
+1 2 b
+2 3 c
+3 4 d
 ```
 
 
@@ -6673,6 +6937,129 @@ Cosine values :
 
 
 
+#### 10. np.set_printoptions(linewidth=300)
+
+调整numpy输出的宽度
+
+```python
+import numpy as np
+
+np.set_printoptions(linewidth=300)
+```
+
+
+
+#### 11. numpy.ndarray.T
+
+View of the transposed array.
+
+```python
+a = np.array([[1, 2], [3, 4]])
+>>> a
+array([[1, 2],
+       [3, 4]])
+>>> a.T
+array([[1, 3],
+       [2, 4]])
+```
+
+
+
+#### 12. numpy.squeeze()
+
+**`numpy.squeeze()`** function is used when we want to remove single-dimensional entries from the shape of an array.
+
+```python
+import numpy as np
+
+in_arr = np.array([[[2, 2, 2], [2, 2, 2]]])
+
+print ("Input array : ", in_arr) 
+print("Shape of input array : ", in_arr.shape)  
+
+out_arr = np.squeeze(in_arr) 
+
+print ("output squeezed array : ", out_arr)
+print("Shape of output array : ", out_arr.shape)
+```
+
+
+
+```
+Input array :  [[[2 2 2]  [2 2 2]]] 
+Shape of input array :  (1, 2, 3) 
+output squeezed array :  [[2 2 2] [2 2 2]] 
+Shape of output array :  (2, 3)
+```
+
+
+
+#### 13. numpy.random.rand()
+
+Create an array of the given shape and **populate** it with random samples from a uniform distribution over `[0, 1)`.
+
+```python
+np.random.rand(3,2)
+array([[ 0.14022471,  0.96360618],  #random
+       [ 0.37601032,  0.25528411],  #random
+       [ 0.49313049,  0.94909878]]) #random
+```
+
+
+
+#### 14. softmax function
+
+To do softmax for each column
+
+```python
+import numpy as np
+
+def softmax(Z):
+​    A = np.exp(Z) / sum(np.exp(Z))
+​    return A
+
+print(softmax([[1,2,3,4,5,6],[2,3,4,5,5,6]]))
+```
+
+
+
+output:
+
+```
+[[0.26894142 0.26894142 0.26894142 0.26894142 0.5        0.5       ] 
+
+[0.73105858 0.73105858 0.73105858 0.73105858 0.5        0.5       ]]
+```
+
+
+
+#### 15. numpy.array.dot()
+
+matrix multiplication [ˈmeɪtrɪks ˌmʌltɪplɪˈkeɪʃn] 
+
+![matrix-multiply-ex1b](/home/jiang/桌面/About Python and some image algorithm/pictures source/matrix-multiply-ex1b.svg)
+
+
+
+```python
+import numpy as np
+
+a=np.array([[2,3,4],[6,5,7]])
+b=np.array([[3,4,6,9],[2,5,6,5],[7,7,8,4]])
+answer=a.dot(b)
+
+print(answer)
+```
+
+output:
+
+```
+[[ 40  51  62  49] 
+[ 77  98 122 107]]
+```
+
+
+
 
 
 ## About sklearn
@@ -6823,6 +7210,31 @@ output
 
 
 
+#### 5. np.isnan
+
+
+
+```python
+import numpy as np
+
+print("NaN value  - : ", np.isnan(933), "n")  # Scalar Values
+print("NaN value  - : ", np.isnan(444), "n")
+print("NaN value  - : ", np.isnan(np.inf), "n")  
+# checking for infinity value
+print("NaN value  - : ", np.isnan(np.NINF), "n")
+print("NaN value  - : ", np.isnan(np.nan))  # Checking for nan values
+```
+
+output:
+
+```bash
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  True
+```
+
 
 
 ## About os
@@ -6958,6 +7370,155 @@ Path20 =  develop/home/
 
 
 
+#### 3. os.path.dirname
+
+语法：os.path.dirname(path)
+功能：去掉文件名，返回目录
+
+```python
+print(os.path.dirname("E:/Read_File/read_yaml.py"))
+```
+
+output:
+
+```bash
+E:/Read_File
+```
+
+Another example:
+
+这里可以看出多次使用.dirname 会多次返回到文件的上一级
+
+```python
+import sys
+import os
+basepath = os.path.dirname(os.path.dirname(sys.path[0]))
+
+print(os.path.dirname(sys.path[0]))
+print(basepath)
+print(os.path.dirname(basepath))
+```
+
+output:
+
+```bash
+/media/jiang/Vdataset/ast-master 
+/media/jiang/Vdataset 
+/media/jiang
+```
+
+
+
+关于
+
+```python
+os.path.dirname(__file__)
+print(__file__)
+#结果
+E:/Read_File/read_yaml.py
+```
+
+
+
+可以看出__file__表示了当前文件的path
+
+那么就可以了解到os.path.dirname((__file__)和os.path.dirname(“E:/Read_File/read_yaml.py”)是一个意思
+再根据os.path.dirname(path)的用法，得出os.path.dirname((__file__)就是得到当前文件的绝对路径
+
+```python
+print(os.path.dirname(__file__))
+#结果：
+E:/Read_File
+```
+
+扩展
+若print os.path.dirname(file)所在脚本是以绝对路径运行的，则会输出该脚本所在的绝对路径，若以相对路径运行，输出空目录
+
+#### 4. os.getpaid()
+
+Python中的method用于获取当前进程的进程ID。
+
+```python
+print("I am process %s, running on %s: starting (%s)" % (os.getpid(), os.uname()[1], time.asctime()))
+```
+
+output:
+
+```bash
+I am process 29041, running on jiang-B460MDS3HV2: starting (Tue Aug  2 10:20:27 2022)
+```
+
+
+
+#### 5. os.uname
+
+返回值
+
+\- 操作系统识别信息
+
+- **sysname** - 操作系统名。
+- **nodename** - 机器在网络上的名称（需要先设定）。
+- **release** - 操作系统发行信息。
+- **version** - 操作系统版本信息。
+- **machine** - 硬件标识符。
+
+
+
+## About sys
+
+#### 1. sys.path[0]
+
+存放需要运行代码所在的路径
+
+```python
+import sys
+print("\n".join(sys.path))
+```
+
+output:
+
+```bash
+/media/jiang/Vdataset/ast-master/src/utilities
+```
+
+#### 2. sys.path.append(os.pardir)
+
+```python
+#该函数文件为mnist_show.py
+import sys, os
+sys.path.append(os.pardir)#为导入父目录重的文件而作的设定
+#pardir代表parent directory
+from dataset.mnist import load_mnist
+#load_mnist为dataset文件下的mnist.py中的函数
+```
+
+mnist_show.py文件的当前工作目录为ch03，但是load_mnist（）函数的mnist.py文件在dataset目录下。因此，mnist_show.py文件不可以跨文件直接导入mnist.py文件。sys.path.append(os.pardir)语句实际上是把父目录deep-learning-from-scatch加入到sys.path（Python 的搜索目录模块的路径集中），从而可以导入deep-learning-from-scatch下的任何目录(包括dataset目录)中的任何文件。
+![sys.path.append](/home/jiang/桌面/About Python and some image algorithm/pictures source/sys.path.append.png)
+
+
+
+## import time
+
+#### 1.  time.asctime()
+
+返回当地时间
+
+```python
+import time
+
+print(time.asctime())
+```
+
+output:
+
+```bash
+Tue Aug  2 11:33:21 2022
+```
+
+
+
+
+
 ## About json
 
 1、json.dumps()：将dict数据类型转成str
@@ -6997,30 +7558,6 @@ with open(filename) as f_json:
     numbers2 = json.load(f_json)
 print(numbers2)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -7099,6 +7636,10 @@ tensor：可选的现有tensor包装到“Input”层。如果设置该参数，
 ## About pydud
 
 #### 1.截取音频文件
+
+AudioSegment.from_mp3()
+
+Or AudioSegment.from_file(para, format='flac')
 
 ```python
 from pydub import AudioSegment
@@ -7374,7 +7915,7 @@ Parameters:
 
 ```python
 spectrogram = torchaudio.transforms.Spectrogram()
-masking = torchaudio.transforms.FrequencyMasking(freq_mask_param=80)
+masking = torchaudio.transforms.TimeMasking(freq_mask_param=80)
 
 original = spectrogram(waveform)
 masked = masking(original)
@@ -7382,7 +7923,7 @@ masked = masking(original)
 
 ![](/home/jiang/桌面/About Python and some image algorithm/pictures source/specaugment_time_masking2.png)
 
-
+***Hint: 关于如何使用的具体代码可以参考官方代码*** 
 
 #### 6. torchaudio.transforms.MelSpectrogram()(waveform)
 
@@ -7390,25 +7931,16 @@ masked = masking(original)
 
 ```python
 import torchaudio
-
 import matplotlib.pyplot as plt
 
-
-
 filename="./data/short-audio-master/short_audio/0_1-977-A-39.wav"
-
 waveform, sample_rate = torchaudio.load(filename)
-
 specgram = torchaudio.transforms.MelSpectrogram()(waveform)
-
-
 
 print("Shape of spectrogram: {}".format(specgram.size()))
 
 
-
 plt.figure()
-
 p = plt.imshow(specgram.log2()[0,:,:].detach().numpy())
 ```
 
@@ -7551,7 +8083,26 @@ plt.title('Figure 1: Interval histograms of different sound lengths at milliseco
 
 
 
-2.
+#### 2. How to Adjust Line Thickness in Matplotlib
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+#define x and y values
+x = np.linspace(0, 10, 100)
+y1 = np.sin(x)*np.exp(-x/3)
+
+#create line plot with line width set to 3
+plt.plot(x, y1, linewidth=3)
+
+#display plot
+plt.show()
+```
+
+
+
+
 
 
 
@@ -7624,5 +8175,122 @@ print(df)
 
 
 
+#### 4. how to read csv file line by line
 
+```python
+import pandas as pd
+
+df = pd.read_csv("short_indoor_duration.csv")
+
+for i in range(len(df['filename'])):
+    print(df['filename'][i])
+```
+
+
+
+output:
+
+```
+bea_001_00_00_0.flac--0.wav bea_001_00_00_0.flac--1.wav bea_001_00_00_0.flac--2.wav bea_002_00_00_0.flac--0.wav bea_002_00_00_0.flac--1.wav bea_004_00_00_0.flac--0.wav bea_004_00_00_0.flac--1.wav bea_005_00_00_0.flac--0.wav bea_005_00_00_0.flac--1.wav bea_005_00_00_0.flac--2.wav bea_006_00_00_0.flac--1.wav bea_006_00_00_0.flac--3.wav bea_007_00_00_0.flac--1.wav bea_008_00_00_0.flac--0.wav bea_010_00_00_0.flac--0.wav bea_011_00_00_0.flac--0.wav bea_013_00_00_0.flac--0.wav bea_014_00_00_0.flac--0.wav bea_015_00_00_0.flac--0.wav bea_015_00_00_0.flac--1.wav bea_018_00_00_0.flac--0.wav bea_019_00_00_0.flac--0.wav bea_019_00_00_0.flac--1.wav bea_019_00_00_0.flac--2.wav bea_019_00_00_0.flac--3.wav
+
+...
+
+win_102_01_02_0.flac--1.wav win_103_02_02_0.flac--0.wav win_103_02_02_0.flac--1.wav win_104_01_02_0.flac--0.wav
+```
+
+
+
+## About util.AverageMeter()
+
+AverageMeter可以记录当前的输出，累加到某个变量之中，然后根据需要可以打印出历史上的平均
+这个class是一种常用的工具
+
+```python
+class AverageMeter(object):
+    def __init__(self):
+        self.reset()
+    def is_empty(self):
+        return self.cnt == 0
+    def reset(self):
+        self.avg = 0.
+        self.sum = 0.
+        self.cnt = 0
+    def update(self, val, n=1):
+        self.sum += val*n
+        self.cnt += n
+        self.avg = self.sum / self.cnt
+```
+
+这样在调用的时候，可以先声明
+
+```python
+obj = AverageMeter()
+```
+
+需要将所有变量清零的时候，调用
+
+```python
+obj.reset()
+```
+
+然后需要更新某个变量的时候
+
+```python
+obj.update(x)
+```
+
+这样的话比如想要求平均，就可以直接用
+
+```python
+obj.avg
+```
+
+
+
+example:
+
+```python
+from util import*
+
+losses = AverageMeter()
+loss_list = [0.5,0.4,0.5,0.6,1]
+batch_size = 1
+for los in loss_list:
+​    losses.update(los)
+​    print(losses.avg)
+
+print("--------------------------")
+print(losses.avg)
+losses.reset()
+print(losses.avg)
+
+```
+
+output:
+
+```bash
+0.5 
+0.45 
+0.4666666666666666 
+0.5 
+0.6 
+--------------------------
+0.6 
+0
+```
+
+
+
+## import math
+
+#### 1. math.log()
+
+这个函数的底数为e.
+
+```python
+import math 
+
+print(math.log(5))
+# 1.6094379124341003
+```
 
