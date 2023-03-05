@@ -678,7 +678,9 @@ bar()
 
 
 
-#### 2. About backward() from pytorch 
+#### 2. About backward() & backward(parameter) and grad() from PyTorch 
+
+grad can be implicitly created only for scalar outputs
 
 ```python
 import torch as t
@@ -695,8 +697,6 @@ out.backward(retain_graph=True) # 这里可以不带参数，默认值为‘1’
 print(a.grad) # tensor([15., 18.])
 print("This is b.grad: \n", b.requires_grad)
 ```
-
-
 
 output:
 
@@ -715,6 +715,54 @@ This is b.grad:
 手动求导结果：
 
 ![2](/home/jiang/桌面/About Python and some image algorithm/pictures source/2.png)
+
+#### Below is for the grad()
+
+pytorch中只有`torch.float`和`复杂类型`才能有grad
+
+```python
+x = torch.tensor([1, 2, 3, 4], requires_grad=True)
+```
+
+这里没有指定`x`的`dtype=torch.float`，那么是会报错的。
+RuntimeError: Only Tensors of floating point and complex dtype can require gradients.
+
+```python
+x = torch.tensor(data=[1, 2, 3, 4], dtype=torch.float)
+```
+
+below is for the parameter from backward()
+
+```python
+from torch.autograd import Variable
+import torch
+
+# 创建一个torch.Size([2, 3])的tensor
+
+x_tensor = torch.randn(2, 3)
+print(x_tensor)
+
+# 将tensor封装成Variable类型，用于计算梯度，这里的requires_grad要设置为True
+
+x = Variable(x_tensor, requires_grad=True)
+
+y = 3 * x ** 2 + 1
+
+print(y.type())  # torch.FloatTensor
+print(y.grad_fn)  # <AddBackward0 object at 0x0000021679AB9700>
+
+# 梯度参数grad_variables形状必须与Variable一致
+
+grad_variables = torch.FloatTensor([[1, 2, 3],
+                                    [1, 1, 1]])
+
+# 求函数y对x的梯度，这里需要输入参数，否则会报错grad can be implicitly created only for scalar outputs
+
+y.backward(grad_variables)
+print(x.grad)  # 得到x的梯度
+```
+
+
 
 #### 3. About torch.squeeze() & torch.unsqueeze()
 
@@ -2471,6 +2519,8 @@ transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))解释：
 (1-0.5)/0.5=1
 其他数值同理操作，即映射到[-1,1]
 
+
+
 #### 37. python __getitem__ ()
 
 __getitem__() is a magic method in Python, which when used in a class, **allows its instances to use the [] (indexer) operators**. 
@@ -2912,104 +2962,66 @@ a=a.numpy()
 
 
 
-#### 47. torch.flatten()与torch.nn.Flatten()
+#### 47. tensor.grad.zero_()
 
- [torch](https://so.csdn.net/so/search?q=torch&spm=1001.2101.3001.7020).flatten(x)等于torch.flatten(x，0)默认将张量拉成一维的向量，也就是说从第一维开始平坦化，torch.flatten(x，1)代表从第二维开始平坦化。
+可以看到，每次反向传播求梯度时，都会加上上一次的梯度，但是没有改变`W`和`X`，梯度也不应该变化.
 
 ```python
-import torch
-x=torch.randn(2,4,2)
-print(x)
-
-z=torch.flatten(x)
-print(z)
-
-w=torch.flatten(x,1)
-print(w)
-
-输出为：
-tensor([[[-0.9814,  0.8251],
-         [ 0.8197, -1.0426],
-         [-0.8185, -1.3367],
-         [-0.6293,  0.6714]],
-
-        [[-0.5973, -0.0944],
-         [ 0.3720,  0.0672],
-         [ 0.2681,  1.8025],
-         [-0.0606,  0.4855]]])
-
-tensor([-0.9814,  0.8251,  0.8197, -1.0426, -0.8185, -1.3367, -0.6293,  0.6714,
-        -0.5973, -0.0944,  0.3720,  0.0672,  0.2681,  1.8025, -0.0606,  0.4855])
-
-tensor([[-0.9814,  0.8251,  0.8197, -1.0426, -0.8185, -1.3367, -0.6293,  0.6714]
-,
-        [-0.5973, -0.0944,  0.3720,  0.0672,  0.2681,  1.8025, -0.0606,  0.4855]
-])
-
+torch.tensor.grad.zero_()
 
 ```
 
- torch.flatten(x,0,1)代表在第一维和第二维之间平坦化
-
 ```python
 import torch
-x=torch.randn(2,4,2)
-print(x)
- 
-w=torch.flatten(x,0,1) #第一维长度2，第二维长度为4，平坦化后长度为2*4
-print(w.shape)
- 
-print(w)
- 
-输出为：
-tensor([[[-0.5523, -0.1132],
-         [-2.2659, -0.0316],
-         [ 0.1372, -0.8486],
-         [-0.3593, -0.2622]],
- 
-        [[-0.9130,  1.0038],
-         [-0.3996,  0.4934],
-         [ 1.7269,  0.8215],
-         [ 0.1207, -0.9590]]])
- 
-torch.Size([8, 2])
- 
-tensor([[-0.5523, -0.1132],
-        [-2.2659, -0.0316],
-        [ 0.1372, -0.8486],
-        [-0.3593, -0.2622],
-        [-0.9130,  1.0038],
-        [-0.3996,  0.4934],
-        [ 1.7269,  0.8215],
-        [ 0.1207, -0.9590]])
- 
-```
 
-对于torch.nn.Flatten()，因为其被用在神经网络中，输入为一批数据，第一维为batch，通常要把一个数据拉成一维，而不是将一批数据拉为一维。所以torch.nn.Flatten()默认从第二维开始平坦化。
+X = torch.tensor([[1.5],[3.7],[2.8],[6.4]], requires_grad=True, dtype=torch.float)
+W = torch.tensor(data=[[1, 3, -2, 4]], requires_grad=True, dtype=torch.float)
+Y = W.matmul(X)
+Y.backward(retain_graph=True)  # 保持计算图
+print(X.grad)
 
-```python
-import torch
-#随机32个通道为1的5*5的图
-x=torch.randn(32,1,5,5)
+Y.backward(retain_graph=True)
+print(X.grad)
 
-model=torch.nn.Sequential(
-    #输入通道为1，输出通道为6，3*3的卷积核，步长为1，padding=1
-    torch.nn.Conv2d(1,6,3,1,1),
-    torch.nn.Flatten()
-)
-output=model(x)
-print(output.shape)  # 6*（7-3+1）*（7-3+1）
+Y.backward(retain_graph=True)
+print(X.grad)
 
-输出为：
+X.grad.zero_()
+print(X.grad)
 
-torch.Size([32, 150])
+Y.backward()
+print(X.grad)
 ```
 
 
 
 #### 48. optimizer.zero_grad()
 
-![](/home/jiang/桌面/About Python and some image algorithm/pictures source/zero_grad.webp)
+
+
+**1. zero_grad（）函数的应用：**
+
+  在pytorch中做随机梯度下降时往往会用到zero_grad（）函数，相关代码如下。
+
+​               optimizer.zero_grad()                       # 将模型的参数梯度初始化为0
+
+​               outputs=model（inputs）              # 前向传播计算预测值
+
+​               loss = cost(outputs, y_train)           # 计算当前损失
+
+​               loss.backward()                               # 反向传播计算梯度
+
+​               optimizer.step()                               # 更新所有参数   
+
+
+
+**2. zero_grad（）函数的作用：**
+
+  根据pytorch中backward（）函数的计算，当网络参量进行反馈时，梯度是累积计算而不是被替换，但在处理每一个batch时并不需要与其他batch的梯度混合起来累积计算，因此需要对每个batch调用一遍zero_grad（）将参数梯度置0.
+
+  另外，如果不是处理每个batch清除一次梯度，而是两次或多次再清除一次，相当于提高了batch_size，对硬件要求更高，更适用于需要更高batch_size的情况。
+
+
 
 #### 49. about with torch.no_grad()
 
@@ -3949,7 +3961,7 @@ torch.set_printoptions(threshold=np.inf)
 
 
 
-#### 70.torch.empty().random_()
+#### 70. torch.empty().random_() & torch.empty()
 
 Example:
 
@@ -3966,14 +3978,355 @@ print(y)
 output:
 
 ```bash
-tensor([1., 1., 2.])
+tensor([1., 1., 0.])
 ```
+
+**below is the part w.r.t torch.empty()**
+
+just generating random data, the shape of the tensor is defined by the variable argument `size` which the argument from empty().
+
+```python
+import torch
+
+y=torch.empty(3)
+print(y)
+```
+
+Hint: ***Quick Answer:\*** torch.empty() creates tensor with any data type you want, torch.Tensor() only creates tensors of type torch.FloatTensor. So torch.Tensor() is a special case of torch.empty()
+
+output:
+
+```
+tensor([-3.3491e+38,  3.0929e-41, -3.0275e+38])
+```
+
+
 
 
 
 #### 71. torch.nn.CrossEntropyLoss
 
+The base is e.
 
+```python
+import torch.nn as nn
+
+
+\# Example of target with class indices
+m = nn.Softmax(dim=1)
+loss = nn.CrossEntropyLoss()
+input = torch.randn(3, 5, requires_grad=True)
+print(f"This is the input: {input}")
+softmax_input=m(input)
+print(f"This is the softmax_input: {softmax_input}")
+target = torch.empty(3, dtype=torch.long).random_(5)
+print(f"This is the target: {target}")
+output = loss(input, target)
+print(f"This is the output: {output}")
+```
+
+output:
+
+```
+This is the input: tensor([[ 0.5131,  0.0736,  0.9282, -0.7914,  0.9528],        [ 1.5885,  0.1021,  0.0685,  0.2574,  3.1932],        [ 0.0475, -0.6753, -0.6322,  0.5781, -0.2402]], requires_grad=True) This is the softmax_input: tensor([[0.2007, 0.1293, 0.3040, 0.0545, 0.3115],        [0.1496, 0.0338, 0.0327, 0.0395, 0.7443],        [0.2251, 0.1093, 0.1141, 0.3827, 0.1688]], grad_fn=<SoftmaxBackward0>) This is the target: tensor([1, 4, 3]) 
+
+This is the output: 1.1003996133804321
+```
+
+
+
+#### 72.torchvision.datasets.MNIST()
+
+*CLASS*torchvision.datasets.MNIST(*root: [str](https://docs.python.org/3/library/stdtypes.html#str)*, *train: [bool](https://docs.python.org/3/library/functions.html#bool) = True*, *transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *target_transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *download: [bool](https://docs.python.org/3/library/functions.html#bool) = False*)
+
+- **root** (*string*) – Root directory of dataset where `MNIST/raw/train-images-idx3-ubyte` and `MNIST/raw/t10k-images-idx3-ubyte` exist.
+- **train** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, creates dataset from `train-images-idx3-ubyte`, otherwise from `t10k-images-idx3-ubyte`.
+- **download** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, downloads the dataset from the internet and puts it in root directory. If dataset is already downloaded, it is not downloaded again.
+- **transform** (*callable**,* *optional*) – A function/transform that takes in an PIL image and returns a transformed version. E.g, `transforms.RandomCrop`
+- **target_transform** (*callable**,* *optional*) – A function/transform that takes in the target and transforms it.
+
+example:
+
+```python
+from torchvision.datasets.mnist import MNIST
+
+transform = ToTensor()
+train_set = MNIST(root='./datasets', train=True, download=True, transform=transform)
+test_set = MNIST(root='./datasets', train=False, download=True, transform=transform)
+```
+
+result:
+
+```
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz to [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz)
+
+9913344it [00:00, 10329470.32it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
+
+Extracting [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz)
+
+29696it [00:00, 7895660.96it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
+
+Extracting [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+
+
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz to [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz)
+
+1649664it [00:00, 5373946.30it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
+
+Extracting [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz)
+
+5120it [00:00, 9946658.86it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
+
+Extracting [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw)
+```
+
+
+
+#### 73. checking whether the cuda is available
+
+```python
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+print("Using device: ", device, f"({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else "")
+```
+
+
+
+output:
+
+```
+Using device:  cuda (NVIDIA GeForce RTX 3060)
+```
+
+
+
+#### 74. torch.nn.Linear()
+
+below is only one layer, the neuron is 30. input has 128 data.
+
+```python
+import torch
+from torch import nn
+
+m = nn.Linear(20, 30)
+input = torch.randn(128, 20)
+print(input)
+print("------------------------")
+output = m(input)
+print(output.size())
+print(output)
+```
+
+output:
+
+```
+tensor([[-0.9771,  0.4335,  1.3242,  ..., -0.9972, -0.2351, -0.2201],        [ 0.6695,  0.1226,  0.6321,  ...,  0.8133,  1.9768, -1.0225],        [ 0.3623,  1.2667,  0.5457,  ...,  2.1877,  0.8420,  0.2036],        ...,        [ 0.6800,  0.4596, -0.0223,  ...,  0.1837, -0.2930, -1.5673],        [-0.0384,  1.2227,  0.2207,  ..., -0.3101, -0.1785,  0.6022],        [-0.1680,  0.7853, -0.8171,  ..., -0.6361,  0.7153,  0.7602]]) 
+------------------------
+torch.Size([128, 30]) 
+tensor([[-0.2589, -0.0821, -0.1593,  ...,  0.4066, -0.4171, -0.4257],        [ 0.5849, -0.5448,  0.2569,  ...,  0.2027,  1.0030, -0.6241],        [-0.3641,  0.0504,  0.3085,  ...,  0.0112, -0.3904,  0.6075],        ...,        [-0.8970, -0.6790,  0.7113,  ..., -0.5090, -0.0185,  0.4327],        [-0.1577,  0.6159,  0.4980,  ...,  0.3427,  0.4944, -0.9509],        [ 0.7158,  0.6687, -0.2940,  ...,  1.5808, -0.6037, -0.0396]],       grad_fn=<AddmmBackward0>)
+```
+
+
+
+#### 75. torch.nn.ReLU()
+
+Applies the rectified linear unit function element-wise:
+
+```python
+import torch
+from torch import nn
+
+m = nn.ReLU()
+input = torch.randn(6)
+print(input)
+print("-------------------")
+output = m(input)
+print(output)
+```
+
+output:
+
+```
+tensor([ 0.4323, -0.1210, -0.3644,  0.0493,  1.2092,  0.7658]) 
+-------------------
+tensor([0.4323, 0.0000, 0.0000, 0.0493, 1.2092, 0.7658])
+```
+
+
+
+#### 76. torch.nn.sequential()
+
+A sequential container. Modules will be added to it in the order they are passed in the constructor. 
+
+We assume here is 10 categories, and the input has 128 data.
+
+```python
+import torch
+from torch import nn
+
+model= nn.Sequential(
+​            nn.Linear(20, 30),
+​            nn.ReLU(),
+​            nn.Linear(30, 10)
+​        )
+input = torch.randn(128, 20)
+output=model(input)
+print(output.size())
+```
+
+
+
+#### 77. tensor.norm()
+
+1-范数：║x║1=│x1│+│x2│+…+│xn│
+
+2-范数：║x║2=（│x1│2+│x2│2+…+│xn│2）1/2
+
+∞-范数：║x║∞=max（│x1│，│x2│，…，│xn│）
+
+```python
+import torch
+import torch.nn as nn
+
+x = torch.tensor([2, 3, 4], dtype=torch.float, requires_grad=True)
+print(x.norm())
+```
+
+output:
+
+```
+tensor(5.3852, grad_fn=<CopyBackwards>)
+```
+
+
+
+#### 78. torch.zeros_like()&torch.ones_like()
+
+Returns a tensor filled with the scalar value 0, with the same size as `input`.
+
+Returns a tensor filled with the scalar value 1, with the same size as `input`.
+
+```python
+import torch
+
+input=torch.randn(2,3)
+example1=torch.zeros_like(input)
+example2=torch.ones_like(input)
+print(input)
+print(example1)
+print(example2)
+```
+
+output:
+
+```
+tensor([[-0.6357,  1.2373,  1.6572],        
+​		[ 1.6297,  1.1152,  0.3759]]) 
+
+tensor([[0., 0., 0.],        
+​		[0., 0., 0.]]) 
+
+tensor([[1., 1., 1.],        
+​		[1., 1., 1.]])
+```
+
+#### 79. torch.flatten()与torch.nn.Flatten()
+
+ [torch](https://so.csdn.net/so/search?q=torch&spm=1001.2101.3001.7020).flatten(x)等于torch.flatten(x，0)默认将张量拉成一维的向量，也就是说从第一维开始平坦化，torch.flatten(x，1)代表从第二维开始平坦化。
+
+```python
+import torch
+x=torch.randn(2,4,2)
+print(x)
+
+z=torch.flatten(x)
+print(z)
+
+w=torch.flatten(x,1)
+print(w)
+
+输出为：
+tensor([[[-0.9814,  0.8251],
+         [ 0.8197, -1.0426],
+         [-0.8185, -1.3367],
+         [-0.6293,  0.6714]],
+
+        [[-0.5973, -0.0944],
+         [ 0.3720,  0.0672],
+         [ 0.2681,  1.8025],
+         [-0.0606,  0.4855]]])
+
+tensor([-0.9814,  0.8251,  0.8197, -1.0426, -0.8185, -1.3367, -0.6293,  0.6714,
+        -0.5973, -0.0944,  0.3720,  0.0672,  0.2681,  1.8025, -0.0606,  0.4855])
+
+tensor([[-0.9814,  0.8251,  0.8197, -1.0426, -0.8185, -1.3367, -0.6293,  0.6714]
+,
+        [-0.5973, -0.0944,  0.3720,  0.0672,  0.2681,  1.8025, -0.0606,  0.4855]
+])
+
+
+```
+
+ torch.flatten(x,0,1)代表在第一维和第二维之间平坦化
+
+```python
+import torch
+x=torch.randn(2,4,2)
+print(x)
+ 
+w=torch.flatten(x,0,1) #第一维长度2，第二维长度为4，平坦化后长度为2*4
+print(w.shape)
+ 
+print(w)
+ 
+输出为：
+tensor([[[-0.5523, -0.1132],
+         [-2.2659, -0.0316],
+         [ 0.1372, -0.8486],
+         [-0.3593, -0.2622]],
+ 
+        [[-0.9130,  1.0038],
+         [-0.3996,  0.4934],
+         [ 1.7269,  0.8215],
+         [ 0.1207, -0.9590]]])
+ 
+torch.Size([8, 2])
+ 
+tensor([[-0.5523, -0.1132],
+        [-2.2659, -0.0316],
+        [ 0.1372, -0.8486],
+        [-0.3593, -0.2622],
+        [-0.9130,  1.0038],
+        [-0.3996,  0.4934],
+        [ 1.7269,  0.8215],
+        [ 0.1207, -0.9590]])
+ 
+```
+
+对于torch.nn.Flatten()，因为其被用在神经网络中，输入为一批数据，第一维为batch，通常要把一个数据拉成一维，而不是将一批数据拉为一维。所以torch.nn.Flatten()默认从第二维开始平坦化。
+
+```python
+import torch
+#随机32个通道为1的5*5的图
+x=torch.randn(32,1,5,5)
+
+model=torch.nn.Sequential(
+    #输入通道为1，输出通道为6，3*3的卷积核，步长为1，padding=1
+    torch.nn.Conv2d(1,6,3,1,1),
+    torch.nn.Flatten()
+)
+output=model(x)
+print(output.shape)  # 6*（7-3+1）*（7-3+1）
+
+输出为：
+
+torch.Size([32, 150])
+```
+
+
+
+#### 
 
 ## About timm
 
