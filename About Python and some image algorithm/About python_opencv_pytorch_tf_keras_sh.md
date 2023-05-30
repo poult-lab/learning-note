@@ -2902,34 +2902,58 @@ len of batchtensor:  2
 >
 >
 
-#### 41. tensor转成numpy的几种情况
 
 
+#### 41. about collate_fn=custom_collate()
 
-1. GPU中的Variable变量：
+```python
+from torch.nn.utils.rnn import pad_sequence #(1)
 
-a.cuda().data.cpu().numpy()
+nlp_data = [
+​    {'tokenized_input': [1, 4, 5, 9, 3, 2],
+​     'label':0},
+​    {'tokenized_input': [1, 7, 3, 14, 48, 7, 23, 154, 2],
+​     'label':0},
+​    {'tokenized_input': [1, 30, 67, 117, 21, 15, 2],
+​     'label':1},
+​    {'tokenized_input': [1, 17, 2],
+​     'label':0},
+]
 
-\2. GPU中的tensor变量：
+def custom_collate(data): #(2)
 
-a.cuda().cpu().numpy()
+​    inputs = [torch.tensor(d['tokenized_input']) for d in data] #(3)
+​    labels = [d['label'] for d in data]
 
-\3. CPU中的Variable变量：
-a.data.numpy()
 
-\4. CPU中的tensor变量：
+​    inputs = pad_sequence(inputs, batch_first=True) #(4)
+​    labels = torch.tensor(labels) #(5)
 
-a.numpy()
+​    return { #(6)
+​        'tokenized_input': inputs,
+​        'label': labels
+​    }
 
-总结：
+loader = DataLoader(nlp_data, batch_size=2, shuffle=False, collate_fn=custom_collate) #(7)
 
-.cuda()是读取GPU中的数据
+iter_loader = iter(loader)
+batch1 = next(iter_loader)
+print(batch1)
+batch2 = next(iter_loader)
+print(batch2)
+```
 
-.data是读取Variable中的tensor
+output:
 
-.cpu是把数据转移到cpu上
+```
+{'tokenized_input': tensor([[  1,   4,   5,   9,   3,   2,   0,   0,   0],        [  1,   7,   3,  14,  48,   7,  23, 154,   2]]), 'label': tensor([0, 0])} 
+{'tokenized_input': tensor([[  1,  30,  67, 117,  21,  15,   2],        [  1,  17,   2,   0,   0,   0,   0]]), 'label': tensor([1, 0])}
+```
 
-.numpy()把tensor变成numpy
+不过话说回来，我个人感受是：
+
+在不足维度上进行补0操作，那么我们为什么不在建立dataset之前先补好呢？所以，collate_fn这个东西的应用场景还是有限的。不过，明白其原理总是好事。
+
 
 
 
@@ -3424,9 +3448,21 @@ eps：epsilon：该参数是非常小的数，其为了防止在实现中除以�
 
 #### 55. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
 
-Creates a criterion that measures the Binary Cross Entropy between the target and the input probabilities.
+Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
+
+ This is the whole purpose of the **loss function**! It should return **high values** for **bad predictions** and **low values** for **good predictions**.
+
+Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
 
 这里关于BCE的公式可以google.
+
+![BCE](/home/jiang/桌面/About Python and some image algorithm/pictures source/BCE.webp)
+
+where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
+
+Reading this formula, it tells you that, for each **green** point (*y=1*), it adds *log(p(y))* to the loss, that is, the **log probability of it being green**. Conversely, it adds *log(1-p(y))*, that is, the **log probability of it being red**, for each **red** point (*y=0*). Not necessarily difficult, sure, but no so intuitive too…
+
+
 
 ```python
 import torch
@@ -3564,7 +3600,7 @@ Modules can also contain other Modules, allowing to nest them in a tree structur
 
 #### 58. data.to(device, non_blocking=True) 
 
-`non_blocking=True` indicates that the tensor will be moved to the GPU in a background thread. So, if you try to access `data` immediately after executing the statement, it may still be on the CPU. If you need to use the data in the very next statement, then using `non_blocking=True` won’t really help because the next statement will wait till the data has been moved to the GPU.
+`non_blocking=True` indicates that the **tensor** will be moved to the GPU in a background thread. So, if you try to access `data` immediately after executing the statement, it may still be on the CPU. If you need to use the data in the very next statement, then using `non_blocking=True` won’t really help because the next statement will wait till the data has been moved to the GPU.
 
 On the other hand, if you need to move several objects to the GPU, you can use `non_blocking=True` to move to the GPU in parallel using multiple background threads.
 
@@ -3734,6 +3770,8 @@ tensor([[1, 2, 3], [4, 5, 6]])
 
 Module类是nn模块里提供的一个模型构造类，是所有神经网络模块的基类，我们可以继承它来定义我们想要的模型。下面继承Module类构造本节开头提到的多层感知机。这里定义的MLP类重载了Module类的__init__函数和forward函数。它们分别用于创建模型参数和定义前向计算。前向计算也即正向传播。
 
+
+
 ```python
 import torch
 from torch import nn
@@ -3793,6 +3831,40 @@ tensor([[ 0.1574,  0.1444,  0.0181,  0.1265, -0.1516,  0.1949, -0.0654, -0.0437,
 
 
 为什么会调用forward()呢，是因为Module中定义了__call__()函数，该函数调用了forward()函数，当执行net(x)的时候，会自动调用__call__()函数.
+
+
+
+**After all, forward method is callable functions**
+
+```python
+from torch import nn
+
+class challengeloss(nn.Module):
+
+    def __init__(self):
+        super(challengeloss, self).__init__()
+        print('code goes init')
+
+    def forward(self, L, P):
+        L = L
+        N = L + P - L * P
+        print("code goes forward",L,P)
+        return N
+
+chll=challengeloss()
+print("---------------------------------")
+m=chll(3,74)
+print(m)
+```
+
+output:
+
+```
+code goes init 
+---------------------------------
+code goes forward 3 74 
+-145
+```
 
 
 
@@ -4530,6 +4602,142 @@ tensor([-0.1224,  2.7356])
 tensor([-0.0122,  2.7356])
 ```
 
+#### 83. tensor转成numpy的几种情况
+
+
+
+1. GPU中的Variable变量：
+
+a.cuda().data.cpu().numpy()
+
+\2. GPU中的tensor变量：
+
+a.cuda().cpu().numpy()
+
+\3. CPU中的Variable变量：
+a.data.numpy()
+
+\4. CPU中的tensor变量：
+
+a.numpy()
+
+总结：
+
+.cuda()是读取GPU中的数据
+
+.data是读取Variable中的tensor
+
+.cpu是把数据转移到cpu上
+
+.numpy()把tensor变成numpy
+
+
+
+#### 84. torch.mm(*input*, *mat2*, ***, *out=None*)
+
+Performs a matrix multiplication of the matrices `input` and `mat2`.
+
+- Parameters:
+
+  **input** ([*Tensor*](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)) – the first matrix to be matrix multiplied**mat2** ([*Tensor*](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)) – the second matrix to be matrix multiplied
+
+- Keyword Arguments:
+
+  **out** ([*Tensor*](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)*,* *optional*) – the output tensor.
+
+  
+
+```python
+import torch
+
+mat1 = torch.randn(2, 3)
+mat2 = torch.randn(3, 3)
+print(mat1)
+print(mat2)
+print("--------------------")
+result=torch.mm(mat1, mat2)
+print(result)
+```
+
+output:
+
+```
+tensor([[-0.8290, -0.6466, -0.2649],        
+[ 1.0774,  0.3734,  0.7960]]) 
+tensor([[ 0.8418, -1.0231,  1.1602],        
+[-0.9484, -0.4818,  0.8393],        
+[-1.0636,  2.3593, -1.2942]]) 
+-------------------- 
+tensor([[ 0.1972,  0.5348, -1.1616],        
+[-0.2938,  0.5957,  0.5332]])
+```
+
+#### 85. torch.sum(*input*, *, *dtype=None*)
+
+Returns the sum of all elements in the `input` tensor.
+
+- Parameters:
+
+  **input** ([*Tensor*](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)) – the input tensor.
+
+- Keyword Arguments:
+
+  **dtype** ([`torch.dtype`](https://pytorch.org/docs/stable/tensor_attributes.html#torch.dtype), optional) – the desired data type of returned tensor. If specified, the input tensor is casted to [`dtype`](https://pytorch.org/docs/stable/tensor_attributes.html#torch.dtype) before the operation is performed. This is useful for preventing data type overflows. Default: None.
+
+Example:
+
+```python
+a = torch.randn(1, 3)
+a
+torch.sum(a)
+```
+
+
+
+#### 86. torch.nn.utils.clip_grad_norm()
+
+`torch.nn.utils.clip_grad_norm()` is a function provided by PyTorch's `nn.utils` module that is used to clip the gradients of parameters in a neural network model. It helps prevent exploding gradients during the training process, which can destabilize the training process and make it difficult for the model to converge.
+
+The function `clip_grad_norm` takes two parameters: `parameters` and `max_norm`.
+
+- `parameters` is an iterable of parameters that need to have their gradients clipped. These parameters are typically obtained from the model using the `model.parameters()` method.
+- `max_norm` is the maximum norm value allowed for the gradients. Gradients with norm larger than `max_norm` will be scaled down to have the same norm value. This helps to ensure that the gradients do not exceed a certain threshold.
+
+Here's an example of how `clip_grad_norm` can be used:
+
+```python
+pythonCopy codeimport torch
+import torch.nn as nn
+import torch.nn.utils as utils
+
+# Create a simple neural network model
+class MyModel(nn.Module):
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self.fc = nn.Linear(10, 5)
+    
+    def forward(self, x):
+        return self.fc(x)
+
+model = MyModel()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+# Perform forward and backward pass
+input_data = torch.randn(10)
+output = model(input_data)
+loss = output.sum()
+loss.backward()
+
+# Clip gradients
+max_norm = 1.0
+utils.clip_grad_norm(model.parameters(), max_norm)
+
+# Update the parameters
+optimizer.step()
+```
+
+In this example, the gradients of the model's parameters are clipped using `clip_grad_norm` to have a maximum norm of 1.0. This ensures that the gradients do not grow too large and potentially cause instability during the optimization step. Finally, the optimizer is used to update the parameters based on the clipped gradients.
+
 
 
 ## About timm
@@ -4807,6 +5015,8 @@ AttributeError: 'NotFun' object has no attribute 'name'
 
 所以，重载__setattr__时必须要考虑是否在__dict__中进行属性注册。
 
+
+
 #### 3.继承(inheritance[ɪnˈherɪtəns])
 
 ##### 什么是继承？
@@ -4857,7 +5067,7 @@ class SubClass(Parent, Parent2):
     
 #	
 # 结果：我是第二个爹
-#			 我是第一个爹
+#		我是第一个爹
 # 		 我是子类
 #注意：类在定义的时候就执行类体代码，执行顺序是从上到下
 ```
@@ -4923,7 +5133,7 @@ class Animals:
       	self.name = name
        
     def walk(self):
-				print('我会走')
+		print('我会走')
        
 class Dog(Animals):
   	#Dog类派生出bite功能
@@ -5144,428 +5354,327 @@ Leave E
 
 
 
-#### 5. %s 字符串, %d 整型, %f 浮点型(%操作符的使用)
+#### 05. class-level initialization or defining class-level attributes
 
-##### %s 字符串
+The statements inside the class body, outside of any method or attribute, will indeed be executed as soon as the class is defined or imported. **However, these statements are typically used for class-level initialization or defining class-level attributes, and they are not dependent on the instantiation of the class.**
 
-```python
-string="hello"  
+When a class is defined or imported, Python executes the statements in the class body, including any print statements or other executable code. This allows you to perform any necessary class-level initialization or define class-level attributes before any instances of the class are created.
 
-#%s打印时结果是hello  
-print "string=%s" % string      # output: string=hello  
-
-#%2s意思是字符串长度为2，当原字符串的长度超过2时，按原长度打印，所以%2s的打印结果还是hello  
-print "string=%2s" % string     # output: string=hello  
-
-#%7s意思是字符串长度为7，当原字符串的长度小于7时，在原字符串左侧补空格，  
-#所以%7s的打印结果是  hello  
-print "string=%7s" % string     # output: string=  hello  
-
-#%-7s意思是字符串长度为7，当原字符串的长度小于7时，在原字符串右侧补空格，  
-#所以%-7s的打印结果是  hello  
-print "string=%-7s!" % string     # output: string=hello  !  
-
-#%.2s意思是截取字符串的前2个字符，所以%.2s的打印结果是he  
-print "string=%.2s" % string    # output: string=he  
-
-#%.7s意思是截取字符串的前7个字符，当原字符串长度小于7时，即是字符串本身，  
-#所以%.7s的打印结果是hello  
-print "string=%.7s" % string    # output: string=hello  
-
-#%a.bs这种格式是上面两种格式的综合，首先根据小数点后面的数b截取字符串，  
-#当截取的字符串长度小于a时，还需要在其左侧补空格  
-print "string=%7.2s" % string   # output: string=     he  
-print "string=%2.7s" % string   # output: string=hello  
-print "string=%10.7s" % string  # output: string=     hello  
-
-#还可以用%*.*s来表示精度，两个*的值分别在后面小括号的前两位数值指定  
-print "string=%*.*s" % (7,2,string)      # output: string=     he  
-```
-
-
-
-##### %d 整型
+For example, consider the following class:
 
 ```python
-num=14  
-  
-#%d打印时结果是14  
-print "num=%d" % num            # output: num=14  
-  
-#%1d意思是打印结果为1位整数，当整数的位数超过1位时，按整数原值打印，所以%1d的打印结果还是14  
-print "num=%1d" % num           # output: num=14  
-  
-#%3d意思是打印结果为3位整数，当整数的位数不够3位时，在整数左侧补空格，所以%3d的打印结果是 14  
-print "num=%3d" % num           # output: num= 14  
-  
-#%-3d意思是打印结果为3位整数，当整数的位数不够3位时，在整数右侧补空格，所以%3d的打印结果是14_  
-print "num=%-3d" % num          # output: num=14_  
-  
-#%05d意思是打印结果为5位整数，当整数的位数不够5位时，在整数左侧补0，所以%05d的打印结果是00014  
-print "num=%05d" % num          # output: num=00014  
-  
-#%.3d小数点后面的3意思是打印结果为3位整数，  
-#当整数的位数不够3位时，在整数左侧补0，所以%.3d的打印结果是014  
-print "num=%.3d" % num          # output: num=014  
-  
-#%.0003d小数点后面的0003和3一样，都表示3，意思是打印结果为3位整数，  
-#当整数的位数不够3位时，在整数左侧补0，所以%.3d的打印结果还是014  
-print "num=%.0003d" % num       # output: num=014  
-  
-#%5.3d是两种补齐方式的综合，当整数的位数不够3时，先在左侧补0，还是不够5位时，再在左侧补空格，  
-#规则就是补0优先，最终的长度选数值较大的那个，所以%5.3d的打印结果还是  014  
-print "num=%5.3d" % num         # output: num=  014  
-  
-#%05.3d是两种补齐方式的综合，当整数的位数不够3时，先在左侧补0，还是不够5位时，  
-#由于是05，再在左侧补0，最终的长度选数值较大的那个，所以%05.3d的打印结果还是00014  
-print "num=%05.3d" % num        # output: num=00014  
-  
-#还可以用%*.*d来表示精度，两个*的值分别在后面小括号的前两位数值指定  
-#如下，不过这种方式04就失去补0的功能，只能补空格，只有小数点后面的3才能补0  
-print "num=%*.*d" % (04,3,num)  # output: num= 014  
-```
-
-
-
-##### %f 浮点型
-
-```python
-import math  
-
-#%a.bf，a表示浮点数的打印长度，b表示浮点数小数点后面的精度  
-
-#只是%f时表示原值，默认是小数点后5位数  
-print "PI=%f" % math.pi             # output: PI=3.141593  
-
-#只是%9f时，表示打印长度9位数，小数点也占一位，不够左侧补空格  
-print "PI=%9f" % math.pi            # output: PI=_3.141593  
-
-#只有.没有后面的数字时，表示去掉小数输出整数，03表示不够3位数左侧补0  
-print "PI=%03.f" % math.pi          # output: PI=003  
-
-#%6.3f表示小数点后面精确到3位，总长度6位数，包括小数点，不够左侧补空格  
-print "PI=%6.3f" % math.pi          # output: PI=_3.142  
-
-#%-6.3f表示小数点后面精确到3位，总长度6位数，包括小数点，不够右侧补空格  
-print "PI=%-6.3f" % math.pi         # output: PI=3.142_  
-
-#还可以用%*.*f来表示精度，两个*的值分别在后面小括号的前两位数值指定  
-#如下，不过这种方式06就失去补0的功能，只能补空格  
-print "PI=%*.*f" % (06,3,math.pi)   # output: PI=_3.142  
-```
-
-
-
-#### 6. split()
-
-Split a string into a list where each word is a list item
-
-split()：拆分字符串。通过指定分隔符对字符串进行切片，并返回分割后的字符串列表（list）
-os.path.split()：按照路径将文件名和路径分割开
-
-```python
-import h5py
-
-dir_order_test = "data/test_order.h5"
-
-with h5py.File(dir_order_test, "r") as hf:
-
-  test_order = hf["order"][:]
-
-print("This is test_order:",test_order)
-
-print("This is length of test_order: ",len(test_order))
-
-
-
-f = open("data/Annotations.txt", "r") # There are 4143 lines.
-
-dataset = f.readlines()
-
-print("The dataset contains %d samples" % (len(dataset)))
-
-f.close()
-
-data = dataset[test_order[0]]
-x = data.split("&")
-
-print("This is x1:", x[1])
-```
-
-
-
-#### 6.(1). os.path.splitext()
-
-```python
-import os
-
-filename = "/path/to/myfile.txt"
-basepath, extension = os.path.splitext(filename)
-
-print("Base path:", basepath)
-print("Extension:", extension)
+pythonCopy codeclass MyClass:
+    print("The program passes through here, MyClass")
+    
+    def __init__(self):
+        print("Initialized instance of MyClass")
 ```
 
 output:
 
-```javascript
-Base path: /path/to/myfile
-Extension: .txt
+```
+The program passes through here, MyClass
 ```
 
-In this example, `os.path.splitext` is used to split the file path `/path/to/myfile.txt` into its base path `/path/to/myfile` and extension `.txt`. The function returns a tuple containing the base path and extension, which are then assigned to the variables `basepath` and `extension`, respectively.
+When you import or execute the module containing this class, the statement `"The program passes through here, MyClass"` will be executed immediately, regardless of whether you create instances of `MyClass` or not. **This behavior allows you to define class-level behavior or set up any necessary initializations before creating instances of the class.**
 
-Note that `os.path.splitext` does not actually check if the file exists, nor does it guarantee that the extension returned is actually valid. It simply splits the path at the last occurrence of the `.` character.
+In contrast, the `__init__` method is a special method that is called when an instance of the class is created. The code inside the `__init__` method will only be executed when you instantiate the class by creating an instance.
 
-
-
-#### 7. os.listdir() 方法
-
-##### 语法
-
-**listdir()**方法语法格式如下：
-
-```
-os.listdir(path)
-```
-
-##### 参数
-
-- **path** -- 需要列出的目录路径
-
-##### 返回值
-
-返回指定路径下的文件和文件夹列表。
+To summarize, the statements outside of any method or attribute in a class body are executed when the class is defined or imported, regardless of whether instances of the class are created.
 
 
+
+#### 06. inheritance explanation
+
+Certainly! In Python, inheritance is a powerful mechanism that allows you to create new classes based on existing classes. The new class, called the "child" class or "subclass," inherits attributes and behaviors from the existing class, known as the "parent" class or "superclass." This enables code reuse and facilitates the creation of specialized classes that inherit and extend the functionality of their parent class.
+
+To define a subclass that inherits from a superclass, you specify the superclass name in parentheses after the subclass name when defining the class. Here's the general syntax:
 
 ```python
-import os
-raw_video_dir = "data/AVE"  # videos in AVE dataset
-lis = os.listdir(raw_video_dir) # 返回指定路径下的文件和文件夹列表。
-print("This is lis: ",lis)
+pythonCopy codeclass Subclass(Superclass):
+    # Subclass-specific attributes and methods
+    ...
 ```
 
-This output:
+The subclass inherits all the attributes (variables) and methods (functions) defined in the superclass. It can also add its own attributes and methods or override the ones inherited from the superclass.
 
-```powershell
-['---1_cCGK4M.mp4', '--12UOziMF0.mp4', '--5zANFBYzQ.mp4', '--9O4XZOge4.mp4', '--bSurT-1Ak.mp4', '--d2Z5qR4qQ.mp4', '--euLrzIU2Q.mp4', '--fG9gtFqJ0.mp4'......
-```
-
-
-
-#### 8. len() 方法
-
-##### 描述
-
-len() 方法返回列表元素个数。
-
-##### 语法
-
-len()方法语法：
-
-```
-len(list)
-```
-
-##### 参数
-
-- list -- 要计算元素个数的列表。
-
-##### 返回值
-
-返回列表元素个数。
-
-##### 实例
-
-以下实例展示了 len()函数的使用方法：
+Here's an example to illustrate inheritance:
 
 ```python
-#!/usr/bin/python
+pythonCopy codeclass Animal:
+    def __init__(self, name):
+        self.name = name
 
-list1, list2 = [123, 'xyz', 'zara'], [456, 'abc']
+    def make_sound(self):
+        print("The animal makes a sound.")
 
-print "First list length : ", len(list1);
-print "Second list length : ", len(list2);
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)
+        self.breed = breed
+
+    def make_sound(self):
+        print("Woof!")
+
+
+# Create instances of the classes
+animal = Animal("Generic Animal")
+dog = Dog("Buddy", "Labrador")
+
+# Access attributes and methods
+print(animal.name)        # Output: Generic Animal
+animal.make_sound()       # Output: The animal makes a sound.
+
+print(dog.name)           # Output: Buddy
+print(dog.breed)          # Output: Labrador
+dog.make_sound()          # Output: Woof!
 ```
 
-以上实例输出结果如下：
+In this example, we have a superclass `Animal` with an `__init__` method and a `make_sound` method. The subclass `Dog` inherits from `Animal` and adds its own `__init__` method and `make_sound` method. The `super().__init__(name)` line in the `Dog` class's `__init__` method calls the superclass's `__init__` method to initialize the `name` attribute.
+
+When we create instances of `Animal` and `Dog` and call their respective methods, we can see how the subclass inherits the attributes and methods from the superclass. The `Dog` class's `make_sound` method overrides the implementation of `Animal` class, demonstrating how a subclass can provide its own specialized behavior while still utilizing the superclass's structure.
+
+Inheritance allows for code reuse, promotes modularity, and facilitates creating class hierarchies where specialized behavior can be defined at different levels of the hierarchy.
 
 
 
-#### 9. random.choice()
+#### 07. the subclass call the method from superclass
 
-**choice()** 方法返回一个列表，元组或字符串的随机项。
+In fact, calling superclass methods from a subclass is a common practice in inheritance to leverage and extend the functionality provided by the superclass.
+
+To call a method from the superclass within a subclass, you can use the `super()` function. The `super()` function returns a temporary object of the superclass, allowing you to access its methods and attributes.
+
+Here's an example demonstrating how to call a superclass method from a subclass:
 
 ```python
-random.choice( seq  )
-```
+pythonCopy codeclass Animal:
+    def __init__(self, name):
+        self.name = name
 
-- seq -- 可以是一个列表，元组或字符串。
-
-```python
-import random
-
-print ("choice([1, 2, 3, 5, 9]) : ", random.choice([1, 2, 3, 5, 9]))
-print ("choice('A String') : ", random.choice('A String'))
-```
+    def make_sound(self):
+        print("The animal makes a sound.")
 
 
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)
+        self.breed = breed
 
-output:
-
-```python
-choice([1, 2, 3, 5, 9]) :  2
-choice('A String') :  n
-```
-
-
-
-#### 10. Python中的for in if 用法
-
-1.if in 判断
-
-```python
-def demo():
-    L = ["1", "2", "3"]
-    if "1" or "4" in L:  # 注意if in组合居于的结尾行有以一个冒号
-        print("第一个条件成立")
-    if "1" in L and "4" in L:
-        print("第二个条件成立")
-```
-
-输出结果：
-
-```powershell
-第一个条件成立
-```
+    def make_sound(self):
+        super().make_sound()  # Call superclass method
+        print("Woof!")
 
 
-2. for in 循环 
+# Create an instance of the subclass
+dog = Dog("Buddy", "Labrador")
 
-```python
-def demo():
-    for i in [1, 2, 3]:
-        print(i)
-```
-
- 输出结果：
-
-```powershell
-1
-2
-3
-```
-
-3.for in range()函数
-
-```python
-def demo():
-    for i in range(3):
-        print(i)
-```
-
- 输出结果：
-
-```powershell
-0
-1
-2
-```
-
- 4.简单的for in if
-
-```python
-def demo():
-    a = [12, 3, 4, 6, 7, 13, 21]
-    newList1 = [x for x in a]
-    print(newList1)
-    newList2 = [x for x in a if x % 2 == 0]
-    print(newList2)
-```
-
-输出结果：
-
-```powershell
-[12, 3, 4, 6, 7, 13, 21]
-[12, 4, 6]
-```
-
-newList1构建了一个与a具有相同元素的List，newList2是从a中选取满足x%2==0的元素组成的List
-
-5.嵌套的for in if
-
-```python
-def demo():
-    a = [12, 3, 4, 7]
-    b = ['a', 'x']
-    newList1 = [(x, y) for x in a for y in b]
-    print(newList1)
-    newList2 = [(x, y) for x in a for y in b if x % 2 == 0]
-    print(newList2)
-```
-
-输出结果：
-
-```powershell
-[(12, 'a'), (12, 'x'), (3, 'a'), (3, 'x'), (4, 'a'), (4, 'x'), (7, 'a'), (7, 'x')]
-[(12, 'a'), (12, 'x'), (4, 'a'), (4, 'x')]
-```
-
-
-
-#### 11. float("inf")
-
-表示正负无穷：
-
-```python
-# 正无穷 
-
-print(float("inf")) 
-
-print(float("inf")+1) 
-
-# 负无穷 
-
-print(float("-inf")) 
-
-print(float("-inf")+1)
-```
-
-
-
-output:
-
-```powershell
-inf 
-
-inf 
-
--inf 
-
--inf
-```
-
-
-
-```python
-if float(1/3)>float("inf"):
-    print(0)
-else:
-    print(1)
-if float(1/3)>float("-inf"):
-    print(0)
-else:
-    print(1)
+# Call the overridden method in the subclass
+dog.make_sound()
 ```
 
 output:
 
-```powershell
-1 
-
-0
 ```
+The animal makes a sound. 
+Woof!
+```
+
+
+
+In this example, the `Dog` subclass inherits from the `Animal` superclass. The `Dog` class overrides the `make_sound` method. Inside the overridden `make_sound` method, `super().make_sound()` is called to invoke the `make_sound` method of the superclass.
+
+By calling `super().make_sound()`, the subclass `Dog` first executes the `make_sound` method of the superclass (`Animal`), printing "The animal makes a sound." Then, it adds its own behavior by printing "Woof!".
+
+Calling the superclass method from a subclass allows you to extend or modify the behavior defined in the superclass while still benefiting from its functionality. It promotes code reuse and provides a way to build upon the existing implementation in the superclass.
+
+#### 08. Method Overriding in Python
+
+In object-oriented programming, method overriding is the ability of a subclass to provide a different implementation of a method that is already defined in its superclass. By overriding a method, the subclass can customize the behavior of that method without modifying the superclass's implementation.
+
+To override a method, the subclass needs to define a method with the same name and signature (parameters) as the method in the superclass. When an instance of the subclass calls the overridden method, the subclass's implementation will be executed instead of the superclass's implementation.
+
+Here's an example that demonstrates method overriding:
+
+```python
+class Animal:
+    def make_sound(self):
+        print("The animal makes a sound.")
+
+
+class Dog(Animal):
+    def make_sound(self):
+        print("Woof!")
+
+
+# Create instances of the classes
+animal = Animal()
+dog = Dog()
+
+# Call the overridden methods
+animal.make_sound()  # Output: The animal makes a sound.
+dog.make_sound()     # Output: Woof!
+```
+
+In this example, the superclass `Animal` has a `make_sound` method, and the subclass `Dog` overrides this method with its own implementation. When we create instances of `Animal` and `Dog` and call the `make_sound` method on each instance, we can see that the overridden method in the subclass is executed.
+
+The `animal.make_sound()` call invokes the `make_sound` method of the `Animal` class, printing "The animal makes a sound." Since the `Dog` class overrides the `make_sound` method, the `dog.make_sound()` call executes the overridden method in the `Dog` class, printing "Woof!" instead.
+
+Method overriding allows subclasses to provide specialized behavior, customize functionality, or extend the behavior of the superclass. It is a fundamental concept in inheritance that promotes code flexibility and allows for polymorphism, where objects of different classes can be used interchangeably based on their common superclass.
+
+
+
+#### 09.difference between `super()` and `super(xxx, self)` 
+
+The usage of `super()` and `super(Dog, self)` in Python serves a similar purpose but with slight differences in syntax and behavior. Let's examine the distinctions:
+
+1. `super().make_sound()`: This syntax uses `super()` without any arguments, which automatically refers to the superclass of the current class. It is commonly used when there is only single inheritance involved, as in the example provided. It simplifies the code by allowing Python to determine the superclass based on the class hierarchy.
+2. `super(Dog, self).make_sound()`: This syntax explicitly specifies the subclass (`Dog`) and the instance (`self`) when calling the superclass's method. It is useful when dealing with multiple inheritance scenarios or when you need to access a specific superclass in a class hierarchy.
+
+In most cases, using `super()` without arguments (`super().make_sound()`) is sufficient and recommended. It allows for cleaner and more flexible code, especially when dealing with complex inheritance structures. Python determines the appropriate superclass based on the method resolution order (MRO) defined by the class hierarchy.
+
+However, if you're working with multiple inheritance and want to call a specific superclass's method, you can use `super(Dog, self).make_sound()` to explicitly specify the subclass and instance.
+
+Here's an example demonstrating the difference between the two forms:
+
+```python
+class Animal:
+    def make_sound(self):
+        print("Animal sound.")
+
+
+class Dog(Animal):
+    def make_sound(self):
+        super().make_sound()  # Calls superclass method using super()
+        super(Dog, self).make_sound()  # Calls superclass method explicitly
+
+
+class Terrier(Dog):
+    def make_sound(self):
+        super().make_sound()  # Calls superclass (Dog) method using super()
+        super(Dog, self).make_sound()  # Calls superclass (Animal) method explicitly
+
+
+terrier = Terrier()
+terrier.make_sound()
+```
+
+Output:
+
+```
+Copy codeAnimal sound.
+Animal sound.
+```
+
+In this example, the `Terrier` class inherits from the `Dog` class, which, in turn, inherits from the `Animal` class. The `make_sound` method is overridden in each class.
+
+When `super().make_sound()` is used, it calls the immediate superclass's method. In the `Terrier` class, `super().make_sound()` invokes the `make_sound` method of the `Dog` class, which, in turn, calls the `make_sound` method of the `Animal` class.
+
+On the other hand, `super(Dog, self).make_sound()` explicitly calls the `make_sound` method of the `Animal` class from within the `Dog` class. This syntax allows you to directly specify the superclass to use when calling the method.
+
+Note that in the example provided, both forms of `super()` produce the same result since there is only single inheritance involved. The difference becomes more significant when dealing with complex inheritance hierarchies or multiple inheritance scenarios.
+
+
+
+#### 10. what is the polymorphism
+
+Polymorphism in Python refers to the ability of an object to take on different forms or to be treated as an instance of a different class that it inherits from. It is one of the fundamental principles of object-oriented programming (OOP).
+
+Polymorphism allows objects of different classes to be used interchangeably if they share a common interface or base class. This means that a single function or method can work with objects of different types, as long as they adhere to the same interface or inherit from the same base class.
+
+There are two main types of polymorphism in Python:
+
+1. **Compile-time Polymorphism**: Also known as method overloading, it involves defining multiple methods with the same name but different parameter types or a different number of parameters. However, Python does not support true method overloading based on the parameters like some other languages (e.g., Java). Instead, you can achieve a similar effect by using default argument values or using variable-length argument lists with `*args` and `**kwargs`.
+2. **Runtime Polymorphism**: Also known as method overriding, it occurs when a subclass provides a different implementation of a method that is already defined in its parent class. The method in the subclass must have the same name and compatible parameters as the method in the parent class. When the method is called on an object of the subclass, the overridden method in the subclass is executed instead of the method in the parent class.
+
+Here's an example to illustrate polymorphism in Python:
+
+```python
+class Animal:
+    def sound(self):
+        pass
+
+class Dog(Animal):
+    def sound(self):
+        return "Woof!"
+
+class Cat(Animal):
+    def sound(self):
+        return "Meow!"
+
+def make_sound(animal):
+    print(animal.sound())
+
+dog = Dog()
+cat = Cat()
+
+make_sound(dog)  # Output: Woof!
+make_sound(cat)  # Output: Meow!
+```
+
+In the example, both the `Dog` and `Cat` classes inherit from the `Animal` class and provide their own implementation of the `sound` method. The `make_sound` function takes an `Animal` object as a parameter and calls its `sound` method. Despite being called with different objects (a `Dog` and a `Cat`), the function behaves correctly and outputs the appropriate sound for each object. This demonstrates the polymorphic behavior of the `sound` method.11. float("inf")
+
+
+
+#### 11. subclass will call the __init__ of superclass
+
+subclass will call the __init__ of superclass if subclass doesn't have own __init__ function.
+
+```python
+class son(Parent):
+​    pass
+
+​    
+
+class Parent():
+    
+​    def __init__(self):
+​        print("go goes function of father's initialization here")
+​    def make_sound(self):
+​        print("The animal makes a sound.")
+
+
+second_son=son()
+second_son.make_sound()
+```
+
+output:
+
+```
+go goes function of father's initialization here 
+The animal makes a sound.
+```
+
+##### counter-example
+
+```python
+class son(Parent):
+
+​    def __init__(self):
+​        print("go goes function of son's initialization here")
+
+​    
+
+class Parent():
+
+​    def __init__(self):
+​        print("go goes function of father's initialization here")
+
+​    def make_sound(self):
+​        print("The animal makes a sound.")
+
+second_son=son()
+second_son.make_sound()
+```
+
+output:
+
+```
+go goes function of son's initialization here 
+The animal makes a sound.
+```
+
+
 
 
 
@@ -5973,7 +6082,7 @@ True
 
   - type() 不会认为子类是一种父类类型，不考虑继承关系。
 
-  - 譬如sinstance() 会认为子类是一种父类类型，考虑继承关系。
+  - 譬如sinstance() 会认为子类是一种父类类型，**考虑继承关系**。
 
   - 如果要判断两个类型是否相同推荐使用 isinstance()。
 
@@ -6634,7 +6743,7 @@ In Python, the `with...as` statement is used to simplify exception handling and 
 Here's an example of using `with...as` with a file object:
 
 ```python
-kotlinCopy codewith open('file.txt', 'r') as f:
+with open('file.txt', 'r') as f:
     data = f.read()
     # do something with data
 
@@ -6646,7 +6755,7 @@ In this example, the `open()` function returns a file object that supports a con
 You can also define your own context managers by creating a class with `__enter__()` and `__exit__()` methods. Here's an example:
 
 ```python
-pythonCopy codeclass MyContext:
+class MyContext:
     def __enter__(self):
         # do something before the block
         return self
@@ -6751,7 +6860,538 @@ This is calls: 3
 check 
 This is calls: 4 
 check
+```
 
+
+
+#### 45. iter()
+
+iter() Syntax
+
+The syntax of the `iter()` method is:
+
+```
+iter(object, sentinel [optional])
+```
+
+------
+
+iter() Parameters
+
+The `iter()` method takes two parameters:
+
+- object - can be a list, set, tuple, etc.
+- sentinel [optional] - a special value that is used to represent the end of a sequence
+
+------
+
+iter() Return Value
+
+The `iter()` method returns:
+
+- iterator object for the given argument until the sentinel character is found
+
+- **TypeError** for a user-defined object that doesn't implement `__iter__()`, and `__next__()` or `__getitem()__`
+
+  
+
+```python
+# list of vowels
+
+phones = ['apple', 'samsung', 'oneplus']
+phones_iter = iter(phones)
+
+print(next(phones_iter))   
+print(next(phones_iter))    
+print(next(phones_iter))    
+
+# Output:
+# apple
+# samsung
+# oneplus
+```
+
+output:
+
+```
+apple 
+samsung 
+oneplus
+```
+
+
+
+#### 43. Tilde Operator ~
+
+Python’s Tilde `~n` operator is the [bitwise negation operator](https://en.wikipedia.org/wiki/Bitwise_operation#NOT): it takes the number `n` as binary number and “flips” all bits `0 to 1` and `1 to 0` to obtain the complement binary number. **For example, the tilde operation `~1` becomes `0` and `~0` becomes `1` and `~101` becomes `010`.**
+
+
+
+But be careful because the integer value `0` is represented by many bits. For example, if you have the integer 0 represented by eight bits (one byte) `0000 0000`, the tilde operation `~0000 0000` results in the value `1111 1111` which is the integer value `-1`.
+
+**The general formula to calculate the tilde operation `~i` on an integer value `i` is `~i=-i-1`.**
+
+Have a look at the Python code where you convert the integer 42 with binary representation `0010 1010` to the complement `-0010 1011`:
+
+
+
+#### 44. in-place
+
+Certainly! Here's an example of using an in-place algorithm to reverse a list in Python:
+
+```python
+def reverse_list_in_place(lst):
+    left = 0
+    right = len(lst) - 1
+
+    while left < right:
+        lst[left], lst[right] = lst[right], lst[left]
+        left += 1
+        right -= 1
+
+# Example usage
+my_list = [1, 2, 3, 4, 5]
+reverse_list_in_place(my_list)
+print(my_list)
+```
+
+In this example, the function `reverse_list_in_place` takes a list (`lst`) as input and reverses its elements using an in-place approach. It initializes two pointers, `left` and `right`, pointing to the start and end of the list, respectively.
+
+The algorithm then enters a loop that continues until the `left` pointer surpasses the `right` pointer. In each iteration, it swaps the elements at the `left` and `right` positions using a simultaneous assignment. **This swapping operation modifies the list in-place without requiring any additional memory.** *Since we didn't make any new list for this purpose here.* 
+
+After the function call `reverse_list_in_place(my_list)`, the original list `[1, 2, 3, 4, 5]` is reversed to `[5, 4, 3, 2, 1]`. The modification is done directly on the original list, without creating a new reversed list. Finally, we print the modified list, which outputs `[5, 4, 3, 2, 1]`.
+
+-------------------------------------------------------------------------------------------------
+
+The term "in-place" typically refers to performing an operation or modification directly on the existing object or data structure, without creating a new copy or allocating additional memory. It means that the changes are made within the same memory location or container, without requiring extra resources.
+
+In programming, performing an operation in-place can be more efficient in terms of time and space complexity, as it avoids the overhead of creating new objects or allocating additional memory. However, it is not always possible or practical to perform all operations in-place, depending on the nature of the task and the data structure involved.
+
+For example, if you have an array of numbers and you want to sort them in non-decreasing order, an in-place sorting algorithm like Quicksort or Heapsort modifies the original array directly without creating a new sorted array. On the other hand, an algorithm like Merge Sort typically requires additional memory to store temporary arrays during the sorting process and therefore is not considered an in-place sorting algorithm.
+
+The concept of in-place modifications is not limited to sorting algorithms. It can apply to various operations and modifications in different programming contexts, such as modifying a string in-place, modifying the structure of a tree without creating a new one, or updating elements of a matrix without creating a new matrix.
+
+Overall, performing operations in-place can be a useful technique in programming when efficiency and resource utilization are important considerations.
+
+
+
+#### 45. clip_grad_norm_() vs clip_grad_norm()
+
+Pytorch uses the **trailing underscore convention** for in-place operations. So the difference is that the one with an underscore modifies the tensor in place and the other one leaves the original tensor unmodified and returns a new tensor.
+
+
+
+#### 46. %s 字符串, %d 整型, %f 浮点型(%操作符的使用)
+
+##### %s 字符串
+
+```python
+string="hello"  
+
+#%s打印时结果是hello  
+print "string=%s" % string      # output: string=hello  
+
+#%2s意思是字符串长度为2，当原字符串的长度超过2时，按原长度打印，所以%2s的打印结果还是hello  
+print "string=%2s" % string     # output: string=hello  
+
+#%7s意思是字符串长度为7，当原字符串的长度小于7时，在原字符串左侧补空格，  
+#所以%7s的打印结果是  hello  
+print "string=%7s" % string     # output: string=  hello  
+
+#%-7s意思是字符串长度为7，当原字符串的长度小于7时，在原字符串右侧补空格，  
+#所以%-7s的打印结果是  hello  
+print "string=%-7s!" % string     # output: string=hello  !  
+
+#%.2s意思是截取字符串的前2个字符，所以%.2s的打印结果是he  
+print "string=%.2s" % string    # output: string=he  
+
+#%.7s意思是截取字符串的前7个字符，当原字符串长度小于7时，即是字符串本身，  
+#所以%.7s的打印结果是hello  
+print "string=%.7s" % string    # output: string=hello  
+
+#%a.bs这种格式是上面两种格式的综合，首先根据小数点后面的数b截取字符串，  
+#当截取的字符串长度小于a时，还需要在其左侧补空格  
+print "string=%7.2s" % string   # output: string=     he  
+print "string=%2.7s" % string   # output: string=hello  
+print "string=%10.7s" % string  # output: string=     hello  
+
+#还可以用%*.*s来表示精度，两个*的值分别在后面小括号的前两位数值指定  
+print "string=%*.*s" % (7,2,string)      # output: string=     he  
+```
+
+
+
+##### %d 整型
+
+```python
+num=14  
+  
+#%d打印时结果是14  
+print "num=%d" % num            # output: num=14  
+  
+#%1d意思是打印结果为1位整数，当整数的位数超过1位时，按整数原值打印，所以%1d的打印结果还是14  
+print "num=%1d" % num           # output: num=14  
+  
+#%3d意思是打印结果为3位整数，当整数的位数不够3位时，在整数左侧补空格，所以%3d的打印结果是 14  
+print "num=%3d" % num           # output: num= 14  
+  
+#%-3d意思是打印结果为3位整数，当整数的位数不够3位时，在整数右侧补空格，所以%3d的打印结果是14_  
+print "num=%-3d" % num          # output: num=14_  
+  
+#%05d意思是打印结果为5位整数，当整数的位数不够5位时，在整数左侧补0，所以%05d的打印结果是00014  
+print "num=%05d" % num          # output: num=00014  
+  
+#%.3d小数点后面的3意思是打印结果为3位整数，  
+#当整数的位数不够3位时，在整数左侧补0，所以%.3d的打印结果是014  
+print "num=%.3d" % num          # output: num=014  
+  
+#%.0003d小数点后面的0003和3一样，都表示3，意思是打印结果为3位整数，  
+#当整数的位数不够3位时，在整数左侧补0，所以%.3d的打印结果还是014  
+print "num=%.0003d" % num       # output: num=014  
+  
+#%5.3d是两种补齐方式的综合，当整数的位数不够3时，先在左侧补0，还是不够5位时，再在左侧补空格，  
+#规则就是补0优先，最终的长度选数值较大的那个，所以%5.3d的打印结果还是  014  
+print "num=%5.3d" % num         # output: num=  014  
+  
+#%05.3d是两种补齐方式的综合，当整数的位数不够3时，先在左侧补0，还是不够5位时，  
+#由于是05，再在左侧补0，最终的长度选数值较大的那个，所以%05.3d的打印结果还是00014  
+print "num=%05.3d" % num        # output: num=00014  
+  
+#还可以用%*.*d来表示精度，两个*的值分别在后面小括号的前两位数值指定  
+#如下，不过这种方式04就失去补0的功能，只能补空格，只有小数点后面的3才能补0  
+print "num=%*.*d" % (04,3,num)  # output: num= 014  
+```
+
+
+
+##### %f 浮点型
+
+```python
+import math  
+
+#%a.bf，a表示浮点数的打印长度，b表示浮点数小数点后面的精度  
+
+#只是%f时表示原值，默认是小数点后5位数  
+print "PI=%f" % math.pi             # output: PI=3.141593  
+
+#只是%9f时，表示打印长度9位数，小数点也占一位，不够左侧补空格  
+print "PI=%9f" % math.pi            # output: PI=_3.141593  
+
+#只有.没有后面的数字时，表示去掉小数输出整数，03表示不够3位数左侧补0  
+print "PI=%03.f" % math.pi          # output: PI=003  
+
+#%6.3f表示小数点后面精确到3位，总长度6位数，包括小数点，不够左侧补空格  
+print "PI=%6.3f" % math.pi          # output: PI=_3.142  
+
+#%-6.3f表示小数点后面精确到3位，总长度6位数，包括小数点，不够右侧补空格  
+print "PI=%-6.3f" % math.pi         # output: PI=3.142_  
+
+#还可以用%*.*f来表示精度，两个*的值分别在后面小括号的前两位数值指定  
+#如下，不过这种方式06就失去补0的功能，只能补空格  
+print "PI=%*.*f" % (06,3,math.pi)   # output: PI=_3.142  
+```
+
+#### 47. split()
+
+Split a string into a list where each word is a list item
+
+split()：拆分字符串。通过指定分隔符对字符串进行切片，并返回分割后的字符串列表（list）
+os.path.split()：按照路径将文件名和路径分割开
+
+```python
+import h5py
+
+dir_order_test = "data/test_order.h5"
+
+with h5py.File(dir_order_test, "r") as hf:
+
+  test_order = hf["order"][:]
+
+print("This is test_order:",test_order)
+
+print("This is length of test_order: ",len(test_order))
+
+
+
+f = open("data/Annotations.txt", "r") # There are 4143 lines.
+
+dataset = f.readlines()
+
+print("The dataset contains %d samples" % (len(dataset)))
+
+f.close()
+
+data = dataset[test_order[0]]
+x = data.split("&")
+
+print("This is x1:", x[1])
+```
+
+
+
+#### 48. os.path.splitext()
+
+```python
+import os
+
+filename = "/path/to/myfile.txt"
+basepath, extension = os.path.splitext(filename)
+
+print("Base path:", basepath)
+print("Extension:", extension)
+```
+
+output:
+
+```javascript
+Base path: /path/to/myfile
+Extension: .txt
+```
+
+In this example, `os.path.splitext` is used to split the file path `/path/to/myfile.txt` into its base path `/path/to/myfile` and extension `.txt`. The function returns a tuple containing the base path and extension, which are then assigned to the variables `basepath` and `extension`, respectively.
+
+Note that `os.path.splitext` does not actually check if the file exists, nor does it guarantee that the extension returned is actually valid. It simply splits the path at the last occurrence of the `.` character.
+
+
+
+#### 49. os.listdir() 方法
+
+##### 语法
+
+**listdir()**方法语法格式如下：
+
+```
+os.listdir(path)
+```
+
+##### 参数
+
+- **path** -- 需要列出的目录路径
+
+##### 返回值
+
+返回指定路径下的文件和文件夹列表。
+
+
+
+```python
+import os
+raw_video_dir = "data/AVE"  # videos in AVE dataset
+lis = os.listdir(raw_video_dir) # 返回指定路径下的文件和文件夹列表。
+print("This is lis: ",lis)
+```
+
+This output:
+
+```powershell
+['---1_cCGK4M.mp4', '--12UOziMF0.mp4', '--5zANFBYzQ.mp4', '--9O4XZOge4.mp4', '--bSurT-1Ak.mp4', '--d2Z5qR4qQ.mp4', '--euLrzIU2Q.mp4', '--fG9gtFqJ0.mp4'......
+```
+
+
+
+#### 50. len() 方法
+
+##### 描述
+
+len() 方法返回列表元素个数。
+
+##### 语法
+
+len()方法语法：
+
+```
+len(list)
+```
+
+##### 参数
+
+- list -- 要计算元素个数的列表。
+
+##### 返回值
+
+返回列表元素个数。
+
+##### 实例
+
+以下实例展示了 len()函数的使用方法：
+
+```python
+#!/usr/bin/python
+
+list1, list2 = [123, 'xyz', 'zara'], [456, 'abc']
+
+print "First list length : ", len(list1);
+print "Second list length : ", len(list2);
+```
+
+以上实例输出结果如下：
+
+
+
+#### 51. random.choice()
+
+**choice()** 方法返回一个列表，元组或字符串的随机项。
+
+```python
+random.choice( seq  )
+```
+
+- seq -- 可以是一个列表，元组或字符串。
+
+```python
+import random
+
+print ("choice([1, 2, 3, 5, 9]) : ", random.choice([1, 2, 3, 5, 9]))
+print ("choice('A String') : ", random.choice('A String'))
+```
+
+
+
+output:
+
+```python
+choice([1, 2, 3, 5, 9]) :  2
+choice('A String') :  n
+```
+
+
+
+#### 52. Python中的for in if 用法
+
+1.if in 判断
+
+```python
+def demo():
+    L = ["1", "2", "3"]
+    if "1" or "4" in L:  # 注意if in组合居于的结尾行有以一个冒号
+        print("第一个条件成立")
+    if "1" in L and "4" in L:
+        print("第二个条件成立")
+```
+
+输出结果：
+
+```powershell
+第一个条件成立
+```
+
+
+2. for in 循环 
+
+```python
+def demo():
+    for i in [1, 2, 3]:
+        print(i)
+```
+
+ 输出结果：
+
+```powershell
+1
+2
+3
+```
+
+3.for in range()函数
+
+```python
+def demo():
+    for i in range(3):
+        print(i)
+```
+
+ 输出结果：
+
+```powershell
+0
+1
+2
+```
+
+ 4.简单的for in if
+
+```python
+def demo():
+    a = [12, 3, 4, 6, 7, 13, 21]
+    newList1 = [x for x in a]
+    print(newList1)
+    newList2 = [x for x in a if x % 2 == 0]
+    print(newList2)
+```
+
+输出结果：
+
+```powershell
+[12, 3, 4, 6, 7, 13, 21]
+[12, 4, 6]
+```
+
+newList1构建了一个与a具有相同元素的List，newList2是从a中选取满足x%2==0的元素组成的List
+
+5.嵌套的for in if
+
+```python
+def demo():
+    a = [12, 3, 4, 7]
+    b = ['a', 'x']
+    newList1 = [(x, y) for x in a for y in b]
+    print(newList1)
+    newList2 = [(x, y) for x in a for y in b if x % 2 == 0]
+    print(newList2)
+```
+
+输出结果：
+
+```powershell
+[(12, 'a'), (12, 'x'), (3, 'a'), (3, 'x'), (4, 'a'), (4, 'x'), (7, 'a'), (7, 'x')]
+[(12, 'a'), (12, 'x'), (4, 'a'), (4, 'x')]
+```
+
+
+
+#### 53. float("inf")
+
+表示正负无穷：
+
+```python
+# 正无穷 
+
+print(float("inf")) 
+print(float("inf")+1) 
+
+# 负无穷 
+
+print(float("-inf")) 
+print(float("-inf")+1)
+```
+
+output:
+
+```powershell
+inf 
+inf 
+-inf 
+-inf
+```
+
+
+
+```python
+if float(1/3)>float("inf"):
+    print(0)
+else:
+    print(1)
+if float(1/3)>float("-inf"):
+    print(0)
+else:
+    print(1)
+```
+
+output:
+
+```powershell
+1
+0
 ```
 
 
@@ -7954,6 +8594,10 @@ output:
 
 #### 16. np.isnan
 
+Test element-wise for NaN and return result as a boolean array.
+
+Example 1: 
+
 ```python
 import numpy as np
 
@@ -7973,6 +8617,43 @@ NaN value  - :  False n
 NaN value  - :  False n 
 NaN value  - :  False n 
 NaN value  - :  True
+```
+
+
+
+Example 2: 
+
+```python
+import numpy as np
+
+np.random.seed(100)
+array = np.random.rand(10, 6)
+
+array[0][0] = np.nan
+array[1][0] = np.nan
+array[0][3] = np.nan
+array[5][2] = 0
+array[5][4] = np.nan
+
+print(array)
+print(np.isnan(array))
+```
+
+output:
+
+```
+[[       nan 0.27836939 0.42451759        nan 0.00471886 0.12156912] 
+[       nan 0.82585276 0.13670659 0.57509333 0.89132195 0.20920212] [0.18532822 0.10837689 0.21969749 0.97862378 0.81168315 0.17194101] [0.81622475 0.27407375 0.43170418 0.94002982 0.81764938 0.33611195] [0.17541045 0.37283205 0.00568851 0.25242635 0.79566251 0.01525497] [0.59884338 0.60380454 0.         0.38194344        nan 0.89041156] [0.98092086 0.05994199 0.89054594 0.5769015  0.74247969 0.63018394] [0.58184219 0.02043913 0.21002658 0.54468488 0.76911517 0.25069523] [0.28589569 0.85239509 0.97500649 0.88485329 0.35950784 0.59885895] [0.35479561 0.34019022 0.17808099 0.23769421 0.04486228 0.50543143]] 
+[[ True False False  True False False] 
+[ True False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False  True False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False]]
 ```
 
 
@@ -8141,6 +8822,131 @@ Original matrix:
 
 
 
+#### 22. numpy.nanmean()
+
+Compute the arithmetic mean along the specified axis, ignoring NaNs.
+
+Returns the average of the array elements. The average is taken over the flattened array by default, otherwise over the specified axis. [`float64`](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64) intermediate and return values are used for integer inputs.
+
+For all-NaN slices, NaN is returned and a *RuntimeWarning* is raised.
+
+**we can use axis=1 means row wise or axis=0 means column wise.**
+
+Hint: When we use this function and the array contains NAN values, the NAN will be consider as 0 and the NAN will be flattened when we use division to obtain the mean.
+
+below are two examples:
+
+```python
+import numpy as np
+
+a = np.array([[1, np.nan],
+​               [3, 4]])
+
+print(np.nanmean(a))
+print("----------------------------")
+print(np.nanmean(a, axis=0)) 
+print("----------------------------")
+print(np.nanmean(a, axis=1)) 
+```
+
+output:
+
+```
+2.6666666666666665 
+----------------------------
+[2. 4.] 
+---------------------------
+[1.  3.5]
+```
+
+example 2 :
+
+```python
+import numpy as np
+
+a = np.array([[1, np.nan, 3],
+​               [3, 4, 5]])
+
+print(np.nanmean(a))
+print("----------------------------")
+print(np.nanmean(a, axis=0)) 
+print("----------------------------")
+print(np.nanmean(a, axis=1)) 
+```
+
+output:
+
+```
+3.2 
+---------------------------
+[2. 4. 4.] 
+---------------------------
+[2. 4.]
+```
+
+
+
+#### 23. numpy.nanstd
+
+Compute the standard deviation along the specified axis, while ignoring NaNs.
+
+Returns the standard deviation, a measure of the spread of a distribution, of the non-NaN array elements. The standard deviation is computed for the flattened array by default, otherwise over the specified axis.
+
+For all-NaN slices or slices with zero degrees of freedom, NaN is returned and a *RuntimeWarning* is raised.
+
+```python
+import numpy as np
+
+a = np.array([[1, np.nan], [3, 4]])
+
+print(np.nanstd(a))
+
+print(np.nanstd(a, axis=0))
+
+print(np.nanstd(a, axis=1))
+```
+
+output:
+
+```
+1.247219128924647 
+[1. 0.] 
+[0.  0.5]
+```
+
+
+
+#### 24. calculate the number of non-NaN
+
+Calculating the number of non-NaN elements in a numpy ndarray matrix. 
+
+```python
+import numpy as np
+
+np.random.seed(100)
+array = np.random.rand(10, 6)
+
+array[0][0] = np.nan
+array[1][0] = np.nan
+array[0][3] = np.nan
+array[5][2] = 0
+array[5][4] = np.nan
+
+np.count_nonzero(~np.isnan(array))
+```
+
+output:
+
+```
+56
+```
+
+
+
+
+
+
+
 ## About sklearn
 
 #### 1. about sklearn.preprocessing.MinMaxScaler()
@@ -8209,7 +9015,7 @@ This is X_train.min(axis=0):  [ 0. -1. -1.] This is X1:  [[1] [2] [3]] This is X
 
 
 
-#### 2. sklearn.metrics.roc_auc_score()
+#### 2.xxx sklearn.metrics.roc_auc_score()
 
 ```python
 sklearn.metrics.roc_auc_score(y_true, y_score, *, average='macro', sample_weight=None, max_fpr=None, multi_class='raise', labels=None)
@@ -9682,25 +10488,16 @@ Instantly make your loops show a smart progress meter - just wrap any iterable w
 
 ```python
 from tqdm import tqdm
-
 import time
 
-
-
 \# easy example:
-
 \# for i in tqdm(range(10000)):
-
 \#     print(i)
-
-
 
 with tqdm(total=200) as pbar:
 
 ​    for i in range(20):  # 总共更新 20 次
-
 ​        pbar.update(10)  # 每次更新步长为 10
-
 ​        time.sleep(1)
 ```
 
@@ -9732,6 +10529,39 @@ output:
 100%|██████████| 3[/3](https://file+.vscode-resource.vscode-cdn.net/3) [00:00<00:00, 89240.51it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]
 
 {'header': '.[./../python-classifier-2021-main/training_data/chapman_shaoxing/g1/JS00004.hea](https://file+.vscode-resource.vscode-cdn.net/media/jiang/ECG/physionet.org/files/challenge-2021/1.0.3/training/ISIBrnoAIMT_from_challenge/python-classifier-2021-main/training_data/chapman_shaoxing/g1/JS00004.hea)', 'record': '.[./../python-classifier-2021-main/training_data/chapman_shaoxing/g1/JS00004.mat](https://file+.vscode-resource.vscode-cdn.net/media/jiang/ECG/physionet.org/files/challenge-2021/1.0.3/training/ISIBrnoAIMT_from_challenge/python-classifier-2021-main/training_data/chapman_shaoxing/g1/JS00004.mat)'}
+
+
+
+#### 02.tqdm.set_postfix()
+
+In this example, we create a `tqdm` instance called `progress_bar` using the `total` parameter to specify the total number of iterations. Within the loop, we call `progress_bar.set_postfix` to update the postfix information. Again, you can pass a dictionary or use keyword arguments to set the values.
+
+After updating the postfix, we call `progress_bar.update(1)` to increment the progress bar by 1. Finally, we close the progress bar using `progress_bar.close()` when the loop is finished.
+
+```python
+from tqdm import tqdm
+import time
+
+# Create a tqdm instance
+progress_bar = tqdm(total=10)
+
+# Create a loop
+for i in range(10):
+    # Simulating some computation or task
+​    time.sleep(0.5)
+​    
+    # Update the postfix with new information
+    # You can pass a dictionary with key-value pairs
+    # or use keyword arguments to set the values
+​    progress_bar.set_postfix({'Iteration': i, 'Progress': f'{i*10}%'})
+​    
+
+    # Update the progress bar
+​    progress_bar.update(1)
+
+# Close the progress bar
+progress_bar.close()
+```
 
 
 
