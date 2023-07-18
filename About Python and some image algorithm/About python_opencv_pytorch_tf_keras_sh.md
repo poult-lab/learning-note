@@ -274,9 +274,61 @@ cd ..
 watch nvidia-smi
 ```
 
+#### 9. Copy multiple files with specific suffixes to the previous directory 
+
+For the below example: 
+
+​	the suffixes: **.hea .mat**
+
+​	targeted directory: **../test_data**
+
+```
+cp g1/*.hea g1/*.mat g2/*.hea g2/*.mat ../test_data
+```
 
 
 
+
+
+## Visual Studio Code
+
+#### 1. how to debug the python script
+
+find the launch.json file and edit like below:
+
+for example the command like this:
+
+```
+python train_model.py ../../python-classifier-2021 main/training_data/chapman_shaoxing/g1 model
+```
+
+
+
+```json
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["../../python-classifier-2021-main/training_data/chapman_shaoxing/g1","model"],
+            "justMyCode": true
+        }
+    ]
+}
+```
+
+
+
+
+
+####  
 
 ## Miscellaneous options [ˌmɪsəˈleɪniəs ˈɒpʃnz] 
 
@@ -2625,6 +2677,39 @@ hahah here is called(__init__())
 ------------------
 ```
 
+##### (1) getitem can only use [] to call in python
+
+In Python, the `getitem` method, also known as the indexing operator, allows objects to support accessing their elements using square brackets `[]`. This is a common convention in many programming languages.
+
+The reason `getitem` is implemented using square brackets `[]` in Python is primarily for readability and familiarity. Square brackets are widely used across various programming languages to represent indexing or accessing elements within a container, such as lists, tuples, or dictionaries.
+
+By using square brackets for indexing, Python adheres to the principle of least surprise, making it easier for developers to understand and work with the language. It also helps maintain consistency within the language syntax.
+
+Furthermore, Python provides flexibility by allowing objects to define their own `__getitem__` method, which is automatically called when using the indexing operator. This enables custom objects to support indexing and provide meaningful behavior when accessing their elements.
+
+In summary, Python uses square brackets `[]` to call the `getitem` method for indexing because it follows common programming conventions, promotes readability, and allows for custom behavior in objects.
+
+##### (2) between the `for` loop and the `__getitem__()` method
+
+```python
+class MyCustomList:
+    def __init__(self, items):
+        self.items = items
+
+    def __getitem__(self, index):
+        return self.items[index]
+
+
+my_list = MyCustomList([1, 2, 3, 4, 5])
+
+# Using a for loop to iterate over the custom list
+for item in my_list:
+    print(item)
+
+```
+
+
+
 
 
 #### 38. def ____len____(self):
@@ -3799,17 +3884,23 @@ class MLP(nn.Module):
 X = torch.rand(2, 784)
 print(f'This is the big X:{X}')
 net = MLP()
-print(net)
+print("This is the Net:",net)
 print("-----------------Divider-------------")
-net(X)# 当给对象传入tensor的时候，会自动调用forword函数,这里面的net(X)就是forward函数的返回值
+
+net(X)
+'''
+When a tensor is passed to an instance, the forward() will be automatically called, 
+where net (X) is the return value of the forward(), 
+This can also prove that: forward() is callable funciton.
+'''
 ```
 
 output:
 
 ```bash
-This is the big Xtensor([[0.8721, 0.4620, 0.9815,  ..., 0.0558, 0.5932, 0.1638],
-        [0.4948, 0.1915, 0.1900,  ..., 0.7735, 0.6396, 0.1427]])
-MLP(
+This is the big X:tensor([[0.4453, 0.9970, 0.5351,  ..., 0.3065, 0.8355, 0.7803],
+        [0.0405, 0.6654, 0.4172,  ..., 0.1077, 0.3329, 0.6616]])
+This is the Net: MLP(
   (hidden): Linear(in_features=784, out_features=256, bias=True)
   (act): ReLU()
   (output): Linear(in_features=256, out_features=10, bias=True)
@@ -3817,13 +3908,13 @@ MLP(
 -----------------Divider-------------
 -----------------------
 The code goes here
-This is the x:tensor([[0.8721, 0.4620, 0.9815,  ..., 0.0558, 0.5932, 0.1638],
-        [0.4948, 0.1915, 0.1900,  ..., 0.7735, 0.6396, 0.1427]])
+This is the x:tensor([[0.4453, 0.9970, 0.5351,  ..., 0.3065, 0.8355, 0.7803],
+        [0.0405, 0.6654, 0.4172,  ..., 0.1077, 0.3329, 0.6616]])
 -----------------------
-tensor([[ 0.1574,  0.1444,  0.0181,  0.1265, -0.1516,  0.1949, -0.0654, -0.0437,
-         -0.2266,  0.0875],
-        [ 0.0995, -0.0095, -0.0178, -0.0448, -0.1519,  0.2851,  0.0441,  0.0186,
-         -0.1418, -0.0225]], grad_fn=<AddmmBackward0>)
+tensor([[ 0.0245, -0.1216,  0.1481,  0.0782,  0.1221,  0.0736, -0.3178, -0.2884,
+          0.2686,  0.1267],
+        [ 0.0489, -0.1041,  0.0629,  0.0625,  0.1631,  0.2585, -0.3531, -0.1964,
+          0.1541,  0.0936]], grad_fn=<AddmmBackward0>)
 ```
 
 
@@ -3865,6 +3956,22 @@ code goes init
 code goes forward 3 74 
 -145
 ```
+
+##### (1) forward() can only use () to call in python
+
+In Python, the `forward()` method is commonly used in the context of defining and working with classes that inherit from the `nn.Module` class in the PyTorch library. The `forward()` method is a fundamental part of the PyTorch framework and is responsible for defining the forward pass of a neural network model.
+
+The reason `forward()` is implemented using parentheses `()` in Python is because it is a method and follows the convention of calling methods in the language. In Python, methods are typically called using parentheses `()`, which can include arguments that are passed to the method.
+
+When you define a class that inherits from `nn.Module` and override the `forward()` method, you define the specific computation that should be performed when the instance of the class is called as a function. This is commonly done for neural network models, where the `forward()` method defines the sequence of operations that are applied to the input data to produce the output.
+
+By using parentheses for calling the `forward()` method, Python provides a clear and consistent syntax for invoking methods and passing any necessary arguments. This helps maintain readability and consistency within the language.
+
+It's important to note that the use of parentheses to call methods is not limited to the `forward()` method. It applies to all methods in Python, where parentheses are used to indicate that a function or method is being called with any required arguments.
+
+In summary, the `forward()` method in PyTorch is called using parentheses `()` in Python because it follows the convention of calling methods, where parentheses are used to invoke functions or methods and pass any necessary arguments.
+
+
 
 
 
@@ -3948,7 +4055,57 @@ fc.bias
 
 #### 65. torch.nn.Conv2d()
 
+torch.nn.Conv2d(*in_channels*, *out_channels*, *kernel_size*, *stride=1*, *padding=0*, *dilation=1*, *groups=1*, *bias=True*, *padding_mode='zeros'*, *device=None*, *dtype=None*)
+
 Applies a 2D convolution over an input signal composed of several input planes.
+
+- Parameters:
+
+  **in_channels** ([*int*](https://docs.python.org/3/library/functions.html#int)) – Number of channels in the input image 
+
+  **out_channels** ([*int*](https://docs.python.org/3/library/functions.html#int)) – Number of channels produced by the convolution 
+
+  **kernel_size** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)) – Size of the convolving kernel 
+
+  **stride** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Stride of the convolution. Default: 1 
+
+  **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to all four sides of the input. Default: 0 **padding_mode** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – `'zeros'`, `'reflect'`, `'replicate'` or `'circular'`. Default: `'zeros'` 
+
+  **dilation** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Spacing between kernel elements. Default: 1 
+
+  **groups** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* *optional*) – Number of blocked connections from input channels to output channels. Default: 1 
+
+  **bias** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If `True`, adds a learnable bias to the output. Default: `True`
+
+Hint: When the dilation rate is 1, the dilated convolution reduces to a regular convolution. it means  there is no dilation applied.
+
+
+
+```python
+import torch
+import torch.nn as nn
+
+# With square kernels and equal stride
+m = nn.Conv2d(16, 33, 3, stride=2)
+input = torch.randn(20, 16, 50, 100)
+output = m(input).shape
+
+print(output)
+```
+
+output:
+
+```
+torch.Size([20, 33, 24, 49])
+```
+
+`(16, 33, 3)`: These are the arguments passed to the `Conv2d` class constructor. Let's examine them individually:
+
+- `16`: The first argument represents the number of input channels or feature maps. In this case, there are 16 input channels. Each channel typically represents a different aspect or feature of the input data. **Hint: for the RGB image, the input channel is 3. But for the gray image the input channel is 1.** 
+- `33`: The second argument represents the number of output channels. This determines the number of filters or feature maps the layer will learn. In this case, there will be 33 output channels or filters.
+- `3`: The third argument represents the size of the convolutional kernel or filter. A kernel of size 3x3 is commonly used in convolutional layers.
+
+`stride=2`: This is a named parameter that sets the stride of the convolution operation. The stride determines the step size used when sliding the convolutional kernel over the input data. In this case, a stride of 2 means that the kernel will move two units at a time.
 
 
 
@@ -4326,6 +4483,35 @@ torch.Size([128, 30])
 tensor([[-0.2589, -0.0821, -0.1593,  ...,  0.4066, -0.4171, -0.4257],        [ 0.5849, -0.5448,  0.2569,  ...,  0.2027,  1.0030, -0.6241],        [-0.3641,  0.0504,  0.3085,  ...,  0.0112, -0.3904,  0.6075],        ...,        [-0.8970, -0.6790,  0.7113,  ..., -0.5090, -0.0185,  0.4327],        [-0.1577,  0.6159,  0.4980,  ...,  0.3427,  0.4944, -0.9509],        [ 0.7158,  0.6687, -0.2940,  ...,  1.5808, -0.6037, -0.0396]],       grad_fn=<AddmmBackward0>)
 ```
 
+##### nn.Linear().weight
+
+we can use above statement to check the weights.
+
+```python
+from torch import nn
+# here should be paid attention the below torch.size is ([8, 5]), it means row:8 column:5
+m = nn.Linear(5, 8)
+print(m.weight)
+print("---------------")
+print("This is the size of weight:",m.weight.size())
+```
+
+output:
+
+```
+Parameter containing:
+tensor([[ 0.4374,  0.4373,  0.0825,  0.3854,  0.1059],
+        [-0.2149, -0.2871, -0.0476, -0.3999, -0.3833],
+        [ 0.3388, -0.2034,  0.2516, -0.0158,  0.1927],
+        [ 0.0961, -0.4366,  0.4090, -0.3781, -0.1626],
+        [ 0.3324, -0.1836, -0.3048,  0.2473,  0.1962],
+        [ 0.1097, -0.1786, -0.3855,  0.3869, -0.0452],
+        [ 0.2645, -0.1102, -0.2556, -0.1755, -0.1297],
+        [-0.1669,  0.2221, -0.2140, -0.3187,  0.2817]], requires_grad=True)
+---------------
+This is the size of weight: torch.Size([8, 5])
+```
+
 
 
 #### 75. torch.nn.ReLU()
@@ -4672,6 +4858,8 @@ tensor([[ 0.1972,  0.5348, -1.1616],
 [-0.2938,  0.5957,  0.5332]])
 ```
 
+
+
 #### 85. torch.sum(*input*, *, *dtype=None*)
 
 Returns the sum of all elements in the `input` tensor.
@@ -4737,6 +4925,138 @@ optimizer.step()
 ```
 
 In this example, the gradients of the model's parameters are clipped using `clip_grad_norm` to have a maximum norm of 1.0. This ensures that the gradients do not grow too large and potentially cause instability during the optimization step. Finally, the optimizer is used to update the parameters based on the clipped gradients.
+
+
+
+#### 87. torch.permute()
+
+PyTorch **torch.permute()** rearranges the original tensor according to the desired ordering and returns a new multidimensional rotated tensor. The size of the returned tensor remains the same as that of the original.
+
+```python
+import torch
+
+x = torch.randn(2, 3, 5)
+x.size()
+torch.permute(x, (2, 0, 1)).size()
+```
+
+output:
+
+```
+torch.Size([5, 2, 3])
+```
+
+
+
+#### 88. the input for the torch.nn.Conv2d()
+
+torch.nn.Conv2d(*in_channels*, *out_channels*, *kernel_size*, *stride=1*, *padding=0*, *dilation=1*, *groups=1*, *bias=True*, *padding_mode='zeros'*, *device=None*, *dtype=None*)
+
+Applies a 2D convolution over an input signal composed of several input planes.
+
+这个函数需要输入一个四维数组，从左到右第一维是数据数量（一般就是图片数量），然后是channel数，然后是图片尺寸（行*列）。
+
+```python
+import torch
+import torch.nn as nn
+
+m = nn.Conv2d(in_channels=12,
+                              out_channels=256,
+                              kernel_size=(1,15),
+                              padding=(0,7),
+                              stride=(1,2),
+                              bias=False)
+input = torch.randn(128, 12, 1, 8192)
+output = m(input).shape
+print(output)
+```
+
+output:
+
+```
+torch.Size([128, 256, 1, 4096])
+```
+
+
+
+#### 89. torch.ones()
+
+```python
+import torch
+
+m=torch.ones(2, 3)
+print(m)
+```
+
+output:
+
+```
+tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+```
+
+
+
+#### 90. torch.nn.linear().bias&torch.nn.linear().weight
+
+In a fully connected feedforward neural network, where every neuron in a layer is connected to every neuron in the subsequent layer, **the number of biases is equal to the number of neurons in each layer, except for the input layer**. 
+
+```python
+import torch
+from torch import nn
+
+input = torch.ones(2, 4)
+print(input)
+print("------------------")
+m = nn.Linear(4, 10)
+print(m.weight)
+print("This is the bias: ",m.bias)
+print("------------------")
+output=m(input)
+print(output,output.size())
+```
+
+output:
+
+```
+tensor([[1., 1., 1., 1.],
+        [1., 1., 1., 1.]])
+------------------
+Parameter containing:
+tensor([[-1.6091e-01,  2.3428e-01,  1.9951e-01, -4.9811e-01],
+        [-2.0970e-01,  2.3395e-01,  2.0872e-01,  2.6485e-01],
+        [-9.4639e-02,  1.3374e-01,  6.3642e-03, -1.4294e-01],
+        [-1.6239e-01,  4.2572e-01, -4.3870e-01, -1.9876e-01],
+        [ 3.2162e-01, -3.4442e-01, -2.8008e-04, -6.9864e-02],
+        [-2.6920e-01,  2.2169e-01,  1.6839e-01,  3.7457e-01],
+        [ 3.8748e-01,  2.6485e-01,  4.6841e-01, -4.8173e-01],
+        [-2.6852e-01,  1.8060e-01, -1.8390e-01, -4.5349e-01],
+        [-6.3189e-02, -3.1551e-01,  2.0694e-02, -3.3643e-02],
+        [ 2.5252e-01,  1.7889e-01, -4.9350e-01,  6.8989e-02]],
+       requires_grad=True)
+This is the bias:  Parameter containing:
+tensor([ 0.1981,  0.4391,  0.1734,  0.1133, -0.4618,  0.1890, -0.1960, -0.0598,
+        -0.0444, -0.4557], requires_grad=True)
+------------------
+tensor([[-0.0271,  0.9370,  0.0759, -0.2608, -0.5547,  0.6845,  0.4430, -0.7851,
+         -0.4360, -0.4488],
+        [-0.0271,  0.9370,  0.0759, -0.2608, -0.5547,  0.6845,  0.4430, -0.7851,
+         -0.4360, -0.4488]], grad_fn=<AddmmBackward0>) torch.Size([2, 10])
+```
+
+
+
+#### 91. torch.sigmoid()
+
+The PyTorch sigmoid function is an element-wise operation that squishes  any real number into a range between 0 and 1. This is a very common  activation function to use as the last layer of binary classifiers  (including logistic regression) because it lets you treat model  predictions like probabilities that their outputs are true, i.e. `p(y == 1)`.
+
+Mathematically, the function is `1 / (1 + np.exp(-x))`. And plotting it creates a well-known curve:
+
+![sigmoid](/home/jiang/桌面/About Python and some image algorithm/pictures source/sigmoid.jpeg)
+
+​																													y = sigmoid(x) for x in [-10, 10]
+
+Similar to other activation functions like [softmax](https://sparrow.dev/pytorch-softmax/), there are two patterns for applying the sigmoid activation function in  PyTorch. Which one you choose will depend more on your style preferences than anything else.
 
 
 
@@ -6594,7 +6914,31 @@ dict_items([('beater', 'bea'), ('cooking', 'coo'), ('cupboard/wardrobe', 'cup'),
 
 #### 36. how to enumerate a dictionary **through both keys and values**
 
+Instead of using the range() function, we can instead use the built-in [*enumerate()*](https://docs.python.org/3/library/functions.html#enumerate) function in python. *enumerate()* allows us to iterate through a sequence but it keeps track of both the index and the element.
 
+> enumerate(iterable, start=0)
+
+The enumerate() function takes in an iterable as an argument, such as a list, string, tuple, or dictionary.
+
+example 1:
+
+```python
+num_list= [42, 56, 39, 59, 99]
+
+for index, element in enumerate(num_list):
+    print(index, element)
+
+# output: 
+0 42
+1 56
+2 39
+3 59
+4 99
+```
+
+
+
+example 2:
 
 ```python
 example_dict = {1:'a', 2:'b', 3:'c', 4:'d'}
@@ -6611,6 +6955,10 @@ output:
 2 3 c
 3 4 d
 ```
+
+The vital significance of using `for in` with `enumerate()` is that it allows you to access both the **index** and **value** of each element **simultaneously**/ˌsaɪməlˈteɪniəsli/. This can be particularly useful when you need to perform operations that depend on the position of the elements in the iterable or when you want to create a mapping between elements and their indices.
+
+While it is true that you can achieve a similar result using just the `for...in` loop and manually keeping track of the index, the `enumerate()` function provides a **convenient and readable way** to achieve the same result with less code. It is especially useful when you need to perform operations that depend on both the index and the value of each element.
 
 
 
@@ -8943,6 +9291,26 @@ output:
 
 
 
+#### 25. numpy.nan_to_num
+
+Replace nan with zero and inf with finite numbers.
+
+Returns an array or scalar replacing Not a Number (NaN) with zero, (positive) infinity with a very large number and negative infinity with a very small (or negative) number.
+
+```python
+import numpy as np
+
+x=np.array([np.inf, -np.inf,np.nan, -128, 128])
+print(np.nan_to_num(x))
+```
+
+output:
+
+```
+[ 1.79769313e+308 -1.79769313e+308  0.00000000e+000 -1.28000000e+002
+  1.28000000e+002]
+```
+
 
 
 
@@ -9629,7 +9997,7 @@ for i in range(0,len(training_list)):
 
 
 
-#### 1.scipy.special.softmax()
+#### 1. scipy.special.softmax()
 
 ```python
 from scipy.special import softmax
@@ -9697,7 +10065,7 @@ output:
 
 
 
-#### 2.scipy.signal.butter()
+#### 2. scipy.signal.butter()
 
 Butterworth digital and analog filter design.
 
@@ -9752,6 +10120,24 @@ After the preprocessing of butterworth filter.
 
 ![scipy.signal.butter](/home/jiang/桌面/About Python and some image algorithm/pictures source/scipy.signal.butter.webp)
 
+#### 3. scipy.signal.resample()
+
+Resample *x* to *num* samples using Fourier method along the given axis.
+
+The resampled signal starts at the same value as *x* but is sampled with a spacing of `len(x) / num * (spacing of x)`. Because a Fourier method is used, the signal is assumed to be periodic.
+
+
+
+#### 4. scipy.signal.resample_poly()
+
+Resample *x* along the given axis using polyphase filtering.
+
+
+
+#### 5. scipy.signal.filtfilt()
+
+Apply a digital filter forward and backward to a signal.
+
 
 
 ## About torchaudio
@@ -9762,25 +10148,18 @@ Load audio file into torch.Tensor object. Refer to [torchaudio.backend](https://
 
 ```python
 import torch
-
 import torchaudio
-
 import matplotlib.pyplot as plt
-
 
 
 filename = "/home/jiang/桌面/pytorchforaudio-main/UrbanSound8K/audio/fold2/4201-3-0-0.wav"
 
 waveform,sample_rate = torchaudio.load(filename)
-
 print("Shape of waveform:{}".format(waveform.size())) #音频大小
-
 print("sample rate of waveform:{}".format(sample_rate))#采样率
 
 plt.figure()
-
 plt.plot(waveform.t().numpy())
-
 plt.show()
 
 ```
@@ -9789,7 +10168,6 @@ output:
 
 ```powershell
 Shape of waveform:torch.Size([2, 10937]) 
-
 sample rate of waveform:44100
 ```
 
@@ -10212,7 +10590,9 @@ bea_001_00_00_0.flac--0.wav bea_001_00_00_0.flac--1.wav bea_001_00_00_0.flac--2.
 win_102_01_02_0.flac--1.wav win_103_02_02_0.flac--0.wav win_103_02_02_0.flac--1.wav win_104_01_02_0.flac--0.wav
 ```
 
-#### 5. pandas.DataFrame()
+
+
+#### 5. pandas.DataFrame() and pandas.DataFrame.iloc
 
 below is the example:
 
@@ -10231,6 +10611,62 @@ output:
 0     1     3
 1     2     4
 ```
+
+another example:
+
+```python
+import pandas as pd
+
+data = {'A': [1, 2, 3], 'B': [4, 5, 6], 'C': [7, 8, 9]}
+df = pd.DataFrame(data)
+print(df)
+print("----------------------------------------")
+
+# Selecting a single element
+value = df.iloc[1, 2]
+print(value)  # Output: 8
+print("----------------------------------------")
+
+# Selecting multiple rows and columns
+subset = df.iloc[0:2, 1:3]
+print(subset)
+print("----------------------------------------")
+# Output:
+#    B  C
+# 0  4  7
+# 1  5  8
+
+# Selecting specific rows and columns
+subset2 = df.iloc[[0, 2], [1, 2]]
+print(subset2)
+print("----------------------------------------")
+# Output:
+#    B  C
+# 0  4  7
+# 2  6  9
+```
+
+output:
+
+```
+   A  B  C
+0  1  4  7
+1  2  5  8
+2  3  6  9
+----------------------------------------
+8
+----------------------------------------
+   B  C
+0  4  7
+1  5  8
+----------------------------------------
+   B  C
+0  4  7
+2  6  9
+----------------------------------------
+```
+
+
 
 
 
@@ -10561,6 +10997,61 @@ for i in range(10):
 
 # Close the progress bar
 progress_bar.close()
+```
+
+
+
+#### 03.for xxx in tqdm(torch.utils.data.DataLoader)
+
+Instantly make your loops show a smart progress meter - just wrap any iterable with tqdm(iterable), and you’re done!
+
+```python
+from torch.utils.data import DataLoader, Dataset
+import torch
+from tqdm import tqdm
+
+class TensorDataset(Dataset):
+    # TensorDataset继承Dataset, 重载了__init__, __getitem__, __len__
+    # 实现将一组Tensor数据对封装成Tensor数据集
+    # 能够通过index得到数据集的数据，能够通过len，得到数据集大小
+    def __init__(self, data_tensor, target_tensor):
+        self.data_tensor = data_tensor
+        self.target_tensor = target_tensor
+
+    def __getitem__(self, index):
+
+        # 两边都是输出相同索引的数值,根据输出栏目可以看到data和taeget是一套输出的
+        return self.data_tensor[index], self.target_tensor[index]
+
+    def __len__(self):
+        return self.data_tensor.size(0)
+
+# 生成数据
+data_tensor = torch.randn(4000, 3)
+target_tensor = torch.rand(4000)
+print("This is data_tensor: ",data_tensor)
+print("This is target_tensor: ",target_tensor)
+
+# 将数据封装成Dataset
+tensor_dataset = TensorDataset(data_tensor, target_tensor)
+
+# 可使用索引调用数据
+print ('tensor_data[0]: ', tensor_dataset[0])
+
+# 可返回数据len
+print ('len os tensor_dataset: ', len(tensor_dataset))
+
+# 这个函数控制着接下来for循环的输出“__getitem__”方法
+tensor_dataloader = DataLoader(tensor_dataset,   # 封装的对象
+                               batch_size=1,     # 输出的batchsize
+                               shuffle=True,     # 随机输出
+                               num_workers=0)    # 只有1个进程
+print("-----------------------------Dividing-----------------------------------------")
+# 以for循环形式输出,这里会直接调用
+with tqdm(tensor_dataloader) as pbar:
+    for data, target in pbar: 
+        print("This is data: ",data)
+        print("This is target: ",target)
 ```
 
 
