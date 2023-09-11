@@ -63,19 +63,31 @@ conda list
 conda install package
 ```
 
-#### 11. pip install a specific version, type the package name followed by the required version:
+#### 11.To see a list of all of your environments
+
+```
+conda info --envs
+```
+
+or
+
+```
+conda env list
+```
+
+#### 12. pip install a specific version, type the package name followed by the required version:
 
 ```bash
 pip install 'PackageName==1.4'
 ```
 
-#### 12. The following command will install the packages according to the configuration file `requirements.txt`.
+#### 13. The following command will install the packages according to the configuration file `requirements.txt`.
 
 ```bash
 $ pip install -r requirements.txt
 ```
 
-#### 13. NVIDIA System Management Interface program
+#### 14. NVIDIA System Management Interface program
 
 ```bash
 nvidia-smi
@@ -402,7 +414,15 @@ output:
 
 ## About pickle
 
-Pickle in Python is primarily used in **serializing and deserializing a Python object structure**. In other words, it's the process of converting a Python object into a byte stream to store it in a file/database, maintain program state across sessions, or transport data over the network.
+Pickle in Python is primarily used in **serializing/ˈsɪriəlaɪzɪŋ/ and deserializing( 序列化和反序列化) a Python object structure**. In other words, it's the process of converting a Python object into a byte stream to store it in a file/database, maintain program state across sessions, or transport data over the network.
+
+**Serialization** refers to the process of converting a data object (e.g., Python objects, Tensorflow models) into a format that allows us to store or transmit the data and then recreate the object when needed using the reverse process of **deserialization**.
+
+There are different formats for the serialization of data, such as JSON, XML, HDF5, and Python’s pickle, for different purposes. JSON, for instance, returns a human-readable string form, while Python’s pickle library can return a byte array.
+
+**Serialization** is the process of converting the object into a format that can be stored or transmitted. After transmitting or storing the serialized data, we are able to reconstruct the object later and obtain the exact same structure/object, which makes it really convenient for us to continue using the stored object later on instead of reconstructing the object from scratch.
+
+In Python, there are many different formats for serialization available. One common example of hash maps (Python dictionaries) that works across many languages is the JSON file format which is human-readable and allows us to store the dictionary and recreate it with the same structure. But JSON can only store basic structures such as a list and dictionary, and it can only keep strings and numbers. We cannot ask JSON to remember the data type (e.g., numpy float32 vs. float64). It also cannot distinguish between Python tuples and lists.
 
 
 
@@ -430,303 +450,31 @@ output:
 {'name': 'Bruce', 'age': 25, 'high': 175}
 ```
 
+or combine with 'with as'
+
+```python
+import pickle
+
+with open("./pickle_pth_files/stats_1.pickle", "rb") as infile:
+    test_dict_reconstructed = pickle.load(infile)
+
+print(test_dict_reconstructed)
+```
+
+#### 1. pickle.HIGHEST_PROTOCOL
+
+Use the latest protocol that supports the lowest Python version you want to support reading the data. Newer protocol versions support new language features and include optimizations.
+
+```python
+import pickle
+
+with open(exp_dir + '/stats_' + str(epoch) +'.pickle', 'wb') as handle:
+            pickle.dump(stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+```
+
 
 
 ## About Pytorch
-
-**tuple**:A tuple looks just like a list except you use parentheses instead of square brackets. Once you define a tuple, you can access individual elements by using each item’s index, just as you would for a list. 
-
-For example, if we have a rectangle that should always be a certain size, we can ensure that its size doesn’t change by putting the dimensions into a tuple:
-
-for example:
-
-```python
-dimensions = (200, 50)
-
-print(dimensions[0])
-
-print(dimensions[1])
-tuple.shape # 可以用这个命令查看元组的形状
-```
-
-keyword: can't be changed   ()
-
-
-
-**list**: In Python, square brackets ([]) indicate a list, and individual elements in the list are separated by commas. Here’s a simple example of a list that contains a few kinds of bicycles:
-
-for example:
-
-```python
-bicycles = ['trek', 'cannondale', 'redline', 'specialized'] 
-
-print(bicycles)
-```
-
-keyword: can be changed  orderly []
-
-**hint**: 当索引列表时，索引值为negative. (-1永远表示最后一项)
-
-```python
-li=[1,2,3,4,5,6]
-
-print("This is test: ",li[-1])
-
-print("This is test: ",li[-2])
-
-print("This is test: ",li[-3])
-```
-
-output:
-
-```powershell
-This is test:  6 
-
-This is test:  5 
-
-This is test:  4
-```
-
-
-
-**dictionary**: Consider a game featuring aliens that can have different colors and point values. This simple dictionary stores information about a particular alien
-
-字典是另一种可变容器模型，且可存储任意类型对象。
-
-字典的每个键值 **key=>value** 对用冒号 : 分割，每个键值对之间用逗号 , 分割，整个字典包括在花括号 {} 中 ,格式如下所示：
-
-for example:
-
-```python
-alien_0 = {'color': 'green', 'points': 5} 
-
-print(alien_0['color']) 
-
-print(alien_0['points'])
-```
-
-keyword: {} is fast of inserting and searching  waste memory
-
-
-
-#### dict.keys()
-
-```python
-tinydict = {'Name': 'Zara', 'Age': 7}
-
-print("Value : %s" %  tinydict.keys())
-```
-
-以列表返回一个字典所有的键
-
-```powershell
-Value : ['Age', 'Name']
-```
-
-
-
-**nested dictionary**:
-
-```python
-#多级字典（嵌套字典）
-FamousDict ``=` `{
- ``'薛之谦'``:{
-  ``'身高'``:``178``,
-  ``'体重'``:``130``,
-  ``'口头禅'``:[``'你神经病啊！'``,``'我不要面子啊'``] ``#相应的值可以是 一个列表
- ``},
- ``'吴青峰'``:{
-  ``'身高'``:``170``,
-  ``'体重'``:``120``,
-  ``'口头禅'``:[``'我叫吴青峰'``,``'你好'``]
- ``}
-}
-#访问多级字典：
-print``(``'薛之谦的体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
-#修改薛之谦体重为125
-FamousDict[``'薛之谦'``][``'体重'``] ``=` `125
-print``(``'减肥后的薛之谦体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
-#新添薛之谦腰围100
-FamousDict[``'薛之谦'``][``'腰围'``] ``=` `100
-print``(``'薛之谦的腰围为：'``,FamousDict[``'薛之谦'``][``'腰围'``],``'cm'``)
-#多级字典删除
-FamousDict[``'吴青峰'``].pop(``'身高'``) ``#标准删除
-del` `FamousDict[``'吴青峰'``][``'体重'``] ``#另一个删除方法
-print``(``'关于吴青峰现在只剩下：'``,FamousDict[``'吴青峰'``])
-```
-
-
-
-**set**:
-
-for example:
-
-```python
-\>>> basket = {'apple', 'orange', 'apple', 'pear', 'orange', 'banana'}
-\>>> **print**(basket)            # 这里演示的是去重功能
-{'orange', 'banana', 'pear', 'apple'}
-```
-
-keyword: no orderly  on repeat
-
-
-
-**slice from list**:
-
-1. 切片操作不是列表特有的，python中的有序序列都支持切片，如字符串，元组。
-2. 切片的返回结果类型和切片对象类型一致，返回的是切片对象的子序列，如：对一个列表切片返回一个列表，
-3. 字符串切片返回字符串。
-4. 切片生成的子序列元素是源版的拷贝。因此切片是一种浅拷贝。
-
-```python
-li=["A","B","C","D"]
-```
-
-格式： li[start : end : step]  
-
-start是切片起点索引，end是切片终点索引，但切片结果不包括**终点索引的值**。step是步长默认是1。
-
-```python
-t=li[0:3]      ["A","B","C"]     #起点的0索引可以省略，t=li[:3]
-
-t=li[2: ]      ["C","D"]         #省略end，则切到末尾
-
-t=li[1:3]      ["B","C"]
-
-t=li[0:4:2]    ["A","C"]         #从li[0]到li[3],设定步长为2。
-```
-
-如何确定start和end，他们是什么关系？
-
- 在step的符号一定的情况下，start和end可以混合使用正向和反向索引，无论怎样，你都要保证start和end之间有和step方向一致元素 间隔，否则会切出空列表.
-
-```python
-       t=li[0:2]
-
-​      t=li[0:-2]
-
-​      t=li[-4:-2]
-
-​      t=li[-4:2]
-
-# 上面的结果都是一样的；t为["A","B"]
-```
-
-![20150702234502400](/home/jiang/桌面/About Python and some image algorithm/pictures source/20150702234502400.png)
-
-```python
-     t=li[-1:-3:-1]
-
-​     t=li[-1:1:-1]
-
-​     t=li[3:1:-1]
-
-​     t=li[3:-3:-1]
-
-# 上面的结果都是一样的；t为["D","C"]
-```
-
-![20150702234736704](/home/jiang/桌面/About Python and some image algorithm/pictures source/20150702234736704.png)
-
-```python
-      t=li[-1:-3]
-
-​     t=li[-1:1]
-
-​     t=li[3:1]
-
-​     t=li[3:-3]
-
-
-
-# 都切出空列表
-```
-
-![20150702235107635](/home/jiang/桌面/About Python and some image algorithm/pictures source/20150702235107635.png)
-
- 同时，step的正负决定了切片结果的元素采集的先后,省略**start 和 end**表示以原列表全部为目标.
-
-```python
-   t=li[::-1]   t--->["D","C","B","A"]   #反向切，切出全部
-
-   t=li[:]    t--->["A","B","C","D"]     #正向切全部
-```
-
-
-
-**slice from Numpy**:
-
-```python
-import numpy as np  
-
-a = np.array([[1, 2, 3, 4], [3, 4, 5, 6], [4, 5, 6, 7]])
-print(a[..., 1])  # 第2列元素
-print(a[1, ...])  # 第2行元素
-print(a[..., 1:])  # 第2列及剩下的所有元素
-```
-
-output:
-
-```bash
-[2 4 5]
-[3 4 5 6]
-[[2 3 4]
- [4 5 6]
- [5 6 7]]
-```
-
-
-
-#### 1. About decorator of python
-
-for example:
-
-```python
-def foo():
-    print('i am foo')
-```
-
-现在有一个新的需求，希望可以记录下函数的执行日志，于是在代码中添加日志代码：
-
-```python
-def foo():
-    print('i am foo')
-	logging.info("foo is running")
-```
-
-对bar(), bar()n 有一样的需求
-
-```python
-def use_logging(func):
-	logging.warn("%s is running" % func.__name__)
-	func()
-
-def bar():
-    print('i am bar')
-    
-use_logging(bar)
-```
-
-simple example
-
-```python
-def use_logging(func):
-    
-    def wrapper(*args, **kwargs):
-        logging.warn("%s is running" % func.__name__)
-        return func(*args)
-    return wrapper
-
-@use_logging
-def foo():
-    print("i am foo")
-    
-@use_logging
-def bar():
-    print("i am bar")
-    
-bar()
-```
 
 
 
@@ -762,11 +510,11 @@ This is b.grad:
 
 `注意参数requires_grad=True`让其成为一个叶子节点，具有求导功能。
 
-![1](/home/jiang/桌面/About Python and some image algorithm/pictures source/1.png)
+![1](./pictures source/1.png)
 
 手动求导结果：
 
-![2](/home/jiang/桌面/About Python and some image algorithm/pictures source/2.png)
+![2](./pictures source/2.png)
 
 #### Below is for the grad()
 
@@ -1290,7 +1038,7 @@ according to the column:  tensor([[[1, 1, 1, 1, 1],
 
 **torch.mean()**
 
-torch.mean(input) 输出input 各个元素的的均值，不指定任何参数就是所有元素的算术平均值，指定参数可以计算每一行或者 每一列的算术平均数
+torch.mean(input) 输出input 各个元素的的均值，不指定任何参数就是所有元素的算术平均值. 指定参数可以计算每一行或者 每一列的算术平均数
 
 
 
@@ -1403,7 +1151,7 @@ hook作用：
 
 #### 13. pytorch.data属性和.detach()属性相同与不同之处
 
-example: .data 和.detach()只取出本体tensor数据，舍弃了grad，grad_fn等额外反向图计算过程需保存的额外信息。
+example: .data 和.detach()只取出本体tensor数据，**舍弃了grad，grad_fn等额外反向图计算过程需保存的额外信息。**
 
 ```python
 a = torch.tensor([1.,2,3], requires_grad = True)
@@ -1471,7 +1219,7 @@ This is c:  tensor([20., 40., 60.])
 
 #### 14. PyTorch中in-place
 
-in-place operation在pytorch中是指改变一个tensor的值的时候，不经过复制操作，而是直接在原来的内存上改变它的值。可以把它成为原地操作符。
+**in-place operation**在pytorch中是指改变一个tensor的值的时候，不经过复制操作，而是直接在原来的内存上改变它的值。可以把它成为**原地操作符**。
 
 在pytorch中经常加后缀“_”来代表原地 in-place operation，比如说.add_() 或者.scatter_()。python里面的+=，*=也是in-place operation。
 
@@ -2472,24 +2220,14 @@ Namespace(bar='Y', f='X')
 class My():
 
 ​    'Test'
-
 ​    def __init__(self,name):
-
 ​        self.name=name
 
-
-
 ​    def test(self):
-
 ​        print (self.name)
 
-
-
 ​    def abc(self):
-
 ​        print("roll out")
-
-
 
 
 vars(My)#返回一个字典对象，他的功能其实和  My.__dict__  很像
@@ -2614,101 +2352,85 @@ transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))解释：
 
 
 
-#### 37. init() and __getitem__ () from class
+#### 37. nn.Module.named_parameters()和parameters()
 
-__getitem__() is a magic method in Python, which when used in a class, **allows its instances to use the [] (indexer) operators**. 
-
-example #1:
+nn.Module里面关于参数有两个很重要的属性named_parameters()和parameters()，前者给出网络层的**名字**和参数的迭代器，而后者仅仅是参数的迭代器。
 
 ```python
-class P(object):
-   def __init__(self):       
-       self.cus_dict = {'name': 'abc'}
-       print("here is called(__init__())")
-
-   def __getitem__(self, item):
-       print("here is called(__getitem__())")
-       return self.cus_dict[item]
-
-if __name__ == '__main__':
-   m = P() # When instantiating an object, only the __init__ function is called
-   # here we should pay attention, if the object of P carries the argument(no indicator the self), 
-   print("------------------")
-   m['name'] # only the __getitem__ is called if only use [] (indexer) operators.
-   print("------------------")
-   
-```
-
-output:
-
-```
-here is called(__init__()) 
------------------- 
-here is called(__getitem__()) 
-------------------
-```
-
-
-
-example #2: 
-
-If the object carries the extra argument(not indicator the self), we should convey the argument as well when the object is being instantiated.
-
-```python
-class P(object):
-   def __init__(self, test_value):
-​       print(test_value)
-​       self.cus_dict = {'name': 'abc'}
-​       print("here is called(__init__())")
-
-   def __getitem__(self, item):
-​       print("here is called(__getitem__())")
-​       return self.cus_dict[item]
-
-if __name__ == '__main__':
-   m = P('hahahahahahahahha') 
-   print("------------------")
-```
-
-output:
-
-```
-hahah here is called(__init__()) 
-------------------
-```
-
-##### (1) getitem can only use [] to call in python
-
-In Python, the `getitem` method, also known as the indexing operator, allows objects to support accessing their elements using square brackets `[]`. This is a common convention in many programming languages.
-
-The reason `getitem` is implemented using square brackets `[]` in Python is primarily for readability and familiarity. Square brackets are widely used across various programming languages to represent indexing or accessing elements within a container, such as lists, tuples, or dictionaries.
-
-By using square brackets for indexing, Python adheres to the principle of least surprise, making it easier for developers to understand and work with the language. It also helps maintain consistency within the language syntax.
-
-Furthermore, Python provides flexibility by allowing objects to define their own `__getitem__` method, which is automatically called when using the indexing operator. This enables custom objects to support indexing and provide meaningful behavior when accessing their elements.
-
-In summary, Python uses square brackets `[]` to call the `getitem` method for indexing because it follows common programming conventions, promotes readability, and allows for custom behavior in objects.
-
-##### (2) between the `for` loop and the `__getitem__()` method
-
-```python
-class MyCustomList:
-    def __init__(self, items):
-        self.items = items
-
-    def __getitem__(self, index):
-        return self.items[index]
-
-
-my_list = MyCustomList([1, 2, 3, 4, 5])
-
-# Using a for loop to iterate over the custom list
-for item in my_list:
-    print(item)
-
+import torchvision.models as models
+model = models.resnet18()
+for param in model.named_parameters():
+    print(param[0])
+# 这里面只有param[0]和param[1]的值有效
+'''
+conv1.weight
+bn1.weight
+bn1.bias
+layer1.0.conv1.weight
+layer1.0.bn1.weight
+layer1.0.bn1.bias
+layer1.0.conv2.weight
+layer1.0.bn2.weight
+layer1.0.bn2.bias
+layer1.1.conv1.weight
+layer1.1.bn1.weight
+layer1.1.bn1.bias
+layer1.1.conv2.weight
+layer1.1.bn2.weight
+layer1.1.bn2.bias
+layer2.0.conv1.weight
+layer2.0.bn1.weight
+layer2.0.bn1.bias
+layer2.0.conv2.weight
+layer2.0.bn2.weight
+layer2.0.bn2.bias
+layer2.0.downsample.0.weight
+layer2.0.downsample.1.weight
+layer2.0.downsample.1.bias
+layer2.1.conv1.weight
+layer2.1.bn1.weight
+layer2.1.bn1.bias
+layer2.1.conv2.weight
+layer2.1.bn2.weight
+layer2.1.bn2.bias
+layer3.0.conv1.weight
+layer3.0.bn1.weight
+layer3.0.bn1.bias
+layer3.0.conv2.weight
+layer3.0.bn2.weight
+layer3.0.bn2.bias
+layer3.0.downsample.0.weight
+layer3.0.downsample.1.weight
+layer3.0.downsample.1.bias
+layer3.1.conv1.weight
+layer3.1.bn1.weight
+layer3.1.bn1.bias
+layer3.1.conv2.weight
+layer3.1.bn2.weight
+layer3.1.bn2.bias
+layer4.0.conv1.weight
+layer4.0.bn1.weight
+layer4.0.bn1.bias
+layer4.0.conv2.weight
+layer4.0.bn2.weight
+layer4.0.bn2.bias
+layer4.0.downsample.0.weight
+layer4.0.downsample.1.weight
+layer4.0.downsample.1.bias
+layer4.1.conv1.weight
+layer4.1.bn1.weight
+layer4.1.bn1.bias
+layer4.1.conv2.weight
+layer4.1.bn2.weight
+layer4.1.bn2.bias
+fc.weight
+fc.bias
+'''
 ```
 
 
+
+#### 
 
 
 
@@ -3541,7 +3263,7 @@ Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
 
 这里关于BCE的公式可以google.
 
-![BCE](/home/jiang/桌面/About Python and some image algorithm/pictures source/BCE.webp)
+![BCE](./pictures source/BCE.webp)
 
 where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
 
@@ -3574,102 +3296,28 @@ print(np.log(10)) # 这里面底数为常数e
 
 
 
-#### 56. torch.nn.Module.train(mode=True)
+#### 56. torch.nn.Module.train(mode=True)&torch.nn.Module.eval()
 
-train(mode=True)
-方法: train(mode=True)
-    Sets the module in training mode.
-    将当前模块设置成训练模式.
-    This has any effect only on certain modules. See documentations of
-    particular modules for details of their behaviors in 
-    training/evaluation mode, if they are affected, 
-    e.g. Dropout, BatchNorm, etc.
-	这个方法只对某些特定的模块有实际效果.读者可以在相关文档上查看这些特
-    定的模块(受该函数影响的模块,比如Dropout和BatchNorm模块等等)在训练/评估
-    模式下的不同行为方式的详细信息.
-    
-
-    Parameters  参数
-        mode (bool) – whether to set training mode (True) or
-        evaluation mode (False). Default: True.
-    	mode (布尔类型) – 是否将模块设置成训练模式(True)或者评估
-    	模式(False). 默认值是True.
-    
-    Returns  函数返回
-        self  自身self
-    Return type  返回类型
-        Module  模块Module类型
-
-代码实验展示:
-
-```python
-import torch 
-import torch.nn as nn
-torch.manual_seed(seed=20200910)
-class Model(torch.nn.Module):
-    def __init__(self):
-        super(Model,self).__init__()
-        self.conv1=torch.nn.Sequential(  # 输入torch.Size([64, 1, 28, 28])
-                torch.nn.Conv2d(1,64,kernel_size=3,stride=1,padding=1),
-                torch.nn.ReLU(),  # 输出torch.Size([64, 64, 28, 28])
-                torch.nn.Conv2d(64,128,kernel_size=3,stride=1,padding=1),  # 输出torch.Size([64, 128, 28, 28])
-                torch.nn.ReLU(),
-                torch.nn.MaxPool2d(stride=2,kernel_size=2)  # 输出torch.Size([64, 128, 14, 14])
-        )
-
-        self.dense=torch.nn.Sequential(  # 输入torch.Size([64, 14*14*128])
-                    torch.nn.Linear(14*14*128,1024),  # 输出torch.Size([64, 1024])
-                    torch.nn.ReLU(),
-                    torch.nn.Dropout(p=0.5),
-                    torch.nn.Linear(1024,10)  # 输出torch.Size([64, 10])        
-        )
-        self.layer4cxq1 = torch.nn.Conv2d(2,33,4,4)
-        self.layer4cxq2 = torch.nn.ReLU()
-        self.layer4cxq3 = torch.nn.MaxPool2d(stride=2,kernel_size=2)
-        self.layer4cxq4 = torch.nn.Linear(14*14*128,1024)
-        self.layer4cxq5 = torch.nn.Dropout(p=0.8)
-        self.attribute4cxq = nn.Parameter(torch.tensor(20200910.0))
-        self.attribute4lzq = nn.Parameter(torch.tensor([2.0,3.0,4.0,5.0]))    
-        self.attribute4hh = nn.Parameter(torch.randn(3,4,5,6))
-        self.attribute4wyf = nn.Parameter(torch.randn(7,8,9,10))
-    
-    def forward(self,x):  # torch.Size([64, 1, 28, 28])
-        x = self.conv1(x)  # 输出torch.Size([64, 128, 14, 14])
-        x = x.view(-1,14*14*128)  # torch.Size([64, 14*14*128])
-        x = self.dense(x)  # 输出torch.Size([64, 10])
-        return x
-
-print('cuda(GPU)是否可用:',torch.cuda.is_available())
-print('torch的版本:',torch.__version__)
-
-model = Model() #.cuda()
-
-print('调用方法eval()之后'.center(100,'-'))
-model_1 = model.eval()
-print(id(model))
-print(id(model_1))
-print(id(model)==id(model_1))
+`model.train()` tells your model that you are training the model. This helps inform layers such as Dropout and BatchNorm, which are designed to behave differently during training and evaluation. For instance, in training mode, BatchNorm updates a moving average on each new batch; whereas, for evaluation mode, these updates are frozen.
 
 
-print('调用方法train()之后'.center(100,'-'))
-model_2 = model.train()
-print(id(model))
-print(id(model_2))
-print(id(model)==id(model_2))
+
+More details: `model.train()` sets the mode to train (see [source code](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module.train)). You can call either `model.eval()` or `model.train(mode=False)` to tell that you are testing. It is somewhat intuitive to expect `train` function to train model but it does not do that. It just sets the mode.
 
 
-print('调用方法train(mode=True)之后'.center(100,'-'))
-model_3 = model.train(mode=True)
-print(id(model))
-print(id(model_3))
-print(id(model)==id(model_3))
 
-print('调用方法train(mode=False)之后'.center(100,'-'))
-model_4 = model.train(mode=False)
-print(id(model))
-print(id(model_4))
-print(id(model)==id(model_4))
-```
+`model.eval()` is a kind of switch for some specific layers/parts of the model that behave differently during training and inference (evaluating) time. For example, Dropouts Layers, BatchNorm Layers etc. You need to turn them off during model evaluation, and `.eval()` will do it for you. In addition, the common practice for evaluating/validation is using `torch.no_grad()` in pair with `model.eval()` to turn off gradients computation:
+
+| `model.train()`                                              | [`model.eval()`](https://stackoverflow.com/a/66843176/9067615) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Sets model in **train**ing mode i.e.  • `BatchNorm` layers use per-batch statistics • `Dropout` layers activated [etc](https://stackoverflow.com/questions/66534762/which-pytorch-modules-are-affected-by-model-eval-and-model-train) | Sets model in **eval**uation (inference) mode i.e.  • `BatchNorm` layers use running statistics • `Dropout` layers de-activated etc |
+|                                                              | Equivalent to `model.train(False)`.                          |
+
+**Note:** neither of these function calls run forward / backward passes. They tell the model *how* to act *when* run.
+
+This is important as [some modules (layers)](https://stackoverflow.com/questions/66534762/which-pytorch-modules-are-affected-by-model-eval-and-model-train) (e.g. `Dropout`, `BatchNorm`) are designed to behave differently during training vs inference, and hence the model will produce unexpected results if run in the wrong mode.
+
+
 
 
 
@@ -3763,7 +3411,7 @@ tensor(0)
 
 
 
-- `torch.argmax`(*input*, *dim*, *keepdim=False*) → LongTensor
+- `torch.argmax`(*input*, ***dim***, *keepdim=False*) → LongTensor
 
   
 
@@ -3921,7 +3569,7 @@ tensor([[ 0.0245, -0.1216,  0.1481,  0.0782,  0.1221,  0.0736, -0.3178, -0.2884,
 
 
 
-为什么会调用forward()呢，是因为Module中定义了__call__()函数，该函数调用了forward()函数，当执行net(x)的时候，会自动调用__call__()函数.
+为什么会调用forward()呢，是因为**Module**中定义了__call__()函数，该函数调用了forward()函数，当执行net(x)的时候，会自动调用__call__()函数.
 
 
 
@@ -3959,7 +3607,7 @@ code goes forward 3 74
 
 ##### (1) forward() can only use () to call in python
 
-In Python, the `forward()` method is commonly used in the context of defining and working with classes that inherit from the `nn.Module` class in the PyTorch library. The `forward()` method is a fundamental part of the PyTorch framework and is responsible for defining the forward pass of a neural network model.
+In Python, the `forward()` method is commonly used in the context of defining and working with classes that **inherit from** the `nn.Module` class in the PyTorch library. The `forward()` method is a fundamental part of the PyTorch framework and is responsible for defining the forward pass of a neural network model.
 
 The reason `forward()` is implemented using parentheses `()` in Python is because it is a method and follows the convention of calling methods in the language. In Python, methods are typically called using parentheses `()`, which can include arguments that are passed to the method.
 
@@ -3971,85 +3619,129 @@ It's important to note that the use of parentheses to call methods is not limite
 
 In summary, the `forward()` method in PyTorch is called using parentheses `()` in Python because it follows the convention of calling methods, where parentheses are used to invoke functions or methods and pass any necessary arguments.
 
+##### (2)not always but recommend
+
+If you define an `nn.Module`, you are usually storing some submodules, parameters, buffers or other arguments in its `__init__` method and write the actual forward logic in its `forward` method.
+This is a convenient method as `nn.Module.__call__` will register hooks etc. and call finally into the `forward` method.
+However, you don’t need to use this approach and could completely write your model in a functional way.
 
 
 
+#### 64. init() and __getitem__ () from class
 
-#### 64. nn.Module.named_parameters()和parameters()
+__getitem__() is a magic method in Python, which when used in a class, **allows its instances to use the [] (indexer) operators**. 
 
-nn.Module里面关于参数有两个很重要的属性named_parameters()和parameters()，前者给出网络层的**名字**和参数的迭代器，而后者仅仅是参数的迭代器。
+example #1:
 
 ```python
-import torchvision.models as models
-model = models.resnet18()
-for param in model.named_parameters():
-    print(param[0])
-# 这里面只有param[0]和param[1]的值有效
-'''
-conv1.weight
-bn1.weight
-bn1.bias
-layer1.0.conv1.weight
-layer1.0.bn1.weight
-layer1.0.bn1.bias
-layer1.0.conv2.weight
-layer1.0.bn2.weight
-layer1.0.bn2.bias
-layer1.1.conv1.weight
-layer1.1.bn1.weight
-layer1.1.bn1.bias
-layer1.1.conv2.weight
-layer1.1.bn2.weight
-layer1.1.bn2.bias
-layer2.0.conv1.weight
-layer2.0.bn1.weight
-layer2.0.bn1.bias
-layer2.0.conv2.weight
-layer2.0.bn2.weight
-layer2.0.bn2.bias
-layer2.0.downsample.0.weight
-layer2.0.downsample.1.weight
-layer2.0.downsample.1.bias
-layer2.1.conv1.weight
-layer2.1.bn1.weight
-layer2.1.bn1.bias
-layer2.1.conv2.weight
-layer2.1.bn2.weight
-layer2.1.bn2.bias
-layer3.0.conv1.weight
-layer3.0.bn1.weight
-layer3.0.bn1.bias
-layer3.0.conv2.weight
-layer3.0.bn2.weight
-layer3.0.bn2.bias
-layer3.0.downsample.0.weight
-layer3.0.downsample.1.weight
-layer3.0.downsample.1.bias
-layer3.1.conv1.weight
-layer3.1.bn1.weight
-layer3.1.bn1.bias
-layer3.1.conv2.weight
-layer3.1.bn2.weight
-layer3.1.bn2.bias
-layer4.0.conv1.weight
-layer4.0.bn1.weight
-layer4.0.bn1.bias
-layer4.0.conv2.weight
-layer4.0.bn2.weight
-layer4.0.bn2.bias
-layer4.0.downsample.0.weight
-layer4.0.downsample.1.weight
-layer4.0.downsample.1.bias
-layer4.1.conv1.weight
-layer4.1.bn1.weight
-layer4.1.bn1.bias
-layer4.1.conv2.weight
-layer4.1.bn2.weight
-layer4.1.bn2.bias
-fc.weight
-fc.bias
-'''
+class P(object):
+   def __init__(self):       
+       self.cus_dict = {'name': 'abc'}
+       print("here is called(__init__())")
+
+   def __getitem__(self, item):
+       print("here is called(__getitem__())")
+       return self.cus_dict[item]
+
+if __name__ == '__main__':
+   m = P() # When instantiating an object, only the __init__ function is called
+   # here we should pay attention, if the object of P carries the argument(no indicator the self), 
+   print("------------------")
+   m['name'] # only the __getitem__ is called if only use [] (indexer) operators.
+   print("------------------")
+   
 ```
+
+output:
+
+```
+here is called(__init__()) 
+------------------ 
+here is called(__getitem__()) 
+------------------
+```
+
+
+
+example #2: 
+
+If the object carries the extra argument(not indicator the self), we should convey the argument as well when the object is being instantiated.
+
+```python
+class P(object):
+   def __init__(self, test_value):
+​       print(test_value)
+​       self.cus_dict = {'name': 'abc'}
+​       print("here is called(__init__())")
+
+   def __getitem__(self, item):
+​       print("here is called(__getitem__())")
+​       return self.cus_dict[item]
+
+if __name__ == '__main__':
+   m = P('hahahahahahahahha') 
+   print("------------------")
+```
+
+output:
+
+```
+hahah here is called(__init__()) 
+------------------
+```
+
+##### (1) getitem can only use [] to call in python
+
+In Python, the `getitem` method, also known as the **indexing operator**, allows objects to support accessing their elements using square brackets `[]`. This is a common convention in many programming languages.
+
+The reason `getitem` is implemented using square brackets `[]` in Python is primarily for readability and familiarity. Square brackets are widely used across various programming languages to represent indexing or accessing elements within a container, such as lists, tuples, or dictionaries.
+
+By using square brackets for indexing, Python adheres to the principle of least surprise, making it easier for developers to understand and work with the language. It also helps maintain consistency within the language syntax.
+
+Furthermore, Python provides flexibility by allowing objects to define their own `__getitem__` method, which is automatically called when using the indexing operator. This enables custom objects to support indexing and provide meaningful behavior when accessing their elements.
+
+In summary, Python uses square brackets `[]` to call the `getitem` method for indexing because it follows common programming conventions, promotes readability, and allows for custom behavior in objects.
+
+##### (2) between the `for` loop and the `__getitem__()` method
+
+```python
+class MyCustomList:
+    def __init__(self, items):
+        self.items = items
+
+    def __getitem__(self, index):
+        return self.items[index]
+
+
+my_list = MyCustomList([1, 2, 3, 4, 5])
+
+# Using a for loop to iterate over the custom list
+for item in my_list:
+    print(item)
+
+```
+
+
+
+##### The difference in how these methods are typically invoked in code.
+
+1. **`forward()`**:
+When you want to use the `forward()` method of a PyTorch model to perform a forward pass and get predictions, you call it with **parentheses** and pass the input data as an argument. This is the typical way to invoke it, as you're explicitly asking the model to process the input.
+
+Example:
+```python
+output = model(input_data)  # Calling forward() with parentheses
+```
+
+2. **`__getitem__()`**:
+When you want to access elements of an object using the custom indexing behavior provided by the `__getitem__()` method, you use **square brackets** (`[]`) and pass the index as an argument. This is often used in **loops** or when directly indexing the object, On the other hand, a loop is a control structure that allows you to iterate over a sequence or collection of items.
+
+Example:
+```python
+item = my_list[2]  # Accessing item at index 2 using __getitem__()
+```
+
+In this context, you're using the `__getitem__()` method implicitly through the indexing operator (`[]`), whereas you explicitly call the `forward()` method using parentheses when you want to perform the forward pass of a neural network model.
 
 
 
@@ -4370,7 +4062,10 @@ import torch.nn as nn
 
 \# Example of target with class indices
 m = nn.Softmax(dim=1)
+
+# 使用这个函数之前一定要实例化
 loss = nn.CrossEntropyLoss()
+
 input = torch.randn(3, 5, requires_grad=True)
 print(f"This is the input: {input}")
 softmax_input=m(input)
@@ -4384,12 +4079,120 @@ print(f"This is the output: {output}")
 output:
 
 ```
-This is the input: tensor([[ 0.5131,  0.0736,  0.9282, -0.7914,  0.9528],        [ 1.5885,  0.1021,  0.0685,  0.2574,  3.1932],        [ 0.0475, -0.6753, -0.6322,  0.5781, -0.2402]], requires_grad=True) This is the softmax_input: tensor([[0.2007, 0.1293, 0.3040, 0.0545, 0.3115],        [0.1496, 0.0338, 0.0327, 0.0395, 0.7443],        [0.2251, 0.1093, 0.1141, 0.3827, 0.1688]], grad_fn=<SoftmaxBackward0>) This is the target: tensor([1, 4, 3]) 
+This is the input: tensor([
+[ 0.5131,  0.0736,  0.9282, -0.7914,  0.9528],        
+[ 1.5885,  0.1021,  0.0685,  0.2574,  3.1932],        
+[ 0.0475, -0.6753, -0.6322,  0.5781, -0.2402]], requires_grad=True) 
+
+This is the softmax_input: tensor([
+[0.2007, 0.1293, 0.3040, 0.0545, 0.3115],        
+[0.1496, 0.0338, 0.0327, 0.0395, 0.7443],        
+[0.2251, 0.1093, 0.1141, 0.3827, 0.1688]], grad_fn=<SoftmaxBackward0>) 
+
+This is the target: tensor([1, 4, 3]) 
 
 This is the output: 1.1003996133804321
 ```
 
+本文主要讲述CrossEntropyLoss函数内部的计算逻辑，我觉得摆一大堆公式都不如直接上代码来的实在。
 
+首先，我们先设置好两个变量，input与y_target。
+
+```python3
+import torch
+import torch.nn as nn
+import numpy as np
+
+a = np.arange(1,13).reshape(3,4)
+b = torch.from_numpy(a)
+input = b.float()
+print('input:\n',input)
+```
+
+可以看到input矩阵如下：
+
+```python3
+ tensor([[ 1.,  2.,  3.,  4.],
+        [ 5.,  6.,  7.,  8.],
+        [ 9., 10., 11., 12.]])
+```
+
+然后设置y_target：
+
+```python3
+y_target = torch.tensor([1,2,3])
+print('y_target:\n',y_target)
+```
+
+这个不用打印大家也应该知道是什么样了。
+
+input是一个【3 4】的矩阵，y-target是一个【1 3】的矩阵。input是预测值，代表有三个样本，四个类别。y-target代表三个样本的真实标签。
+
+```python3
+crossentropyloss=nn.CrossEntropyLoss(reduction='none')
+crossentropyloss_output=crossentropyloss(x_input,y_target)
+print('crossentropyloss_output:\n',crossentropyloss_output)
+```
+
+经过CrossEntropyLoss后，最终结果为：
+
+```python3
+crossentropyloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+下面我们来剖析它的计算过程。**其实CrossEntropyLoss相当于softmax + log + nllloss**。
+
+不信可以计算一遍：
+
+```python3
+softmax_func=nn.Softmax(dim=1)
+soft_output=softmax_func(input)
+print('soft_output:\n',soft_output)
+
+log_output=torch.log(soft_output)
+print('log_output:\n',log_output)
+
+nllloss_func=nn.NLLLoss(reduction='none')
+nllloss_output=nllloss_func(log_output, y_target)
+print('nllloss_output:\n',nlloss_output)
+```
+
+最终结果是一样的：
+
+```python3
+nllloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+softmax、log这两个函数应该都比较好理解。
+
+下面主要讲解一下nllloss这个损失函数。
+
+有了经过softmax与log的矩阵，我们叫它矩阵A。
+
+```python3
+ tensor([[-3.4402, -2.4402, -1.4402, -0.4402],
+        [-3.4402, -2.4402, -1.4402, -0.4402],
+        [-3.4402, -2.4402, -1.4402, -0.4402]])
+```
+
+还有真实标签：
+
+```text
+tensor([1, 2, 3])
+```
+
+y-target中第一个数字，代表第一个样本的真实标签，第一个数字是1，代表第一个样本的真实标签为1。所以取出矩阵A的第一行第二个数字-2.4402，并加上一个负号。之后也是这样，依次取出-1.4402、-0.4402。
+
+所以有了最终结果：
+
+```text
+crossentropyloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+reduction这个参数着重提一下，它一般有none、sum、mean等几个选项，none就是没有别的附加操作，sum就是把这个几个损失加和，mean就是把这几个损失求平均。
 
 #### 72.torchvision.datasets.MNIST()
 
@@ -5048,15 +4851,192 @@ tensor([[-0.0271,  0.9370,  0.0759, -0.2608, -0.5547,  0.6845,  0.4430, -0.7851,
 
 #### 91. torch.sigmoid()
 
-The PyTorch sigmoid function is an element-wise operation that squishes  any real number into a range between 0 and 1. This is a very common  activation function to use as the last layer of binary classifiers  (including logistic regression) because it lets you treat model  predictions like probabilities that their outputs are true, i.e. `p(y == 1)`.
+The PyTorch sigmoid function is an element-wise operation that squishes  any real number **into a range between 0 and 1**. This is a very common  activation function to use as the last layer of binary classifiers  (including logistic regression) because it lets you treat model  predictions like probabilities that their outputs are true, i.e. `p(y == 1)`.
 
 Mathematically, the function is `1 / (1 + np.exp(-x))`. And plotting it creates a well-known curve:
 
-![sigmoid](/home/jiang/桌面/About Python and some image algorithm/pictures source/sigmoid.jpeg)
+![sigmoid](./pictures source/sigmoid.jpeg)
 
 ​																													y = sigmoid(x) for x in [-10, 10]
 
 Similar to other activation functions like [softmax](https://sparrow.dev/pytorch-softmax/), there are two patterns for applying the sigmoid activation function in  PyTorch. Which one you choose will depend more on your style preferences than anything else.
+
+```python
+import torch
+
+# torch.manual_seed(1)
+
+x = torch.randn((3, 3))
+y = torch.sigmoid(x)
+print("This is the input:",x)
+print("This is the output:",y)
+```
+
+output:
+
+```
+This is the input: tensor([[ 0.8585,  0.2175,  0.2708],
+        [ 0.5805, -0.1018,  0.0460],
+        [-0.7045, -0.5274,  1.9040]])
+This is the output: tensor([[0.7023, 0.5542, 0.5673],
+        [0.6412, 0.4746, 0.5115],
+        [0.3308, 0.3711, 0.8703]])
+```
+
+
+
+#### 92. torch.nn.DataParallel() 
+
+`torch.nn.DataParallel()` is a utility class provided by the PyTorch library that facilitates parallel execution of neural network computations across multiple GPUs. **It's commonly used to distribute the workload of training a neural network model across multiple graphics processing units** (GPUs) for faster training.
+
+`DataParallel` works by replicating the model onto each of the available GPUs and splitting the input data into smaller batches, sending each batch to a different GPU for processing. **After the computations are complete, the gradients are collected from each GPU and averaged to update the model's parameters.**
+
+Here's a simplified example of how you might use `DataParallel` in your PyTorch code:
+
+```python
+import torch
+import torch.nn as nn
+from torch.nn import DataParallel
+
+# Define your neural network model
+class MyModel(nn.Module):
+    # ... Define layers and forward method ...
+
+# Create an instance of your model
+model = MyModel()
+
+# Wrap the model with DataParallel
+model = DataParallel(model)
+
+# Move the model to GPUs if available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
+# Define your loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+# Training loop
+for epoch in range(num_epochs):
+    for inputs, labels in dataloader:
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        # Forward pass
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+
+        # Backpropagation and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+```
+
+Keep in mind that while `DataParallel` can simplify parallelism across GPUs, PyTorch also provides the `torch.nn.parallel.DistributedDataParallel` class for more advanced distributed training scenarios, particularly in multi-node setups. Always refer to the official PyTorch documentation for the most up-to-date and detailed information on using parallelism and distributed training features.
+
+Hint:If you are working with only **one GPU**, **you don't need to use** `torch.nn.DataParallel()` because there's only one GPU available for computations. The purpose of `DataParallel` is to distribute computations across multiple GPUs to speed up training, so if you have only one GPU, it won't provide any additional benefits and might even introduce **unnecessary overhead**.
+
+
+
+#### 93. torch.grad()
+
+The wrapper `with torch.no_grad()` temporarily sets all of the `requires_grad` flags to false. 
+
+`Torch.no_grad()` deactivates autograd engine. Eventually it will reduce the memory usage and speed up computations.
+
+Use of `Torch.no_grad()`:
+
+- To perform inference without Gradient Calculation.
+- To make sure there's no leak test data into the model.
+
+It's generally used to perform Validation.
+
+```python
+x = torch.randn(3, requires_grad=True)
+print(x.requires_grad)
+print((x ** 2).requires_grad)
+
+with torch.no_grad():
+    print((x ** 2).requires_grad)
+```
+
+output:
+
+```
+True
+True
+False
+```
+
+
+
+#### 94. torch.nn.BCEWithLogitsLoss()
+
+Sure, let's break down the calculation of the binary cross-entropy loss using the provided code:
+
+```python
+import torch
+import torch.nn as nn
+
+# Example logits and target values
+logits = torch.tensor([0.5, -0.8, 1.2])  # Raw model outputs
+targets = torch.tensor([1, 0, 1])        # Ground truth labels (binary)
+
+# Create the BCEWithLogitsLoss instance
+#this is instantiate must do 
+criterion = nn.BCEWithLogitsLoss()
+
+# Calculate the loss
+loss = criterion(logits, targets.float())  # Targets are converted to float for compatibility
+
+print("Binary Cross-Entropy Loss:", loss.item())
+# output:0.36948
+```
+
+1. **Logits and Targets**:
+
+   - `logits`: `[0.5, -0.8, 1.2]`
+   - `targets`: `[1, 0, 1]`
+
+2. **Sigmoid Activation**:
+   The sigmoid activation function is internally applied to the logits before calculating the loss. **This converts the logits into probabilities.** The sigmoid function maps each logit to a value between 0 and 1.
+
+3. **Binary Cross-Entropy Loss Calculation**:
+   The binary cross-entropy loss is calculated using the following formula for each sample (index `i`):
+
+   - `loss_i = -[target_i * log(prob_i) + (1 - target_i) * log(1 - prob_i)]`
+
+   where:
+   - `target_i` is the ground truth binary label for sample `i`.
+   - `prob_i` is the predicted probability for sample `i` after the sigmoid activation.
+
+   Let's calculate the loss for each sample using the provided logits and targets:
+
+   For the first sample:
+   - `target_0 = 1`
+   - Applying sigmoid to `logit_0 = 0.5`: `prob_0 = 0.62245933`
+   - `loss_0 = -[(1 * log(0.62245933) + (1 - 1) * log(1 - 0.62245933)]`
+
+   For the second sample:
+   - `target_1 = 0`
+   - Applying sigmoid to `logit_1 = -0.8`: `prob_1 = 0.31002552`
+   - `loss_1 = -[(0 * log(0.31002552) + (1 - 0) * log(1 - 0.31002552)]`
+
+   For the third sample:
+   - `target_2 = 1`
+   - Applying sigmoid to `logit_2 = 1.2`: `prob_2 = 0.76852478`
+   - `loss_2 = -[(1 * log(0.76852478) + (1 - 1) * log(1 - 0.76852478)]`
+
+4. **Overall Loss**:
+   The overall binary cross-entropy loss is the average of the individual sample losses:
+
+   - `loss = (loss_0 + loss_1 + loss_2) / 3`
+
+The calculated loss is then printed using `loss.item()`.
+
+Please note that the exact values will depend on the specific values of the logits and targets, and the output will be the calculated binary cross-entropy loss for those values.
+
+**Hint: The base of log is e.**
 
 
 
@@ -5161,6 +5141,332 @@ a:224,b:(224, 224),c:(224, 224, 224)
 
 
 ## About python's syntax
+
+tuple**:A tuple looks just like a list except you use parentheses instead of square brackets. Once you define a tuple, you can access individual elements by using each item’s index, just as you would for a list. 
+
+For example, if we have a rectangle that should always be a certain size, we can ensure that its size doesn’t change by putting the dimensions into a tuple:
+
+for example:
+
+```python
+dimensions = (200, 50)
+
+print(dimensions[0])
+
+print(dimensions[1])
+tuple.shape # 可以用这个命令查看元组的形状
+```
+
+keyword: can't be changed   ()
+
+
+
+**list**: In Python, square brackets ([]) indicate a list, and individual elements in the list are separated by commas. Here’s a simple example of a list that contains a few kinds of bicycles:
+
+for example:
+
+```python
+bicycles = ['trek', 'cannondale', 'redline', 'specialized'] 
+
+print(bicycles)
+```
+
+keyword: can be changed  orderly []
+
+**hint**: 当索引列表时，索引值为negative. (-1永远表示最后一项)
+
+```python
+li=[1,2,3,4,5,6]
+
+print("This is test: ",li[-1])
+
+print("This is test: ",li[-2])
+
+print("This is test: ",li[-3])
+```
+
+output:
+
+```powershell
+This is test:  6 
+
+This is test:  5 
+
+This is test:  4
+```
+
+
+
+**dictionary**: Consider a game featuring aliens that can have different colors and point values. This simple dictionary stores information about a particular alien
+
+字典是另一种可变容器模型，且可存储任意类型对象。
+
+字典的每个键值 **key=>value** 对用冒号 : 分割，每个键值对之间用逗号 , 分割，整个字典包括在花括号 {} 中 ,格式如下所示：
+
+for example:
+
+```python
+alien_0 = {'color': 'green', 'points': 5} 
+
+print(alien_0['color']) 
+
+print(alien_0['points'])
+```
+
+keyword: {} is fast of inserting and searching  waste memory
+
+
+
+#### dict.keys()
+
+```python
+tinydict = {'Name': 'Zara', 'Age': 7}
+
+print("Value : %s" %  tinydict.keys())
+```
+
+以列表返回一个字典所有的键
+
+```powershell
+Value : ['Age', 'Name']
+```
+
+#### dict.items()
+
+##### Definition and Usage
+
+The `items()` method returns a view object. The view object contains the key-value pairs of the dictionary, as tuples in a list.
+
+The view object will reflect any changes done to the dictionary, see example below.
+
+```python
+car = {
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+
+x = car.items()
+
+print(x)
+```
+
+output:
+
+```
+dict_items([('brand', 'Ford'), ('model', 'Mustang'), ('year', 1964)])
+```
+
+
+
+**nested dictionary**:
+
+```python
+#多级字典（嵌套字典）
+FamousDict ``=` `{
+ ``'薛之谦'``:{
+  ``'身高'``:``178``,
+  ``'体重'``:``130``,
+  ``'口头禅'``:[``'你神经病啊！'``,``'我不要面子啊'``] ``#相应的值可以是 一个列表
+ ``},
+ ``'吴青峰'``:{
+  ``'身高'``:``170``,
+  ``'体重'``:``120``,
+  ``'口头禅'``:[``'我叫吴青峰'``,``'你好'``]
+ ``}
+}
+#访问多级字典：
+print``(``'薛之谦的体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
+#修改薛之谦体重为125
+FamousDict[``'薛之谦'``][``'体重'``] ``=` `125
+print``(``'减肥后的薛之谦体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
+#新添薛之谦腰围100
+FamousDict[``'薛之谦'``][``'腰围'``] ``=` `100
+print``(``'薛之谦的腰围为：'``,FamousDict[``'薛之谦'``][``'腰围'``],``'cm'``)
+#多级字典删除
+FamousDict[``'吴青峰'``].pop(``'身高'``) ``#标准删除
+del` `FamousDict[``'吴青峰'``][``'体重'``] ``#另一个删除方法
+print``(``'关于吴青峰现在只剩下：'``,FamousDict[``'吴青峰'``])
+```
+
+
+
+**set**:
+
+for example:
+
+```python
+\>>> basket = {'apple', 'orange', 'apple', 'pear', 'orange', 'banana'}
+\>>> **print**(basket)            # 这里演示的是去重功能
+{'orange', 'banana', 'pear', 'apple'}
+```
+
+keyword: no orderly  on repeat
+
+
+
+**slice from list**:
+
+1. 切片操作不是列表特有的，python中的有序序列都支持切片，如字符串，元组。
+2. 切片的返回结果类型和切片对象类型一致，返回的是切片对象的子序列，如：对一个列表切片返回一个列表，
+3. 字符串切片返回字符串。
+4. 切片生成的子序列元素是源版的拷贝。因此切片是一种浅拷贝。
+
+```python
+li=["A","B","C","D"]
+```
+
+格式： li[start : end : step]  
+
+start是切片起点索引，end是切片终点索引，但切片结果不包括**终点索引的值**。step是步长默认是1。
+
+```python
+t=li[0:3]      ["A","B","C"]     #起点的0索引可以省略，t=li[:3]
+
+t=li[2: ]      ["C","D"]         #省略end，则切到末尾
+
+t=li[1:3]      ["B","C"]
+
+t=li[0:4:2]    ["A","C"]         #从li[0]到li[3],设定步长为2。
+```
+
+如何确定start和end，他们是什么关系？
+
+ 在step的符号一定的情况下，start和end可以混合使用正向和反向索引，无论怎样，你都要保证start和end之间有和step方向一致元素 间隔，否则会切出空列表.
+
+```python
+       t=li[0:2]
+
+​      t=li[0:-2]
+
+​      t=li[-4:-2]
+
+​      t=li[-4:2]
+
+# 上面的结果都是一样的；t为["A","B"]
+```
+
+![20150702234502400](./pictures source/20150702234502400.png)
+
+```python
+     t=li[-1:-3:-1]
+
+​     t=li[-1:1:-1]
+
+​     t=li[3:1:-1]
+
+​     t=li[3:-3:-1]
+
+# 上面的结果都是一样的；t为["D","C"]
+```
+
+![20150702234736704](./pictures source/20150702234736704.png)
+
+```python
+      t=li[-1:-3]
+
+​     t=li[-1:1]
+
+​     t=li[3:1]
+
+​     t=li[3:-3]
+
+
+
+# 都切出空列表
+```
+
+![20150702235107635](./pictures source/20150702235107635.png)
+
+ 同时，step的正负决定了切片结果的元素采集的先后,省略**start 和 end**表示以原列表全部为目标.
+
+```python
+   t=li[::-1]   t--->["D","C","B","A"]   #反向切，切出全部
+
+   t=li[:]    t--->["A","B","C","D"]     #正向切全部
+```
+
+
+
+**slice from Numpy**:
+
+```python
+import numpy as np  
+
+a = np.array([[1, 2, 3, 4], [3, 4, 5, 6], [4, 5, 6, 7]])
+print(a[..., 1])  # 第2列元素
+print(a[1, ...])  # 第2行元素
+print(a[..., 1:])  # 第2列及剩下的所有元素
+```
+
+output:
+
+```bash
+[2 4 5]
+[3 4 5 6]
+[[2 3 4]
+ [4 5 6]
+ [5 6 7]]
+```
+
+
+
+#### 1. About decorator of python
+
+A decorator is **a design pattern in Python that allows a user to add new functionality to an existing object without modifying its structure**. Decorators are usually called before the definition of a function you want to decorate.
+
+for example:
+
+```python
+def foo():
+    print('i am foo')
+```
+
+现在有一个新的需求，希望可以记录下函数的执行日志，于是在代码中添加日志代码：
+
+```python
+def foo():
+    print('i am foo')
+	logging.info("foo is running")
+```
+
+对bar(), bar()n 有一样的需求
+
+```python
+def use_logging(func):
+	logging.warn("%s is running" % func.__name__)
+	func()
+
+def bar():
+    print('i am bar')
+    
+use_logging(bar)
+```
+
+simple example
+
+```python
+def use_logging(func):
+    
+    def wrapper(*args, **kwargs):
+        logging.warn("%s is running" % func.__name__)
+        return func(*args)
+    return wrapper
+
+@use_logging
+def foo():
+    print("i am foo")
+    
+@use_logging
+def bar():
+    print("i am bar")
+    
+bar()
+```
+
+
+
+#### 
 
 #### 1.关于python中self的问题
 
@@ -7744,6 +8050,235 @@ output:
 
 
 
+#### 54. break Statement with for/while Loop
+
+We can use the `break` statement with the `for` loop to terminate the loop when a certain condition is met. For example,
+
+```python
+for i in range(5):
+    if i == 3:
+        break
+    print(i)
+```
+
+output:
+
+```
+0
+1
+2
+```
+
+Another example:
+
+In the realm of deep learning and machine learning code, the usage of `for` loops combined with `enumerate()` is quite common. This powerful function allows us to efficiently iterate over data while simultaneously keeping track of the index and the corresponding elements in one go. However, there are instances when we might only need to inspect the data for the first or second iteration. In such cases, we can leverage the `break` statement to exit the loop prematurely after the desired number of iterations.
+
+```python
+for i, (audio_input, labels) in enumerate(train_loader):
+    print("This is the ID:", i)
+    print("This is the audio input:", audio_input.shape)
+    print("This is the labels:", labels)
+    if i == 5:
+        break
+```
+
+
+
+#### 55. subscript operator '[]'
+
+In Python, the subscript operator (also known as the **indexing operator**) is used to access individual elements of a sequence or collection data type, such as lists, strings, tuples, and more. The subscript operator is denoted by **square brackets `[]`** following the variable that holds the collection.
+
+For example:
+
+```python
+my_list = [10, 20, 30, 40, 50]
+element = my_list[2]  # Accessing the third element (index 2) of the list
+print(element)  # Output: 30
+
+my_string = "Hello, World!"
+character = my_string[7]  # Accessing the eighth character (index 7) of the string
+print(character)  # Output: W
+```
+
+The subscript operator takes an index value inside the square brackets. The index is usually an integer that specifies the position of the element you want to access. In Python, indexing is zero-based, which means the first element is at index 0, the second element is at index 1, and so on.
+
+You can also use negative indices to access elements from the end of the collection. For example, `-1` refers to the last element, `-2` refers to the second-to-last element, and so on.
+
+```python
+my_list = [10, 20, 30, 40, 50]
+last_element = my_list[-1]  # Accessing the last element using negative index
+print(last_element)  # Output: 50
+```
+
+Keep in mind that not all data types support subscripting. For instance, dictionaries use keys instead of numerical indices for accessing values.
+
+
+
+#### 56. Python Sets
+
+Sets are used to store multiple items in a single variable.
+
+Set is one of 4 built-in data types in Python used to store collections of data, the other 3 are [List](https://www.w3schools.com/python/python_lists.asp), [Tuple](https://www.w3schools.com/python/python_tuples.asp), and [Dictionary](https://www.w3schools.com/python/python_dictionaries.asp), all with different qualities and usage.
+
+A set is a collection which is ***unordered*, *unchangeable**, and *unindexed*.**
+
+*** Note:** Set *items* are unchangeable, but you can remove items and add new items.
+
+```python
+thisset = {"apple", "banana", "cherry"}
+print(thisset)
+
+```
+
+output:
+
+```
+{'cherry', 'apple', 'banana'}
+```
+
+
+
+#### 57. Python set add() method
+
+The ***\*Python set add() method\**** adds a given element to a set if the element is **not present** in the set in [Python](https://www.geeksforgeeks.org/python-programming-language/).
+
+```python
+GEEK = set()
+GEEK.add('s')
+print("Letters are:", GEEK)
+ 
+# adding 'e' again
+GEEK.add('e')
+print("Letters are:", GEEK)
+# adding 's' again
+GEEK.add('s')
+print("Letters are:", GEEK)
+```
+
+output:
+
+```
+Letters are: {'s'}
+Letters are: {'e', 's'}
+Letters are: {'e', 's'}
+```
+
+
+
+#### 58. Greater than or equal to
+
+This operator (>=) only returns True if the value on the left side is greater or equal to the value on the right side.
+
+```python
+x = 5
+y = 5
+z = 10
+res = x >= y
+res2 = x >= z
+print (res)
+print (res2)
+```
+
+output:
+
+```
+TRUE
+FALSE
+```
+
+
+
+#### 59. String join() Method
+
+Example_1:
+
+Join all items in a tuple into a string, using a hash character as separator:
+
+```python
+myTuple = ("John", "Peter", "Vicky")
+x = "#".join(myTuple)
+print(x)
+```
+
+output:
+
+```
+John#Peter#Vicky
+```
+
+
+
+Example_2:
+
+Join all items in a dictionary into a string, using the word "TEST" as separator:
+
+```python
+myDict = {"name": "John", "country": "Norway"}
+mySeparator = "TEST"
+
+x = mySeparator.join(myDict)
+
+print(x)
+```
+
+output:
+
+```
+nameTESTcountry
+```
+
+
+
+#### 60. String join( fro in ) method
+
+```python
+classes=['164889003', '164890007', '6374002', '426627000', '733534002', '713427006', '270492004', '713426002', '39732003',
+        '445118002', '164947007', '251146004', '111975006', '698252002', '426783006', '284470004', '10370003', '365413008',
+        '427172004', '164917005', '47665007', '427393009', '426177001', '427084000', '164934002', '59931005']
+
+class_string = ','.join(str(c) for c in classes)
+
+print(class_string)
+```
+
+output:
+
+```
+164889003,164890007,6374002,426627000,733534002,713427006,270492004,713426002,39732003,445118002,164947007,251146004,111975006,698252002,426783006,284470004,10370003,365413008,427172004,164917005,47665007,427393009,426177001,427084000,164934002,59931005
+```
+
+
+
+#### 61. String format() Method
+
+##### Definition and Usage
+
+The `format()` method formats the specified value(s) and insert them inside the string's placeholder.
+
+The placeholder is defined using curly brackets: {}. Read more about the placeholders in the Placeholder section below.
+
+The `format()` method returns the formatted string.
+
+The placeholders can be identified using named indexes `{price}`, numbered indexes `{0}`, or even empty placeholders `{}`.
+
+```python
+txt1 = "My name is {fname}, I'm {age}".format(fname = "John", age = 36)
+txt2 = "My name is {0}, I'm {1}".format("John",36)
+txt3 = "My name is {}, I'm {}".format("John",36)
+```
+
+output:
+
+```
+My name is John, I'm 36
+My name is John, I'm 36
+My name is John, I'm 36
+```
+
+
+
+
+
 ## About opencv4
 
 #### Regular Contour detection
@@ -8895,10 +9430,11 @@ To do softmax for each column
 import numpy as np
 
 def softmax(Z):
-​    A = np.exp(Z) / sum(np.exp(Z))
-​    return A
+  A = np.exp(Z) / sum(np.exp(Z))
+  return A
+  
 
-print(softmax([[1,2,3,4,5,6],[2,3,4,5,5,6]]))
+print(softmax([[2.0, -1.0, 0.5], [0.8, 1.2, -0.5]]))
 ```
 
 
@@ -9128,9 +9664,11 @@ Additionally, for a 2D array, `tolist` applies recursively:
 
 
 
-#### 21. [:,0]
+#### 21. [:,0] or [0,:] 
 
 It is a notation used in `Numpy` and `Pandas`.
+
+In essence, `[:,]` is a way of specifying a full slice along both dimensions of the array. The colon `:` indicates that you want to select all elements along that particular dimension. So, `[:,]` can be thought of as a shorthand for selecting all rows and all columns in a two-dimensional array.
 
 ```python
 import numpy as np
@@ -9444,7 +9982,7 @@ output
 
 #### 4. sklearn.metrics.precision_score() &sklearn.metrics.recall_score()
 
-
+The precision is the ratio `tp / (tp + fp)` where `tp` is the number of true positives and `fp` the number of false positives. The precision is intuitively the ability of the classifier not to label as positive a sample that is negative.
 
 ```python
 import sklearn.metrics
@@ -9493,8 +10031,6 @@ Like the Area under the Precision-Recall curve (AUC-PR) metric, **Average Precis
 Sure, such a definition might be tough to process. Still, everything will become accessible as soon as you look at the formula.
 
 
-
-[![img](https://hasty.ai/media/pages/docs/mp-wiki/metrics/average-precision/43828d4cf0-1654856183/snimok-ekrana-2022-06-10-v-13-12-36.webp)](https://hasty.ai/media/pages/docs/mp-wiki/metrics/average-precision/43828d4cf0-1654856183/snimok-ekrana-2022-06-10-v-13-12-36.webp)
 
 ```python
 import numpy as np
@@ -9818,7 +10354,15 @@ from dataset.mnist import load_mnist
 ```
 
 mnist_show.py文件的当前工作目录为ch03，但是load_mnist（）函数的mnist.py文件在dataset目录下。因此，mnist_show.py文件不可以跨文件直接导入mnist.py文件。sys.path.append(os.pardir)语句实际上是把父目录deep-learning-from-scatch加入到sys.path（Python 的搜索目录模块的路径集中），从而可以导入deep-learning-from-scatch下的任何目录(包括dataset目录)中的任何文件。
-![sys.path.append](/home/jiang/桌面/About Python and some image algorithm/pictures source/sys.path.append.png)
+![sys.path.append](./pictures source/sys.path.append.png)
+
+#### 3. how to import file from parent folder
+
+```python
+import sys
+sys.path.append("../..")
+from src import models, dataloader
+```
 
 
 
@@ -9901,14 +10445,11 @@ channels_first:代表通道数在前面，输入数据的形式是(batch, channe
 
 ```python
 import tensorflow as tf
-
 import torch
 
 a=torch.arange(0,24).view(2, 3, 2,2)
 
 a=a.numpy()
-
-
 
 print("This is x: ",a)
 # 这里得到a是整型，日后应该用浮点型.
@@ -10171,7 +10712,7 @@ Shape of waveform:torch.Size([2, 10937])
 sample rate of waveform:44100
 ```
 
-![waveform](/home/jiang/桌面/About Python and some image algorithm/pictures source/waveform.png)
+![waveform](./pictures source/waveform.png)
 
 #### 2.torchaudio.transforms.MelSpectrogram()
 
@@ -10289,9 +10830,9 @@ original = spectrogram(waveform)
 masked = masking(original)
 ```
 
-![](/home/jiang/桌面/About Python and some image algorithm/pictures source/specaugment_freq_original.png)
+![](./pictures source/specaugment_freq_original.png)
 
-![](/home/jiang/桌面/About Python and some image algorithm/pictures source/specaugment_freq_masking_frequency.png)
+![](./pictures source/specaugment_freq_masking_frequency.png)
 
 #### 5. torchaudio.transforms.TimeMasking()
 
@@ -10313,7 +10854,7 @@ original = spectrogram(waveform)
 masked = masking(original)
 ```
 
-![](/home/jiang/桌面/About Python and some image algorithm/pictures source/specaugment_time_masking2.png)
+![](./pictures source/specaugment_time_masking2.png)
 
 ***Hint: 关于如何使用的具体代码可以参考官方代码*** 
 
@@ -11060,7 +11601,15 @@ with tqdm(tensor_dataloader) as pbar:
 
 `iterative_train_test_split()` is a function provided by the **scikit-multilearn** library in Python, which allows for iterative stratification-based splitting of a dataset into training and testing sets for multilabel classification problems. This function uses the `RepeatedMultilabelStratifiedKFold` class for the splitting, which ensures that the distribution of labels in both the training and testing sets remains similar.
 
-Here is an example of how to use `iterative_train_test_split()`:
+#### How to install skmultilearn
+
+```
+pip install scikit-multilearn
+```
+
+
+
+#### 1. Here is an example of how to use `iterative_train_test_split()`:
 
 ```python
 pythonCopy codefrom sklearn.datasets import make_multilabel_classification
@@ -11096,3 +11645,336 @@ Note that `iterative_train_test_split()` returns four arrays: `X_train`, `y_trai
 
 
 
+## About librosa
+
+### Installation
+
+The latest stable release is available on PyPI, and you can install it by saying
+
+```
+pip install librosa
+```
+
+librosa is also available as a [conda](https://anaconda.org/) package. You can install it by saying
+
+```
+conda install -c conda-forge librosa
+```
+
+
+
+#### 1. Getting the duration of wav file 
+
+```python
+import librosa
+librosa.get_duration(path='my.wav')
+```
+
+output:
+
+```
+0.05199546485260771
+```
+
+
+
+#### About torchinfo
+
+### Installation
+
+conda
+
+```
+conda install -c conda-forge torchinfo
+```
+
+pip
+
+```
+pip install torchinfo
+```
+
+#### 1. summary()
+
+```python
+import torchvision
+import torchinfo
+
+model = torchvision.models.resnet50(pretrained=False)
+print(model)
+
+torchinfo.summary(model, (64, 3, 224, 224))
+```
+
+output:
+
+```
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+ResNet                                   [64, 1000]                --
+├─Conv2d: 1-1                            [64, 64, 112, 112]        9,408
+├─BatchNorm2d: 1-2                       [64, 64, 112, 112]        128
+├─ReLU: 1-3                              [64, 64, 112, 112]        --
+├─MaxPool2d: 1-4                         [64, 64, 56, 56]          --
+├─Sequential: 1-5                        [64, 256, 56, 56]         --
+│    └─Bottleneck: 2-1                   [64, 256, 56, 56]         --
+│    │    └─Conv2d: 3-1                  [64, 64, 56, 56]          4,096
+│    │    └─BatchNorm2d: 3-2             [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-3                    [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-4                  [64, 64, 56, 56]          36,864
+│    │    └─BatchNorm2d: 3-5             [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-6                    [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-7                  [64, 256, 56, 56]         16,384
+│    │    └─BatchNorm2d: 3-8             [64, 256, 56, 56]         512
+│    │    └─Sequential: 3-9              [64, 256, 56, 56]         16,896
+│    │    └─ReLU: 3-10                   [64, 256, 56, 56]         --
+│    └─Bottleneck: 2-2                   [64, 256, 56, 56]         --
+│    │    └─Conv2d: 3-11                 [64, 64, 56, 56]          16,384
+│    │    └─BatchNorm2d: 3-12            [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-13                   [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-14                 [64, 64, 56, 56]          36,864
+│    │    └─BatchNorm2d: 3-15            [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-16                   [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-17                 [64, 256, 56, 56]         16,384
+│    │    └─BatchNorm2d: 3-18            [64, 256, 56, 56]         512
+│    │    └─ReLU: 3-19                   [64, 256, 56, 56]         --
+│    └─Bottleneck: 2-3                   [64, 256, 56, 56]         --
+│    │    └─Conv2d: 3-20                 [64, 64, 56, 56]          16,384
+│    │    └─BatchNorm2d: 3-21            [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-22                   [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-23                 [64, 64, 56, 56]          36,864
+│    │    └─BatchNorm2d: 3-24            [64, 64, 56, 56]          128
+│    │    └─ReLU: 3-25                   [64, 64, 56, 56]          --
+│    │    └─Conv2d: 3-26                 [64, 256, 56, 56]         16,384
+│    │    └─BatchNorm2d: 3-27            [64, 256, 56, 56]         512
+│    │    └─ReLU: 3-28                   [64, 256, 56, 56]         --
+├─Sequential: 1-6                        [64, 512, 28, 28]         --
+│    └─Bottleneck: 2-4                   [64, 512, 28, 28]         --
+│    │    └─Conv2d: 3-29                 [64, 128, 56, 56]         32,768
+│    │    └─BatchNorm2d: 3-30            [64, 128, 56, 56]         256
+│    │    └─ReLU: 3-31                   [64, 128, 56, 56]         --
+│    │    └─Conv2d: 3-32                 [64, 128, 28, 28]         147,456
+│    │    └─BatchNorm2d: 3-33            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-34                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-35                 [64, 512, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-36            [64, 512, 28, 28]         1,024
+│    │    └─Sequential: 3-37             [64, 512, 28, 28]         132,096
+│    │    └─ReLU: 3-38                   [64, 512, 28, 28]         --
+│    └─Bottleneck: 2-5                   [64, 512, 28, 28]         --
+│    │    └─Conv2d: 3-39                 [64, 128, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-40            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-41                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-42                 [64, 128, 28, 28]         147,456
+│    │    └─BatchNorm2d: 3-43            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-44                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-45                 [64, 512, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-46            [64, 512, 28, 28]         1,024
+│    │    └─ReLU: 3-47                   [64, 512, 28, 28]         --
+│    └─Bottleneck: 2-6                   [64, 512, 28, 28]         --
+│    │    └─Conv2d: 3-48                 [64, 128, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-49            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-50                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-51                 [64, 128, 28, 28]         147,456
+│    │    └─BatchNorm2d: 3-52            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-53                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-54                 [64, 512, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-55            [64, 512, 28, 28]         1,024
+│    │    └─ReLU: 3-56                   [64, 512, 28, 28]         --
+│    └─Bottleneck: 2-7                   [64, 512, 28, 28]         --
+│    │    └─Conv2d: 3-57                 [64, 128, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-58            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-59                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-60                 [64, 128, 28, 28]         147,456
+│    │    └─BatchNorm2d: 3-61            [64, 128, 28, 28]         256
+│    │    └─ReLU: 3-62                   [64, 128, 28, 28]         --
+│    │    └─Conv2d: 3-63                 [64, 512, 28, 28]         65,536
+│    │    └─BatchNorm2d: 3-64            [64, 512, 28, 28]         1,024
+│    │    └─ReLU: 3-65                   [64, 512, 28, 28]         --
+├─Sequential: 1-7                        [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-8                   [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-66                 [64, 256, 28, 28]         131,072
+│    │    └─BatchNorm2d: 3-67            [64, 256, 28, 28]         512
+│    │    └─ReLU: 3-68                   [64, 256, 28, 28]         --
+│    │    └─Conv2d: 3-69                 [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-70            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-71                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-72                 [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-73            [64, 1024, 14, 14]        2,048
+│    │    └─Sequential: 3-74             [64, 1024, 14, 14]        526,336
+│    │    └─ReLU: 3-75                   [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-9                   [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-76                 [64, 256, 14, 14]         262,144
+│    │    └─BatchNorm2d: 3-77            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-78                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-79                 [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-80            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-81                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-82                 [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-83            [64, 1024, 14, 14]        2,048
+│    │    └─ReLU: 3-84                   [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-10                  [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-85                 [64, 256, 14, 14]         262,144
+│    │    └─BatchNorm2d: 3-86            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-87                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-88                 [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-89            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-90                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-91                 [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-92            [64, 1024, 14, 14]        2,048
+│    │    └─ReLU: 3-93                   [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-11                  [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-94                 [64, 256, 14, 14]         262,144
+│    │    └─BatchNorm2d: 3-95            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-96                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-97                 [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-98            [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-99                   [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-100                [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-101           [64, 1024, 14, 14]        2,048
+│    │    └─ReLU: 3-102                  [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-12                  [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-103                [64, 256, 14, 14]         262,144
+│    │    └─BatchNorm2d: 3-104           [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-105                  [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-106                [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-107           [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-108                  [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-109                [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-110           [64, 1024, 14, 14]        2,048
+│    │    └─ReLU: 3-111                  [64, 1024, 14, 14]        --
+│    └─Bottleneck: 2-13                  [64, 1024, 14, 14]        --
+│    │    └─Conv2d: 3-112                [64, 256, 14, 14]         262,144
+│    │    └─BatchNorm2d: 3-113           [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-114                  [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-115                [64, 256, 14, 14]         589,824
+│    │    └─BatchNorm2d: 3-116           [64, 256, 14, 14]         512
+│    │    └─ReLU: 3-117                  [64, 256, 14, 14]         --
+│    │    └─Conv2d: 3-118                [64, 1024, 14, 14]        262,144
+│    │    └─BatchNorm2d: 3-119           [64, 1024, 14, 14]        2,048
+│    │    └─ReLU: 3-120                  [64, 1024, 14, 14]        --
+├─Sequential: 1-8                        [64, 2048, 7, 7]          --
+│    └─Bottleneck: 2-14                  [64, 2048, 7, 7]          --
+│    │    └─Conv2d: 3-121                [64, 512, 14, 14]         524,288
+│    │    └─BatchNorm2d: 3-122           [64, 512, 14, 14]         1,024
+│    │    └─ReLU: 3-123                  [64, 512, 14, 14]         --
+│    │    └─Conv2d: 3-124                [64, 512, 7, 7]           2,359,296
+│    │    └─BatchNorm2d: 3-125           [64, 512, 7, 7]           1,024
+│    │    └─ReLU: 3-126                  [64, 512, 7, 7]           --
+│    │    └─Conv2d: 3-127                [64, 2048, 7, 7]          1,048,576
+│    │    └─BatchNorm2d: 3-128           [64, 2048, 7, 7]          4,096
+│    │    └─Sequential: 3-129            [64, 2048, 7, 7]          2,101,248
+│    │    └─ReLU: 3-130                  [64, 2048, 7, 7]          --
+│    └─Bottleneck: 2-15                  [64, 2048, 7, 7]          --
+│    │    └─Conv2d: 3-131                [64, 512, 7, 7]           1,048,576
+│    │    └─BatchNorm2d: 3-132           [64, 512, 7, 7]           1,024
+│    │    └─ReLU: 3-133                  [64, 512, 7, 7]           --
+│    │    └─Conv2d: 3-134                [64, 512, 7, 7]           2,359,296
+│    │    └─BatchNorm2d: 3-135           [64, 512, 7, 7]           1,024
+│    │    └─ReLU: 3-136                  [64, 512, 7, 7]           --
+│    │    └─Conv2d: 3-137                [64, 2048, 7, 7]          1,048,576
+│    │    └─BatchNorm2d: 3-138           [64, 2048, 7, 7]          4,096
+│    │    └─ReLU: 3-139                  [64, 2048, 7, 7]          --
+│    └─Bottleneck: 2-16                  [64, 2048, 7, 7]          --
+│    │    └─Conv2d: 3-140                [64, 512, 7, 7]           1,048,576
+│    │    └─BatchNorm2d: 3-141           [64, 512, 7, 7]           1,024
+│    │    └─ReLU: 3-142                  [64, 512, 7, 7]           --
+│    │    └─Conv2d: 3-143                [64, 512, 7, 7]           2,359,296
+│    │    └─BatchNorm2d: 3-144           [64, 512, 7, 7]           1,024
+│    │    └─ReLU: 3-145                  [64, 512, 7, 7]           --
+│    │    └─Conv2d: 3-146                [64, 2048, 7, 7]          1,048,576
+│    │    └─BatchNorm2d: 3-147           [64, 2048, 7, 7]          4,096
+│    │    └─ReLU: 3-148                  [64, 2048, 7, 7]          --
+├─AdaptiveAvgPool2d: 1-9                 [64, 2048, 1, 1]          --
+├─Linear: 1-10                           [64, 1000]                2,049,000
+==========================================================================================
+Total params: 25,557,032
+Trainable params: 25,557,032
+Non-trainable params: 0
+Total mult-adds (G): 261.71
+==========================================================================================
+Input size (MB): 38.54
+Forward/backward pass size (MB): 11381.23
+Params size (MB): 102.23
+Estimated Total Size (MB): 11521.99
+==========================================================================================
+```
+
+
+
+## About argparse
+
+The [`argparse`](https://docs.python.org/3/library/argparse.html#module-argparse) module makes it easy to write user-friendly command-line interfaces. The program defines what arguments it requires, and [`argparse`](https://docs.python.org/3/library/argparse.html#module-argparse) will figure out how to parse those out of [`sys.argv`](https://docs.python.org/3/library/sys.html#sys.argv). The [`argparse`](https://docs.python.org/3/library/argparse.html#module-argparse) module also automatically generates help and usage messages. The module will also issue errors when users give the program invalid arguments.
+
+
+
+#### 1. Normal usage:
+
+```python
+import argparse
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+parser.add_argument("--aaa", type=int, default=2, help="how many epoch to wait to reduce lr if mAP doesn't improve")
+parser.add_argument("--bbb", type=int, default=100, help="number of steps to print statistics")
+
+# parser the arguments.
+args = parser.parse_args()
+print("This is the args:",args)
+print("This is the interger:",args.aaa)
+```
+
+input:
+
+```bash
+(IACT) huawei@huawei-B460MDS3HV2:/media/huawei/Vdataset/ast-master/src/test_py_files$ python arg.py --aaa 123
+```
+
+output:
+
+```bash
+This is the args: Namespace(aaa=123, bbb=100)
+This is the interger: 123
+```
+
+
+
+#### 2. easy way to add arguments
+
+Here we can use 'args.abc' to add arguments.
+
+```python
+import argparse
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+parser.add_argument("--aaa", type=int, default=2, help="how many epoch to wait to reduce lr if mAP doesn't improve")
+parser.add_argument("--bbb", type=int, default=100, help="number of steps to print statistics")
+
+args = parser.parse_args()
+args.abc=123
+print("This is the args:",args)
+print("This is the interger:",args.aaa)
+```
+
+output:
+
+```
+This is the args: Namespace(aaa=2, abc=123, bbb=100)
+This is the interger: 2
+
+```
+
+
+
+## About Excel
+
+#### 1. What does the comma mean in Excel?
+
+- Enclose them in braces ( **{** **}** ).
+
+- Separate values in different columns by using commas (**,**). For example, to represent the values 10, 20, 30, and 40, you enter {10,20,30,40}. This array constant is known as a 1-by-4 array and is equivalent to a 1-row-by-4-column reference.
+
+- Separate values in different rows by using semicolons (**;**). For example, to represent the values 10, 20, 30, and 40 in one row and 50, 60, 70, and 80 in the row immediately below, you enter a 2-by-4 array constant: {10,20,30,40;50,60,70,80}.
+
+  
