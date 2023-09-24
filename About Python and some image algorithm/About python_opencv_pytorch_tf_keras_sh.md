@@ -3099,7 +3099,7 @@ tensor([[0., 0., 0., 0., 0.],
 
 在深度学习处理图像时，常用的有3通道的RGB彩色图像及单通道的灰度图。张量size为cxhxw,即通道数x图像高度x图像宽度。在用torch.cat拼接两张图像时一般要求图像大小一致而通道数可不一致，即h和w同，c可不同。当然实际有3种拼接方式，另两种好像不常见。比如经典网络结构：U-Net
 
-​     ![U-Net](/home/jiang/桌面/About Python and some image algorithm/pictures source/U-Net.png)                               
+​     ![U-Net](./pictures source/U-Net.png)                               
 
 里面用到4次torch.cat,其中copy and crop操作就是通过torch.cat来实现的。可以看到通过上采样（up-conv 2x2）将原始图像h和w变为原来2倍，再和左边直接copy过来的同样h,w的图像拼接。这样做，可以有效利用原始结构信息。
 
@@ -3708,7 +3708,7 @@ In summary, Python uses square brackets `[]` to call the `getitem` method for in
 class MyCustomList:
     def __init__(self, items):
         self.items = items
-
+# the name of index is not necessary be the 'index', the name can be another as well, we need to keep same with 'index' for the content of method.
     def __getitem__(self, index):
         return self.items[index]
 
@@ -4974,6 +4974,10 @@ False
 
 Sure, let's break down the calculation of the binary cross-entropy loss using the provided code:
 
+Parameters:
+
+- **pos_weight** ([*Tensor*](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)*,* *optional*) – a weight of positive examples. Must be a vector with length equal to the number of classes.
+
 ```python
 import torch
 import torch.nn as nn
@@ -5410,63 +5414,6 @@ output:
 ```
 
 
-
-#### 1. About decorator of python
-
-A decorator is **a design pattern in Python that allows a user to add new functionality to an existing object without modifying its structure**. Decorators are usually called before the definition of a function you want to decorate.
-
-for example:
-
-```python
-def foo():
-    print('i am foo')
-```
-
-现在有一个新的需求，希望可以记录下函数的执行日志，于是在代码中添加日志代码：
-
-```python
-def foo():
-    print('i am foo')
-	logging.info("foo is running")
-```
-
-对bar(), bar()n 有一样的需求
-
-```python
-def use_logging(func):
-	logging.warn("%s is running" % func.__name__)
-	func()
-
-def bar():
-    print('i am bar')
-    
-use_logging(bar)
-```
-
-simple example
-
-```python
-def use_logging(func):
-    
-    def wrapper(*args, **kwargs):
-        logging.warn("%s is running" % func.__name__)
-        return func(*args)
-    return wrapper
-
-@use_logging
-def foo():
-    print("i am foo")
-    
-@use_logging
-def bar():
-    print("i am bar")
-    
-bar()
-```
-
-
-
-#### 
 
 #### 1.关于python中self的问题
 
@@ -7882,32 +7829,6 @@ print "Second list length : ", len(list2);
 
 
 
-#### 51. random.choice()
-
-**choice()** 方法返回一个列表，元组或字符串的随机项。
-
-```python
-random.choice( seq  )
-```
-
-- seq -- 可以是一个列表，元组或字符串。
-
-```python
-import random
-
-print ("choice([1, 2, 3, 5, 9]) : ", random.choice([1, 2, 3, 5, 9]))
-print ("choice('A String') : ", random.choice('A String'))
-```
-
-
-
-output:
-
-```python
-choice([1, 2, 3, 5, 9]) :  2
-choice('A String') :  n
-```
-
 
 
 #### 52. Python中的for in if 用法
@@ -8277,6 +8198,265 @@ My name is John, I'm 36
 
 
 
+#### 62. About decorator of python
+
+A decorator is **a design pattern in Python that allows a user to add new functionality to an existing object without modifying its structure**. Decorators are usually called before the definition of a function you want to decorate.
+
+
+
+As mentioned earlier, A Python decorator is a function that takes in a function and returns it by adding some functionality.
+
+In fact, any object which implements the special `__call__()` method is termed callable. So, in the most basic sense, a decorator is a callable that returns a callable.
+
+Basically, a decorator takes in a function, adds some functionality and returns it.
+
+```python
+def make_pretty(func):
+    def inner():
+        print("I got decorated")
+        func()
+    return inner
+
+
+def ordinary():
+    print("I am ordinary")
+
+# Output: I am ordinary
+```
+
+[Run Code](https://www.programiz.com/python-programming/online-compiler)
+
+Here, we have created two functions:
+
+- `ordinary()` that prints `"I am ordinary"`
+- `make_pretty()` that takes a function as its argument and has a nested function named `inner()`, and returns the inner function.
+
+We are calling the `ordinary()` function normally, so we get the output `"I am ordinary"`. Now, let's call it using the decorator function.
+
+```python
+def make_pretty(func):
+    # define the inner function 
+    def inner():
+        # add some additional behavior to decorated function
+        print("I got decorated")
+
+        # call original function
+        func()
+    # return the inner function
+    return inner
+
+# define ordinary function
+def ordinary():
+    print("I am ordinary")
+    
+# decorate the ordinary function
+decorated_func = make_pretty(ordinary)
+
+# call the decorated function
+decorated_func()
+```
+
+[Run Code](https://www.programiz.com/python-programming/online-compiler)
+
+**Output**
+
+```
+I got decorated
+I am ordinary
+```
+
+In the example shown above, `make_pretty()` is a decorator. Notice the code,
+
+```
+decorated_func = make_pretty(ordinary)
+```
+
+- We are now passing the `ordinary()` function as the argument to the `make_pretty()`.
+- The `make_pretty()` function returns the inner function, and it is now assigned to the decorated_func variable.
+
+```
+decorated_func()
+```
+
+Here, we are actually calling the `inner()` function, where we are printing
+
+@ Symbol With Decorator
+
+Instead of assigning the function call to a variable, Python provides a much more elegant way to achieve this functionality using the `@` symbol. For example,
+
+```python
+def make_pretty(func):
+    def inner():
+        print("I got decorated")
+        func()
+    return inner
+
+@make_pretty
+def ordinary():
+    print("I am ordinary")
+
+ordinary()  
+```
+
+[Run Code](https://www.programiz.com/python-programming/online-compiler)
+
+**Output**
+
+```
+I got decorated
+I am ordinary
+```
+
+Here, the `ordinary()` function is decorated with the `make_pretty()` decorator using the `@make_pretty` syntax, which is equivalent to calling `ordinary = make_pretty(ordinary)`.
+
+
+
+#### 63. nested funciton
+
+the inside function of function will not be called when we call the outside function 
+
+below is the example:
+
+```python
+def make_pretty(func):
+    print("the code is going here")
+    
+    # define the inner function 
+    def inner():
+        # add some additional behavior to decorated function
+        print("I got decorated")
+
+        # call original function
+        func()
+    # return the inner function
+    return inner
+
+# define ordinary function
+def ordinary():
+    print("I am ordinary")
+    
+# decorate the ordinary function
+decorated_func = make_pretty(ordinary)
+```
+
+output:
+
+```
+the code is going here
+```
+
+but we can through another way to call the inside function
+
+```python
+def make_pretty(func):
+    print("the code is going here")
+    
+    # define the inner function 
+    def inner():
+        # add some additional behavior to decorated function
+        print("I got decorated")
+
+        # call original function
+        func()
+    # return the inner function
+    return inner
+
+# define ordinary function
+def ordinary():
+    print("I am ordinary")
+    
+# decorate the ordinary function
+decorated_func = make_pretty(ordinary)
+print("------------------------------")
+# call the decorated function
+decorated_func()
+```
+
+output:
+
+```
+the code is going here
+------------------------------
+I got decorated
+I am ordinary
+```
+
+
+
+#### 64. decorator-@staticmethod
+
+In Python, `@staticmethod` is a decorator used to define a static method within **a class(Hint: will have error if more than one class)**. **Static methods are methods that belong to a class rather than an instance of the class.** They are called on the class itself rather than on an object created from the class. Static methods can be used for utility functions that don't depend on the state of the instance and don't modify the instance's attributes.
+
+Here's how you define a static method using the `@staticmethod` decorator:
+
+```python
+class MyClass:
+    def __init__(self, value):
+        self.value = value
+
+class MyClass2:
+    def __init__(self, value):
+        self.value = value
+
+    @staticmethod
+    def static_method():
+        print("This is a static method")
+
+# You can call a static method on the class itself
+# MyClass.static_method()
+
+
+MyClass2.static_method()
+```
+
+output:
+
+```
+This is a static method
+```
+
+In the example above, `static_method` is a static method, and you can call it on the `MyClass` class directly without creating an instance of `MyClass`. **Static methods don't have access to instance-specific data, and they are primarily used when you need a method that is related to the class but doesn't depend on individual instances.**
+
+> Using one sentence to summary the function of `@staticmethod`, we can use the method of class without instantiation.
+
+
+
+#### 65. Using range()
+
+Using the `range()` function to create a list from 1 to 100 in Python
+
+```python
+lst = list(range(1,101))
+print(lst)  
+```
+
+output:
+
+```
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
+```
+
+
+
+#### 66. Python index()
+
+The method `index()` returns the lowest index in the list where the element searched for appears. If any element which is not present is searched, it returns a **ValueError**.
+
+```python
+list_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+element = 3
+list_numbers.index(element)
+
+```
+
+output:
+
+```
+2
+```
+
+
+
 
 
 ## About opencv4
@@ -8493,39 +8673,28 @@ after inte0(box) method: [[ 31 495]
 
 ```python
 import cv2
-
 import numpy as np
 
 
 
 img = cv2.pyrDown(cv2.imread("hammer.jpg", cv2.IMREAD_UNCHANGED))
 
-
-
 ret, thresh = cv2.threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY),127, 255, cv2.THRESH_BINARY)
-
-
 
 contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
 
 
 for c in contours:
-
 ​    \# find bounding box coordinates
-
 ​    x, y, w, h = cv2.boundingRect(c)
-
 ​    cv2.rectangle(img, (x,y), (x+w, y+h), (0, 255, 0), 2)
 
 
 
 ​    \# find minimum area
-
 ​    rect = cv2.minAreaRect(c)
-
 ​    \# calculate coordinates of the minimum area rectangle
-
 ​    box = cv2.boxPoints(rect)
 
 ​    \# normalize coordinates to integers
@@ -8555,13 +8724,10 @@ for c in contours:
 
 
 cv2.drawContours(img, contours, -1, (255, 0, 0), 1)
-
 cv2.imshow("contours", img)
 
 
-
 cv2.waitKey()
-
 cv2.destroyAllWindows()
 ```
 
@@ -8765,17 +8931,17 @@ For a binary image, this corresponds to counting all the non-zero pixels and tha
 
 Centroid simply is the arithmetic mean position of all the points. In terms of image moments, centroid is given by the relation.
 
-![moment_cent](/home/jiang/桌面/About Python and some image algorithm/pictures source/moment_cent.jpg)
+![moment_cent](./pictures source/moment_cent.jpg)
 
 This is simple to understand. For instance, for a binary image M10 corresponds to the sum of all non-zero pixels (x-coordinate) and M00 is the total number of non-zero pixels and that is what the centroid is.
 
 Let’s take a simple example to understand how to calculate image moments for a given image.
 
-![mom_cen2](/home/jiang/桌面/About Python and some image algorithm/pictures source/mom_cen2.jpg)
+![mom_cen2](./pictures source/mom_cen2.jpg)
 
 Below are the area and centroid calculation for the above image.
 
-![mom_cen3](/home/jiang/桌面/About Python and some image algorithm/pictures source/mom_cen3.jpg)
+![mom_cen3](./pictures source/mom_cen3.jpg)
 
 
 
@@ -8877,7 +9043,7 @@ cv2.destroyAllWindows()
 
 This is a output:
 
-![hull](/home/jiang/桌面/About Python and some image algorithm/pictures source/hull.png)
+<img src="./pictures source/hull.png" alt="hull" style="zoom:25%;" />
 
 
 
@@ -9006,7 +9172,7 @@ interpolation algorithm
 
 ## About numpy
 
-#### 1. numpy.zeros_like and numpy.reshape()
+#### 01. numpy.zeros_like and numpy.reshape()
 
 Examples:
 
@@ -9075,7 +9241,7 @@ audio = np.reshape(audio, (1, -1, 1))
 
 
 
-#### 2.about numpy.uint8
+#### 02. about numpy.uint8
 
 用opencv处理图像时，可以发现获得的矩阵类型都是uint8
 
@@ -9111,7 +9277,7 @@ cv2.normalize(img, out, 0, 255, cv2.NORM_MINMAX)
 
 
 
-#### 3.about np.repeat()
+#### 03. about np.repeat()
 
 ```python
 import numpy as np
@@ -9172,7 +9338,7 @@ reshape 则不需要依赖目标 tensor 是否在内存中是连续的。
 
 
 
-#### 4.about numpy.max() and min()
+#### 04. about numpy.max() and min()
 
 ndarray.max([int axis])
 
@@ -9184,7 +9350,7 @@ axis=1:求各row的最大值
 
 
 
-#### 5. about 简单的归一化函数
+#### 05. about 简单的归一化函数
 
 ```python
 import numpy as np
@@ -9218,7 +9384,7 @@ print("This is a new input: ",input)
 
 
 
-#### 6. about numpy: Set whether to print full or truncated ndarray
+#### 06. about numpy: Set whether to print full or truncated ndarray
 
 If `threshold` is set to infinity `np.inf`, full elements will always be printed without truncation.
 
@@ -9228,7 +9394,7 @@ np.set_printoptions(threshold=np.inf)
 
 
 
-#### 7. numpy.argmax()
+#### 07. numpy.argmax()
 
 一维数组: 获取数组最大值的**索引值**
 
@@ -9262,7 +9428,7 @@ output:
 
 
 
-#### 8. numpy.assert_allclose()
+#### 08. numpy.assert_allclose()
 
 借助`**numpy.assert_allclose()**`方法，当两个数组对象不相等时，可以通过使用来获得断言错误`numpy.assert_allclose()`。
 
@@ -9322,7 +9488,7 @@ print(np.testing.assert_allclose(gfg1, gfg2))
 
 
 
-#### 9. numpy.cos() and numpy.arccos()
+#### 09. numpy.cos() and numpy.arccos()
 
 求cos和反cos
 
@@ -9453,7 +9619,7 @@ output:
 
 matrix multiplication [ˈmeɪtrɪks ˌmʌltɪplɪˈkeɪʃn] 
 
-![matrix-multiply-ex1b](/home/jiang/桌面/About Python and some image algorithm/pictures source/matrix-multiply-ex1b.svg)
+![matrix-multiply-ex1b](./pictures source/matrix-multiply-ex1b.svg)
 
 
 
@@ -9710,6 +9876,34 @@ Original matrix:
 
 #### 22. numpy.nanmean()
 
+Parameters:
+
+- **a**array_like
+
+  Array containing numbers whose mean is desired. If *a* is not an array, a conversion is attempted.
+
+- **axis**{int, tuple of int, None}, optional
+
+  Axis or axes along which the means are computed. The default is to compute the mean of the flattened array.
+
+- **dtype**data-type, optional
+
+  Type to use in computing the mean. For integer inputs, the default is [`float64`](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64); for inexact inputs, it is the same as the input dtype.
+
+- **out**ndarray, optional
+
+  Alternate output array in which to place the result. The default is `None`; if provided, it must have the same shape as the expected output, but the type will be cast if necessary. See [Output type determination](https://numpy.org/doc/stable/user/basics.ufuncs.html#ufuncs-output-type) for more details.
+
+- **keepdims**bool, optional
+
+  If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the original *a*.If the value is anything but the default, then *keepdims* will be passed through to the [`mean`](https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean) or [`sum`](https://numpy.org/doc/stable/reference/generated/numpy.sum.html#numpy.sum) methods of sub-classes of [`ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray). If the sub-classes methods does not implement *keepdims* any exceptions will be raised.
+
+- **where**array_like of bool, optional
+
+  Elements to include in the mean. See [`reduce`](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce) for details. 
+
+
+
 Compute the arithmetic mean along the specified axis, ignoring NaNs.
 
 Returns the average of the array elements. The average is taken over the flattened array by default, otherwise over the specified axis. [`float64`](https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64) intermediate and return values are used for integer inputs.
@@ -9725,49 +9919,63 @@ below are two examples:
 ```python
 import numpy as np
 
-a = np.array([[1, np.nan],
-​               [3, 4]])
+# np.nan 归0, 并且不计数
+a = np.array([[1, np.nan], [3, 4]])
 
 print(np.nanmean(a))
 print("----------------------------")
 print(np.nanmean(a, axis=0)) 
 print("----------------------------")
 print(np.nanmean(a, axis=1)) 
+# 1 is same with -1 if the dimension of input is 2.
+print("----------------------------")
+print(np.nanmean(a, axis=-1)) 
 ```
 
 output:
 
 ```
-2.6666666666666665 
+2.6666666666666665
 ----------------------------
-[2. 4.] 
----------------------------
+[2. 4.]
+----------------------------
+[1.  3.5]
+----------------------------
 [1.  3.5]
 ```
+
+
 
 example 2 :
 
 ```python
 import numpy as np
 
-a = np.array([[1, np.nan, 3],
-​               [3, 4, 5]])
+# np.nan 归0, 并且不计数
+a = np.array([[1, np.nan], [3, 4]])
 
-print(np.nanmean(a))
+print(np.nanmean(a), np.nanmean(a, keepdims=True))
 print("----------------------------")
-print(np.nanmean(a, axis=0)) 
+print(np.nanmean(a, axis=0, keepdims=True)) 
 print("----------------------------")
-print(np.nanmean(a, axis=1)) 
+print(np.nanmean(a, axis=1, keepdims=True))  
+# 1 is same with -1 if the dimension of input is 2.
+print("----------------------------")
+print(np.nanmean(a, axis=-1, keepdims=True)) 
 ```
 
 output:
 
 ```
-3.2 
----------------------------
-[2. 4. 4.] 
----------------------------
-[2. 4.]
+2.6666666666666665 [[2.66666667]]
+----------------------------
+[[2. 4.]]
+----------------------------
+[[1. ]
+ [3.5]]
+----------------------------
+[[1. ]
+ [3.5]]
 ```
 
 
@@ -9850,6 +10058,68 @@ output:
 ```
 
 
+
+#### 26. np.zeros((n,))
+
+**numpy.****zeros****(***shape***,** *dtype=float***,** *order='C'***,** *****,** *like=None***)**
+
+Return a new array of given shape and type, filled with zeros.
+
+Parameters:
+
+- **shape**int or tuple of ints
+
+  Shape of the new array, e.g., `(2, 3)` or `2`.or (12,)
+
+```python
+import numpy as np
+
+output_leads = np.zeros((12,))
+print(output_leads)
+print(output_leads[8])
+```
+
+output:
+
+```
+[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+0.0
+```
+
+
+
+#### 27. numpy.random.randint()
+
+Parameters:
+
+- **low**int or array-like of ints
+
+  Lowest (signed) integers to be drawn from the distribution (unless `high=None`, in which case this parameter is one above the *highest* such integer).
+
+- **high**int or array-like of ints, optional
+
+  If provided, one above the largest (signed) integer to be drawn from the distribution (see above for behavior if `high=None`). If array-like, must contain integer values
+
+- **size**int or tuple of ints, optional
+
+  Output shape. If the given shape is, e.g., `(m, n, k)`, then `m * n * k` samples are drawn. Default is None, in which case a single value is returned.
+
+- **dtype**dtype, optional
+
+  Desired dtype of the result. Byteorder must be native. The default value is int.
+
+```python
+import numpy as np
+
+a=np.random.randint(807)
+print(a)
+```
+
+output:
+
+```
+400
+```
 
 
 
@@ -10398,7 +10668,7 @@ Tue Aug  2 11:33:21 2022
 
 4、json.load()：从json文件中读取数据（<type ‘dict’>）
 
-#### 1.json.dump() 存储
+#### 01. json.dump() 存储
 
 导入模块json
 以写入模式打开这个文件，让json能够将数据写入其中
@@ -10416,7 +10686,7 @@ with open(filename, 'w') as f_json:
 
 
 
-#### 2.json.load() 读取
+#### 02. json.load() 读取
 
 以读取方式打开这个文件
 使用函数json.load()加载存储在numbers.json中的信息，
@@ -10655,11 +10925,11 @@ def bandPass_filter(signal):
 plot()
 ```
 
-![plt.plottime-signal_data](/home/jiang/桌面/About Python and some image algorithm/pictures source/plt.plottime-signal_data.webp)
+![plt.plottime-signal_data](./pictures source/plt.plottime-signal_data.webp)
 
 After the preprocessing of butterworth filter.
 
-![scipy.signal.butter](/home/jiang/桌面/About Python and some image algorithm/pictures source/scipy.signal.butter.webp)
+![scipy.signal.butter](./pictures source/scipy.signal.butter.webp)
 
 #### 3. scipy.signal.resample()
 
@@ -10883,7 +11153,7 @@ p = plt.imshow(specgram.log2()[0,:,:].detach().numpy())
 
 ## About random
 
-#### 1、python中的random函数
+#### 01. python中的random函数
 
 random() 方法返回随机生成的一个实数，它在[0,1)范围内
 
@@ -10897,7 +11167,7 @@ random.randint(0,99)#返回0~99之间的整数
 #randrange函数，randrange(0,101,2)可以用来选曲0~100之间的偶数
 ```
 
-#### 2、random.seed(int)
+#### 02. random.seed(int)
 
 给随机数对象一个种子值，用于产生随机序列。
 对于同一个种子值的输入，之后产生的随机数序列也一样。
@@ -10918,13 +11188,13 @@ random.seed()
 print random.random()
 ```
 
-#### 3、随机正态浮点数random.uniform(u,sigma)
+#### 03. 随机正态浮点数random.uniform(u,sigma)
 
 ```python
 print random.uniform(1,5)
 ```
 
-#### 4、按步长随机在上下限范围内取一个随机数
+#### 04. 按步长随机在上下限范围内取一个随机数
 
 ```python
 #random.randrange(start,stop,step)
@@ -10933,7 +11203,7 @@ print random.randrange(20,100,5)
 
 
 
-#### 5、随机选择字符
+#### 05. 随机选择字符
 
 ```python
 #随机的选取n个字符
@@ -10947,7 +11217,37 @@ print string.join(random.sample('abcdefhjk',4)).replace(" ","")
 
 ```
 
-#### 6、random.shuffle
+
+
+#### 06. random.choice()
+
+**choice()** 方法返回一个列表，元组或字符串的随机项。
+
+```python
+random.choice( seq  )
+```
+
+- seq -- 可以是一个列表，元组或字符串。
+
+```python
+import random
+
+print ("choice([1, 2, 3, 5, 9]) : ", random.choice([1, 2, 3, 5, 9]))
+print ("choice('A String') : ", random.choice('A String'))
+```
+
+
+
+output:
+
+```python
+choice([1, 2, 3, 5, 9]) :  2
+choice('A String') :  n
+```
+
+
+
+#### 07. random.shuffle
 
 对list列表随机打乱顺序，也就是洗牌
 
@@ -10967,7 +11267,7 @@ print item2
 
 ```
 
-#### 7、numpy模块中的randn和rand函数
+#### 08. numpy模块中的randn和rand函数
 
 numpy.random.randn(d0,d1,…,dn),正太随机
 
@@ -11035,17 +11335,82 @@ plt.show()
 
 
 
+#### 3. Graph Plotting in Python easily
 
+```python
+# importing the required module
+import matplotlib.pyplot as plt
+
+# x axis values
+x = [1,2,3]
+# corresponding y axis values
+y = [2,4,1]
+
+# plotting the points
+plt.plot(x, y)
+
+# naming the x axis
+plt.xlabel('x - axis')
+# naming the y axis
+plt.ylabel('y - axis')
+
+# giving a title to my graph
+plt.title('My first graph!')
+
+# function to show the plot
+plt.show()
+```
+
+output:
+
+<img src="./pictures source/output.png" alt="output" style="zoom: 67%;" />
+
+#### 4. matplotlib.pyplot.figure().set_figwidth() or set_figheight()
+
+Change plot size in Matplotlib – Python
+
+```python
+# importing the matplotlib library
+import matplotlib.pyplot as plt
+
+# values on x-axis
+x = [1, 2, 3, 4, 5]
+# values on y-axis
+y = [1, 2, 3, 4, 5]
+
+# naming the x and y axis
+plt.xlabel('x - axis')
+plt.ylabel('y - axis')
+
+# plotting a line plot with it's default size
+print("Plot in it's default size: ")
+plt.plot(x, y)
+plt.show()
+
+# plotting a line plot after changing it's width and height
+f = plt.figure()
+f.set_figwidth(4)
+f.set_figheight(1)
+
+print("Plot after re-sizing: ")
+plt.plot(x, y)
+plt.show()
+
+```
+
+output:
+
+![img1-300x266](./pictures source/img1-300x266.png)
 
 
 
 ## About csv & pandas
 
-#### 1. csv.DictReader()
+#### 01. csv.DictReader()
 
 假设csv文件的内容如下图所示，DictReader会将第一行的内容（类标题）作为key值，第二行开始才是数据内容。即图中的csv文件有2列7行数据，第一列的key值为id，第二列的key值为class：
 
-![这里写图片描述](/home/jiang/桌面/About Python and some image algorithm/pictures source/DictReader)
+![这里写图片描述](./pictures source/DictReader)
 
 ```python
 with open(‘name.csv’) as csvfile:
@@ -11069,7 +11434,7 @@ output:
 
 
 
-#### 2. csv.DictWriter()
+#### 02. csv.DictWriter()
 
 现假设我们要创建一个格式如上图所示的csv文件，则实现代码应该如下：
 
@@ -11086,7 +11451,7 @@ with open(‘name.csv’,’w’) as csvfile:
 
 
 
-#### 3. Update column value of CSV in python
+#### 03. Update column value of CSV in python
 
 ```python
 # importing the pandas library
@@ -11108,7 +11473,7 @@ print(df)
 
 
 
-#### 4. how to read csv file line by line
+#### 04. how to read csv file line by line
 
 ```python
 import pandas as pd
@@ -11133,7 +11498,7 @@ win_102_01_02_0.flac--1.wav win_103_02_02_0.flac--0.wav win_103_02_02_0.flac--1.
 
 
 
-#### 5. pandas.DataFrame() and pandas.DataFrame.iloc
+#### 05. pandas.DataFrame() and pandas.DataFrame.iloc()
 
 below is the example:
 
@@ -11154,6 +11519,10 @@ output:
 ```
 
 another example:
+
+pandas.DataFrame.iloc()
+
+Purely integer-location based indexing for selection by position.
 
 ```python
 import pandas as pd
@@ -11211,7 +11580,7 @@ output:
 
 
 
-#### 6. Series.to_list(~)
+#### 06. Series.to_list(~)
 
 Pandas `Series.to_list(~)` method converts the Series into a Python's standard list.
 
@@ -11251,7 +11620,7 @@ dtype: object
 
 
 
-#### 7. Series.index
+#### 07. Series.index
 
 [Pandas](https://www.geeksforgeeks.org/python-pandas-series-index/Pandas) **Series.index** attribute is used to get or set the index labels of the given Series object.
 
@@ -11281,11 +11650,15 @@ dtype: object
 
 
 
-#### 8. Pandas DataFrame reset_index()
+#### 08. Pandas DataFrame reset_index()
 
 The `reset_index()` method allows you reset the index back to the default 0, 1, 2 etc indexes.
 
 By default this method will keep the "old" idexes in a column named "index", to avoid this, use the `drop` parameter.
+
+Hint: The most commonly used function of this method is to reorder the DataFrame.
+
+
 
 | Parameter | Value                   | Description                                                  |
 | :-------- | :---------------------- | :----------------------------------------------------------- |
@@ -11308,23 +11681,80 @@ idx = ["X", "Y", "Z"]
 
 df = pd.DataFrame(data, index=idx)
 
-print(df)
+print("This is the original one:\n",df)
 print("--------------------------------")
 newdf = df.reset_index()
-print(newdf)
+print("This is the original one with reset_index:\n", newdf)
 print("--------------------------------")
 newdf_drop=df.reset_index(drop=True)
-print(newdf_drop)
+print("This is the original one with reset_index and drop:\n", newdf_drop)
 print("--------------------------------")
-newdf_drop_inplace=df.reset_index(inplace=True)
+newdf_drop_inplace=df.reset_index(drop=True, inplace=True)
 print(newdf_drop_inplace)
 print("--------------------------------")
-print(df)
+print("The operation is done on the current DataFrame:\n",df)
 ```
 
 output:
 
-![pandas_Reset_output](/home/jiang/桌面/About Python and some image algorithm/pictures source/pandas_Reset_output.png)
+```
+This is the original one:
+     name  age  qualified
+X  Sally   50       True
+Y   Mary   40      False
+Z   John   30      False
+--------------------------------
+This is the original one with reset_index:
+   index   name  age  qualified
+0     X  Sally   50       True
+1     Y   Mary   40      False
+2     Z   John   30      False
+--------------------------------
+This is the original one with reset_index and drop:
+     name  age  qualified
+0  Sally   50       True
+1   Mary   40      False
+2   John   30      False
+--------------------------------
+None
+--------------------------------
+The operation is done on the current DataFrame:
+     name  age  qualified
+0  Sally   50       True
+1   Mary   40      False
+2   John   30      False
+```
+
+
+
+#### 09. pandas.DataFrame.to_numpy()
+
+Convert the DataFrame to a NumPy array.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"A": [1, 2], "B": [3.0, 4.5]})
+# convert dataframe to numpy array
+arr = df.to_numpy()
+
+print('\nNumpy Array\n----------\n', arr)
+print(type(arr))
+```
+
+output:
+
+```
+Numpy Array
+----------
+ [[1.  3. ]
+ [2.  4.5]]
+<class 'numpy.ndarray'>
+```
+
+
+
+
 
 
 
@@ -11411,7 +11841,7 @@ output:
 
 ## import math
 
-#### 1. math.log()
+#### 01. math.log()
 
 这个函数的底数为e.
 
@@ -11964,6 +12394,12 @@ This is the args: Namespace(aaa=2, abc=123, bbb=100)
 This is the interger: 2
 
 ```
+
+
+
+## About warnings
+
+
 
 
 
