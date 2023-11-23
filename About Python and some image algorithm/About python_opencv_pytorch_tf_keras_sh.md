@@ -53,6 +53,8 @@ conda update conda
 
 ####  9. Check conda list
 
+This command will display a list of all packages installed in the currently active Conda environment, along with their versions.
+
 ```bash
 conda list
 ```
@@ -687,6 +689,12 @@ This is i:  torch.Size([1, 2, 3, 4, 5, 1])
 ```
 
 
+
+Hint: 
+
+Tensor.squeeze_(*dim=None*) → [Tensor](https://pytorch.org/docs/stable/tensors.html#torch.Tensor)
+
+In-place version of [`squeeze()`](https://pytorch.org/docs/stable/generated/torch.Tensor.squeeze.html#torch.Tensor.squeeze)
 
 #### 4. About h5py
 
@@ -2198,6 +2206,16 @@ A1：没啥区别，在这里表示同一个意思，-对应_，代码里写的�
 
 
 
+For anyone who doesn't know what is nargs:
+
+nargs stands for Number Of Arguments
+
+3: 3 values, can be any number you want
+?: a single value, which can be optional
+*: a flexible number of values, which will be gathered into a list
++: like *, but requiring at least one value
+argparse.REMAINDER: all the values that are remaining in the command line
+
 #### 34. add_argument函数的prefix_chars
 
 许多命令行会使用 `-` 当作前缀，比如 `-f/--foo`。如果解析器需要支持不同的或者额外的字符，比如像 `+f` 或者 `/foo` 的选项，可以在参数解析构建器中使用 `prefix_chars=` 参数。
@@ -2250,105 +2268,6 @@ __weakref__ : <attribute '__weakref__' of 'My' objects>
 ```
 
 
-
-#### 36.torchvision.transforms.compose()
-
-torchvision是pytorch的一个图形库，它服务于PyTorch深度学习框架的，主要用来构建计算机视觉模型。torchvision.transforms主要是用于常见的一些图形变换。以下是torchvision的构成：
-
-torchvision.datasets: 一些加载数据的函数及常用的数据集接口；
-torchvision.models: 包含常用的模型结构（含预训练模型），例如AlexNet、VGG、ResNet等；
-torchvision.transforms: 常用的图片变换，例如裁剪、旋转等；
-torchvision.utils: 其他的一些有用的方法。
-
-##### 1.transforms.Compose()
-
-本文的主题是其中的`torchvision.transforms.Compose()`类。这个类的主要作用是串联多个图片变换的操作。这个类的构造很简单:
-
-- 即组合几个变换方法，按顺序变换相应数据。
-- 其中torchscript为脚本模块，用于封装脚本跨平台使用，若需要支持此情况，需要使用torch.nn.Sequential，而不是compose
-- 对应于问题描述中代码，即先应用ToTensor()使[0-255]变换为[0-1]，再应用Normalize自定义标准化
-
-
-
-```python
-class torchvision.transforms.Compose(transforms):
-
- # Composes several transforms together.
-
- # Parameters: transforms (list of Transform objects) – list of transforms to compose.
-
-Example # 可以看出Compose里面的参数实际上就是个列表，而这个列表里面的元素就是你想要执行的transform操作。
-
->>> transforms.Compose([
->>>  transforms.CenterCrop(10),
->>>  transforms.ToTensor(),])
-
-
-```
-
-事实上，`Compose()`类会将transforms列表里面的transform操作进行遍历。实现的代码很简单：
-
-```python
-## 这里对源码进行了部分截取。
-def __call__(self, img):
-	for t in self.transforms:	
-		img = t(img)
-    return img
-
-```
-
-
-
-##### 2.transforms.ToTensor()
-
-Convert a `PIL Image` or `numpy.ndarray` to tensor
-转换一个PIL库的图片或者numpy的数组为tensor张量类型；
-
-转换从[0,255]->[0,1]
-
-- 实现原理，即针对不同类型进行处理，原理即各值除以255，最后通过`torch.from_numpy`将`PIL Image` or `numpy.ndarray`针对具体数值类型比如Int32,int16,float等转成`torch.tensor`数据类型
-- **需要注意的是，源码中有一小段内容：**
-
-```python
- if isinstance(pic, np.ndarray):
-        # handle numpy array
-        if pic.ndim == 2:
-            pic = pic[:, :, None]
-
-        img = torch.from_numpy(pic.transpose((2, 0, 1))).contiguous()
-        # backward compatibility
-        if isinstance(img, torch.ByteTensor):
-            return img.float().div(255)
-        else:
-            return img
-
-
-```
-
-我们可以看到在转换过程中有一个轴的转置操作`pic.transpose((2, 0, 1))` 和`contiguous()` 函数
-
-- `pic.transpose((2, 0, 1))`将第三维轴换到第一个位置，这样做的原因主要是因为PIEimage与torch和numpy数据类型多维参数位置的区别，以下表说明
-
-| 参数              | 含义   |
-| ----------------- | ------ |
-| torch：(x,y,z)    | x个y*z |
-| PIEimage：(x,y,z) | z个x*y |
-
-即三维表示的结构顺序有区别，导致numpy与torch多维转换时需要转置.
-
-| Normalize a tensor image with mean and standard deviation 通过平均值和标准差来标准化一个tensor图像 |
-| ------------------------------------------------------------ |
-| 公式为： output[channel] = (input[channel] - mean[channel]) / std[channel] |
-
-transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))解释：
-
-第一个(0.5,0.5,0.5) 即三个通道的平均值
-第二个(0.5,0.5,0.5) 即三个通道的标准差值
-由于ToTensor()已经将图像变为[0,1]，我们使其变为[-1,1]，以第一个通道为例，将最大与最小值代入公式
-
-(0-0.5)/0.5=-1
-(1-0.5)/0.5=1
-其他数值同理操作，即映射到[-1,1]
 
 
 
@@ -4194,52 +4113,6 @@ crossentropyloss_output:
 
 reduction这个参数着重提一下，它一般有none、sum、mean等几个选项，none就是没有别的附加操作，sum就是把这个几个损失加和，mean就是把这几个损失求平均。
 
-#### 72.torchvision.datasets.MNIST()
-
-*CLASS*torchvision.datasets.MNIST(*root: [str](https://docs.python.org/3/library/stdtypes.html#str)*, *train: [bool](https://docs.python.org/3/library/functions.html#bool) = True*, *transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *target_transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *download: [bool](https://docs.python.org/3/library/functions.html#bool) = False*)
-
-- **root** (*string*) – Root directory of dataset where `MNIST/raw/train-images-idx3-ubyte` and `MNIST/raw/t10k-images-idx3-ubyte` exist.
-- **train** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, creates dataset from `train-images-idx3-ubyte`, otherwise from `t10k-images-idx3-ubyte`.
-- **download** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, downloads the dataset from the internet and puts it in root directory. If dataset is already downloaded, it is not downloaded again.
-- **transform** (*callable**,* *optional*) – A function/transform that takes in an PIL image and returns a transformed version. E.g, `transforms.RandomCrop`
-- **target_transform** (*callable**,* *optional*) – A function/transform that takes in the target and transforms it.
-
-example:
-
-```python
-from torchvision.datasets.mnist import MNIST
-
-transform = ToTensor()
-train_set = MNIST(root='./datasets', train=True, download=True, transform=transform)
-test_set = MNIST(root='./datasets', train=False, download=True, transform=transform)
-```
-
-result:
-
-```
-Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz to [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz)
-
-9913344it [00:00, 10329470.32it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
-
-Extracting [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz)
-
-29696it [00:00, 7895660.96it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
-
-Extracting [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
-
-
-
-Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz to [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz)
-
-1649664it [00:00, 5373946.30it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
-
-Extracting [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz)
-
-5120it [00:00, 9946658.86it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
-
-Extracting [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw)
-```
-
 
 
 #### 73. checking whether the cuda is available
@@ -4358,9 +4231,16 @@ model= nn.Sequential(
 ​            nn.ReLU(),
 ​            nn.Linear(30, 10)
 ​        )
+
 input = torch.randn(128, 20)
 output=model(input)
 print(output.size())
+```
+
+output:
+
+```
+torch.Size([128, 10])
 ```
 
 
@@ -5041,6 +4921,49 @@ The calculated loss is then printed using `loss.item()`.
 Please note that the exact values will depend on the specific values of the logits and targets, and the output will be the calculated binary cross-entropy loss for those values.
 
 **Hint: The base of log is e.**
+
+
+
+#### 95. torch.nn.functional.pad()
+
+`torch.nn.functional.pad()` is a function in PyTorch that is used to pad tensor data with zeros or a constant value along specified dimensions. Padding is a common operation in neural networks, especially in convolutional neural networks (CNNs), where it is often applied to input data to ensure that the spatial dimensions are preserved after convolutional and pooling layers.
+
+Here is the basic syntax of `torch.nn.functional.pad()`:
+
+```python
+torch.nn.functional.pad(input, pad, mode='constant', value=0)
+```
+
+- `input`: The input tensor to be padded.
+- `pad`: The amount of padding to be added. It can be a single integer, a tuple, or a list specifying the padding for each dimension.
+- `mode`: The padding mode. It can be 'constant', 'reflect', or 'replicate'. The default is 'constant'.
+- `value`: The value to fill the padding with if mode is 'constant'. The default is 0.
+
+Here's an example:
+
+```python
+import torch
+import torch.nn.functional as F
+
+# Example tensor
+x = torch.tensor([[1, 2], [3, 4]])
+
+# Pad the tensor with a single value of 0 on all sides
+padded_x = F.pad(x, pad=(1, 1, 1, 1), mode='constant', value=0)
+
+print(padded_x)
+```
+
+In this example, the `pad` argument is a tuple `(1, 1, 1, 1)`, where the first two values represent padding to be added to the left and right sides, and the last two values represent padding to be added to the top and bottom sides. The resulting tensor `padded_x` will be:
+
+```
+tensor([[0, 0, 0, 0],
+        [0, 1, 2, 0],
+        [0, 3, 4, 0],
+        [0, 0, 0, 0]])
+```
+
+This illustrates padding the original 2x2 tensor with a border of zeros.
 
 
 
@@ -6977,7 +6900,7 @@ sum(iterable[, start])
 
 ##### 范例
 
-下面的代码演示了 sum() 方法的简单使用
+下面的代码演示了 sum() 方法的**简单**使用
 
 ```python
 >>>sum([0,1,2])  
@@ -8457,6 +8380,47 @@ output:
 
 
 
+#### 67. __abs__() Method
+
+The **__abs__()** method in Python specifies what happens when you call the built-in[ **abs()**](https://docs.python.org/3/library/functions.html#abs) function on an object.
+
+For example, let’s call **abs()** on a negative number:
+
+```python
+n = -10
+print(abs(n))
+print(n.__abs__())
+```
+
+output:
+
+```
+10
+10
+```
+
+
+
+#### 68. Max()
+
+The max() function returns the largest item in an iterable. It can also be used to find the largest item between two or more parameters.
+
+```python
+numbers = [9, 34, 11, -4, 27]
+
+# find the maximum number
+max_number = max(numbers)
+print(max_number)
+
+# Output: 34
+```
+
+output:
+
+```
+34
+```
+
 
 
 ## About opencv4
@@ -9710,7 +9674,9 @@ output:
 
 #### 17. numpy.arange()
 
+Return evenly spaced values within a given interval.
 
+Example 1:
 
 ```python
 import numpy
@@ -9723,6 +9689,22 @@ output:
 
 ```
 threshold: [0.2  0.25 0.3  0.35 0.4  0.45 0.5  0.55 0.6  0.65]
+```
+
+
+
+Example 2:
+
+```python
+import numpy as np
+
+print(np.arange(20))
+```
+
+output:
+
+```
+[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19]
 ```
 
 
@@ -10951,6 +10933,201 @@ Apply a digital filter forward and backward to a signal.
 
 
 
+## About torchvision
+
+#### 01.torchvision.transforms.compose()
+
+torchvision是pytorch的一个图形库，它服务于PyTorch深度学习框架的，主要用来构建计算机视觉模型。torchvision.transforms主要是用于常见的一些图形变换。以下是torchvision的构成：
+
+torchvision.datasets: 一些加载数据的函数及常用的数据集接口；
+torchvision.models: 包含常用的模型结构（含预训练模型），例如AlexNet、VGG、ResNet等；
+torchvision.transforms: 常用的图片变换，例如裁剪、旋转等；
+torchvision.utils: 其他的一些有用的方法。
+
+##### 1.transforms.Compose()
+
+本文的主题是其中的`torchvision.transforms.Compose()`类。这个类的主要作用是串联多个图片变换的操作。这个类的构造很简单:
+
+- 即组合几个变换方法，按顺序变换相应数据。
+- 其中torchscript为脚本模块，用于封装脚本跨平台使用，若需要支持此情况，需要使用torch.nn.Sequential，而不是compose
+- 对应于问题描述中代码，即先应用ToTensor()使[0-255]变换为[0-1]，再应用Normalize自定义标准化
+
+
+
+```python
+class torchvision.transforms.Compose(transforms):
+
+ # Composes several transforms together.
+
+ # Parameters: transforms (list of Transform objects) – list of transforms to compose.
+
+Example # 可以看出Compose里面的参数实际上就是个列表，而这个列表里面的元素就是你想要执行的transform操作。
+
+>>> transforms.Compose([
+>>>  transforms.CenterCrop(10),
+>>>  transforms.ToTensor(),])
+
+
+```
+
+事实上，`Compose()`类会将transforms列表里面的transform操作进行遍历。实现的代码很简单：
+
+```python
+## 这里对源码进行了部分截取。
+def __call__(self, img):
+	for t in self.transforms:	
+		img = t(img)
+    return img
+
+```
+
+
+
+##### 2.transforms.ToTensor()
+
+Convert a `PIL Image` or `numpy.ndarray` to tensor
+转换一个PIL库的图片或者numpy的数组为tensor张量类型；
+
+转换从[0,255]->[0,1]
+
+- 实现原理，即针对不同类型进行处理，原理即各值除以255，最后通过`torch.from_numpy`将`PIL Image` or `numpy.ndarray`针对具体数值类型比如Int32,int16,float等转成`torch.tensor`数据类型
+- **需要注意的是，源码中有一小段内容：**
+
+```python
+ if isinstance(pic, np.ndarray):
+        # handle numpy array
+        if pic.ndim == 2:
+            pic = pic[:, :, None]
+
+        img = torch.from_numpy(pic.transpose((2, 0, 1))).contiguous()
+        # backward compatibility
+        if isinstance(img, torch.ByteTensor):
+            return img.float().div(255)
+        else:
+            return img
+
+
+```
+
+我们可以看到在转换过程中有一个轴的转置操作`pic.transpose((2, 0, 1))` 和`contiguous()` 函数
+
+- `pic.transpose((2, 0, 1))`将第三维轴换到第一个位置，这样做的原因主要是因为PIEimage与torch和numpy数据类型多维参数位置的区别，以下表说明
+
+| 参数              | 含义   |
+| ----------------- | ------ |
+| torch：(x,y,z)    | x个y*z |
+| PIEimage：(x,y,z) | z个x*y |
+
+即三维表示的结构顺序有区别，导致numpy与torch多维转换时需要转置.
+
+| Normalize a tensor image with mean and standard deviation 通过平均值和标准差来标准化一个tensor图像 |
+| ------------------------------------------------------------ |
+| 公式为： output[channel] = (input[channel] - mean[channel]) / std[channel] |
+
+transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))解释：
+
+第一个(0.5,0.5,0.5) 即三个通道的平均值
+第二个(0.5,0.5,0.5) 即三个通道的标准差值
+由于ToTensor()已经将图像变为[0,1]，我们使其变为[-1,1]，以第一个通道为例，将最大与最小值代入公式
+
+(0-0.5)/0.5=-1
+(1-0.5)/0.5=1
+其他数值同理操作，即映射到[-1,1]
+
+#### 02.torchvision.datasets.MNIST()
+
+*CLASS*torchvision.datasets.MNIST(*root: [str](https://docs.python.org/3/library/stdtypes.html#str)*, *train: [bool](https://docs.python.org/3/library/functions.html#bool) = True*, *transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *target_transform: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[Callable](https://docs.python.org/3/library/typing.html#typing.Callable)] = None*, *download: [bool](https://docs.python.org/3/library/functions.html#bool) = False*)
+
+- **root** (*string*) – Root directory of dataset where `MNIST/raw/train-images-idx3-ubyte` and `MNIST/raw/t10k-images-idx3-ubyte` exist.
+- **train** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, creates dataset from `train-images-idx3-ubyte`, otherwise from `t10k-images-idx3-ubyte`.
+- **download** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If True, downloads the dataset from the internet and puts it in root directory. If dataset is already downloaded, it is not downloaded again.
+- **transform** (*callable**,* *optional*) – A function/transform that takes in an PIL image and returns a transformed version. E.g, `transforms.RandomCrop`
+- **target_transform** (*callable**,* *optional*) – A function/transform that takes in the target and transforms it.
+
+example:
+
+```python
+from torchvision.datasets.mnist import MNIST
+
+transform = ToTensor()
+train_set = MNIST(root='./datasets', train=True, download=True, transform=transform)
+test_set = MNIST(root='./datasets', train=False, download=True, transform=transform)
+```
+
+result:
+
+```
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz to [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz)
+
+9913344it [00:00, 10329470.32it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
+
+Extracting [./datasets/MNIST/raw/train-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz)
+
+29696it [00:00, 7895660.96it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
+
+Extracting [./datasets/MNIST/raw/train-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/train-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+
+
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz to [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz)
+
+1649664it [00:00, 5373946.30it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]                             
+
+Extracting [./datasets/MNIST/raw/t10k-images-idx3-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-images-idx3-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw) Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz to [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz)
+
+5120it [00:00, 9946658.86it[/s](https://file+.vscode-resource.vscode-cdn.net/s)]          
+
+Extracting [./datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw/t10k-labels-idx1-ubyte.gz) to [./datasets/MNIST/raw](https://file+.vscode-resource.vscode-cdn.net/home/jiang/桌面/simple CNN code Identify the Apparels and original Neural Network/datasets/MNIST/raw)
+```
+
+
+
+#### 03.torchvision.models
+
+The models subpackage contains definitions of models for addressing different tasks, including: image classification, pixelwise semantic segmentation, object detection, instance segmentation, person keypoint detection and video classification.
+
+You can construct a model with random weights by calling its constructor:
+
+```python
+import torchvision.models as models
+resnet18 = models.resnet18()
+alexnet = models.alexnet()
+vgg16 = models.vgg16()
+squeezenet = models.squeezenet1_0()
+densenet = models.densenet161()
+inception = models.inception_v3()
+googlenet = models.googlenet()
+shufflenet = models.shufflenet_v2_x1_0()
+mobilenet_v2 = models.mobilenet_v2()
+mobilenet_v3_large = models.mobilenet_v3_large()
+mobilenet_v3_small = models.mobilenet_v3_small()
+resnext50_32x4d = models.resnext50_32x4d()
+wide_resnet50_2 = models.wide_resnet50_2()
+mnasnet = models.mnasnet1_0()
+```
+
+We provide pre-trained models, using the PyTorch `torch.utils.model_zoo`. These can be constructed by passing `pretrained=True`:
+
+```python
+import torchvision.models as models
+resnet18 = models.resnet18(pretrained=True)
+alexnet = models.alexnet(pretrained=True)
+squeezenet = models.squeezenet1_0(pretrained=True)
+vgg16 = models.vgg16(pretrained=True)
+densenet = models.densenet161(pretrained=True)
+inception = models.inception_v3(pretrained=True)
+googlenet = models.googlenet(pretrained=True)
+shufflenet = models.shufflenet_v2_x1_0(pretrained=True)
+mobilenet_v2 = models.mobilenet_v2(pretrained=True)
+mobilenet_v3_large = models.mobilenet_v3_large(pretrained=True)
+mobilenet_v3_small = models.mobilenet_v3_small(pretrained=True)
+resnext50_32x4d = models.resnext50_32x4d(pretrained=True)
+wide_resnet50_2 = models.wide_resnet50_2(pretrained=True)
+mnasnet = models.mnasnet1_0(pretrained=True)
+```
+
+
+
 ## About torchaudio
 
 #### 1. torchaudio.load()
@@ -10984,7 +11161,32 @@ sample rate of waveform:44100
 
 ![waveform](./pictures source/waveform.png)
 
-#### 2.torchaudio.transforms.MelSpectrogram()
+To load only one channel (mono) from a stereo audio file, you can use indexing on the loaded waveform. Here's an example:
+
+```python
+pythonCopy codeimport torchaudio
+
+# Specify the file path
+file_path = "path/to/your/stereo_audio_file.wav"
+
+# Load the stereo waveform and sample rate
+waveform, sample_rate = torchaudio.load(file_path)
+
+# Extract only the first channel (left channel) for mono audio
+mono_waveform = waveform[0, :]
+
+# Check the shape of the resulting mono waveform
+print("Mono waveform shape:", mono_waveform.shape)
+print("Sample rate:", sample_rate)
+```
+
+In this example, `waveform[0, :]` extracts the first channel (left channel) from the stereo waveform. This will result in a 1D tensor representing the mono waveform.
+
+Make sure to replace `"path/to/your/stereo_audio_file.wav"` with the actual path to your stereo audio file.
+
+
+
+#### 2. torchaudio.transforms.MelSpectrogram()
 
 Create MelSpectrogram for a raw audio signal.
 
@@ -11130,8 +11332,6 @@ masked = masking(original)
 
 #### 6. torchaudio.transforms.MelSpectrogram()(waveform)
 
-
-
 ```python
 import torchaudio
 import matplotlib.pyplot as plt
@@ -11145,6 +11345,28 @@ print("Shape of spectrogram: {}".format(specgram.size()))
 
 plt.figure()
 p = plt.imshow(specgram.log2()[0,:,:].detach().numpy())
+```
+
+#### 7. torchaudio.functional.resample
+
+The `torchaudio.functional.resample` function is used to resample an input waveform to a new sample rate. Resampling is the process of changing the number of samples in a signal to change its playback speed or alter its pitch.
+
+```python
+import torchaudio
+import torch
+
+# Load an example waveform
+waveform, sample_rate = torchaudio.load("path/to/audio/file.wav")
+
+# Define the target sample rate
+target_sample_rate = 16000
+
+# Resample the waveform
+resampled_waveform = torchaudio.functional.resample(waveform, sample_rate, target_sample_rate)
+
+# Print the shape of the resampled waveform
+print(resampled_waveform.shape)
+
 ```
 
 
@@ -11522,7 +11744,7 @@ another example:
 
 pandas.DataFrame.iloc()
 
-Purely integer-location based indexing for selection by position.
+Purely integer-location(纯整数位置) based indexing for selection by position.
 
 ```python
 import pandas as pd
@@ -11750,6 +11972,44 @@ Numpy Array
  [[1.  3. ]
  [2.  4.5]]
 <class 'numpy.ndarray'>
+```
+
+
+
+#### 10. Difference Between `loc` and `iloc`
+
+The difference between the `loc` and `iloc` functions is that the `loc` function selects rows using *row labels* (e.g. `tea`) whereas the `iloc` function selects rows using their *integer positions* (staring from `0` and going up by one for each row).
+
+##### Label *vs.* Location
+
+The main distinction between the two methods is:
+
+- `loc` gets rows (and/or columns) with particular **labels**.
+- `iloc` gets rows (and/or columns) at integer **locations**.
+
+To demonstrate, consider a series `s` of characters with a non-monotonic integer index:
+
+```py
+>>> s = pd.Series(list("abcdef"), index=[49, 48, 47, 0, 1, 2]) 
+49    a
+48    b
+47    c
+0     d
+1     e
+2     f
+
+>>> s.loc[0]    # value at index label 0
+'d'
+
+>>> s.iloc[0]   # value at index location 0
+'a'
+
+>>> s.loc[0:1]  # rows at index labels between 0 and 1 (inclusive)
+0    d
+1    e
+
+>>> s.iloc[0:1] # rows at index location between 0 and 1 (exclusive)
+49    a
 ```
 
 
@@ -12394,6 +12654,19 @@ This is the args: Namespace(aaa=2, abc=123, bbb=100)
 This is the interger: 2
 
 ```
+
+
+
+#### 3. action=""
+
+[action](http://docs.python.org/dev/library/argparse.html#action) defines how to handle command-line arguments: store it as a constant, append into a list, store a boolean value etc. There are several built-in actions available, plus it's easy to write a custom one.
+
+1. `store`: Save the value, after optionally converting it to a different type. This is the default action taken if none is specified explicitly.
+2. `store_true`/`store_false`: Save the appropriate boolean value.
+3. `store_const`: Save a value defined as part of the argument specification, rather than a value that comes from the arguments being parsed. This is typically used to implement command line flags that aren’t booleans.
+4. `append`: Save the value to a list. Multiple values are saved if the argument is repeated.
+5. `append_const`: Save a value defined in the argument specification to a list.
+6. `version`: Prints version details about the program and then exits.
 
 
 
