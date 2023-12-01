@@ -3664,7 +3664,50 @@ In this context, you're using the `__getitem__()` method implicitly through the 
 
 
 
-#### 65. torch.nn.Conv2d()
+#### 65. torch.nn.Conv2d()& Conv1d()
+
+##### Difference between Conv2d() and Conv1d()
+
+Conv1d is a convolutional layer that operates on sequential data with one spatial dimension, **such as text or time-series data.** It applies a 1-dimensional convolution to the input tensor, sliding a kernel of size kernel_size along the input sequence, and producing an output tensor with one spatial dimension.
+
+On the other hand, Conv2d is a convolutional layer that operates on image data with two spatial dimensions. It applies a 2-dimensional convolution to the input tensor, sliding a kernel of size kernel_size along the height and width dimensions of the input image, and producing an output tensor with two spatial dimensions.
+
+##### Conv1d
+
+Parameters
+
+- **in_channels** ([*int*](https://docs.python.org/3/library/functions.html#int)) – Number of channels in the input image
+- **out_channels** ([*int*](https://docs.python.org/3/library/functions.html#int)) – Number of channels produced by the convolution
+- **kernel_size** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)) – Size of the convolving kernel
+- **stride** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Stride of the convolution. Default: 1
+- **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to both sides of the input. Default: 0
+- **padding_mode** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – `'zeros'`, `'reflect'`, `'replicate'` or `'circular'`. Default: `'zeros'`
+- **dilation** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Spacing between kernel elements. Default: 1
+- **groups** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* *optional*) – Number of blocked connections from input channels to output channels. Default: 1
+- **bias** ([*bool*](https://docs.python.org/3/library/functions.html#bool)*,* *optional*) – If `True`, adds a learnable bias to the output. Default: `True`
+
+
+
+```python
+import torch
+import torch.nn as nn
+
+m = nn.Conv1d(16, 33, 3, stride=2)
+input = torch.randn(20, 16, 50)
+output = m(input)
+
+print(output.shape)
+```
+
+output:
+
+```
+torch.Size([20, 33, 24])
+```
+
+
+
+##### Conv2d
 
 torch.nn.Conv2d(*in_channels*, *out_channels*, *kernel_size*, *stride=1*, *padding=0*, *dilation=1*, *groups=1*, *bias=True*, *padding_mode='zeros'*, *device=None*, *dtype=None*)
 
@@ -3717,6 +3760,71 @@ torch.Size([20, 33, 24, 49])
 - `3`: The third argument represents the size of the convolutional kernel or filter. A kernel of size 3x3 is commonly used in convolutional layers.
 
 `stride=2`: This is a named parameter that sets the stride of the convolution operation. The stride determines the step size used when sliding the convolutional kernel over the input data. In this case, a stride of 2 means that the kernel will move two units at a time.
+
+##### The dilation of CNN
+
+**Dilated Convolution:** It is a technique that expands the kernel (input) by inserting holes between its consecutive elements. In simpler terms, it is the same as convolution but it involves pixel skipping, so as to cover a larger area of the input. 
+
+```python
+import numpy as np
+import tensorflow as tf
+import sys
+from scipy.signal import convolve2d
+
+np.random.seed(678)
+tf.random.set_seed(6789)
+sess = tf.compat.v1.Session()
+
+# Initializing a 9x9 matrix of zeros.
+mat_size = 9
+matrix = np.zeros((mat_size,mat_size)).astype(np.float32) 
+
+# Assigning 1's in the middle of matrix 
+# to create a random input matrix
+for x in range(4,7):
+	for y in range(3,6):
+		matrix[y,x] = 1
+
+# Creating a random kernel for test
+kernel = np.array([
+	[1,2,3],
+	[4,5,6],
+	[7,8,9]
+]).astype(np.float32) 
+
+print("Original Matrix Shape : ",matrix.shape)
+print(matrix)
+print('\n')
+print("Original kernel Shape : ",kernel.shape)
+print(kernel)
+
+# self-initializing a dilated kernel.
+# ======[dilation factor = 3]======
+dilated_kernel = np.array([
+	[1,0,0,2,0,0,3],
+	[0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0],
+	[4,0,0,5,0,0,6],
+	[0,0,0,0,0,0,0],
+	[0,0,0,0,0,0,0],
+	[7,0,0,8,0,0,9]
+])
+
+print('\n')
+print("Dilated kernel Shape : ",dilated_kernel.shape)
+print(dilated_kernel)
+
+print('\n')
+print("DILATED CONVOLUTION RESULTS [Dilation Factor = 3]")
+output = convolve2d(matrix,dilated_kernel,mode='valid')
+print("Numpy Results Shape: ",output.shape)
+print(output)
+
+```
+
+output:
+
+![Output-from-dialted-CNN](./pictures source/Output-from-dialted-CNN.png)
 
 
 
@@ -4964,6 +5072,65 @@ tensor([[0, 0, 0, 0],
 ```
 
 This illustrates padding the original 2x2 tensor with a border of zeros.
+
+
+
+#### 96. torch.utils.tensorboard
+
+TensorBoard is a visualization toolkit for machine learning experimentation. TensorBoard allows tracking and visualizing metrics such as loss and accuracy, visualizing the model graph, viewing histograms, displaying images and much more. In this tutorial we are going to cover TensorBoard installation, basic usage with PyTorch, and how to visualize data you logged in TensorBoard UI.
+
+
+
+Let’s now try using TensorBoard with PyTorch! Before logging anything, we need to create a `SummaryWriter` instance.
+
+
+
+**Writer will output to `./runs/` directory by default.**
+
+
+
+##### 1. Log scalars
+
+In machine learning, it’s important to understand key metrics such as loss and how they change during training. Scalar helps to save the loss value of each training step, or the accuracy after each epoch.
+
+To log a scalar value, use `add_scalar(tag, scalar_value, global_step=None, walltime=None)`. For example, lets create a simple linear regression training, and log loss value using `add_scalar`
+
+```python
+import torch
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
+x = torch.arange(-5, 5, 0.1).view(-1, 1)
+y = -5 * x + 0.1 * torch.randn(x.size())
+
+model = torch.nn.Linear(1, 1)
+criterion = torch.nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr = 0.1)
+
+def train_model(iter):
+    for epoch in range(iter):
+        y1 = model(x)
+        loss = criterion(y1, y)
+        writer.add_scalar("Loss/train", loss, epoch)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+train_model(10)
+writer.flush()
+```
+
+Call `flush()` method to make sure that all pending events have been written to disk.
+
+See [torch.utils.tensorboard tutorials](https://pytorch.org/docs/stable/tensorboard.html) to find more TensorBoard visualization types you can log.
+
+If you do not need the summary writer anymore, call `close()` method.
+
+```
+writer.close()
+```
+
+
 
 
 
@@ -10577,6 +10744,24 @@ I am process 29041, running on jiang-B460MDS3HV2: starting (Tue Aug  2 10:20:27 
 
 
 
+#### 6. path.mkdir(parents=True, exist_ok=True)
+
+Here is an example:
+
+```python
+from pathlib import Path
+
+# Define the path
+path = Path('/path/to/directory')
+
+# Create the directory
+path.mkdir(parents=True, exist_ok=True)
+```
+
+In this code, the `parents=True` argument tells Python to create any necessary parent directories, and `exist_ok=True` allows the operation to proceed without raising an exception if the directory already exists.
+
+
+
 ## About sys
 
 #### 1. sys.path[0]
@@ -11154,7 +11339,7 @@ plt.show()
 
 output:
 
-```powershell
+```bash
 Shape of waveform:torch.Size([2, 10937]) 
 sample rate of waveform:44100
 ```
@@ -12139,6 +12324,10 @@ p = pathlib.Path(__file__)
 print(p)
 ```
 
+output:
+
+
+
 In this example, we import the Pathlib module. Then, we create a new variable called `p` to store the path. Here, we use the Path object from Pathlib with a built-in variable in Python called **__file__** to refer to the file path we are currently writing in it `example.py`.
 
 If we print `p`, we will get the path to the file we are currently in:
@@ -12687,3 +12876,67 @@ This is the interger: 2
 - Separate values in different rows by using semicolons (**;**). For example, to represent the values 10, 20, 30, and 40 in one row and 50, 60, 70, and 80 in the row immediately below, you enter a 2-by-4 array constant: {10,20,30,40;50,60,70,80}.
 
   
+
+## About yaml
+
+*“YAML Ain’t Markup Language”*, often also referred to as *“Yet Another Markup Language”*. 
+
+Data serialization is relevant in the exchange of unstructured or semi-structured data effectively across applications or systems with different underlying infrastructures. Data serialization languages use standardized and well-documented syntax to share data across machines.
+
+Some of the widely used data serialization languages include YAML, XML, and JSON. While XML and JSON are used for data transfer between applications, YAML is often used to define the configuration for applications.
+
+YAML is characterized by a simple syntax involving line separation and indentation, without complex syntax involving the use of curly braces, parentheses, and tags.
+
+YAML is a human-readable data-serialization language and stands for “YAML Ain’t Markup Language”, often also referred to as “Yet Another Markup Language”. It is written with a .yml or .yaml (preferred) file extension.
+
+It is used because of its readability to write configuration settings for applications. It is user-friendly and easy to understand.
+
+
+
+#### 01. The `dump()` Function
+
+Now, to create a *yaml* representation of the `data` dictionary created above, you can use the `dump()` function in the *yaml* module . The `dump()` function expresses Python objects in YAML format. It accepts two arguments, data (which is a Python object) which is required, and optionally, a file to store the YAML format of the Python object.
+
+You can also pass in *optional* parameters that specify formatting details for the emitter. The commonly used optional parameters are `sort_keys` for sorting the keys of a Python object in alphabetical order, and `default_flow-style` for proper indentation of nested lists, which is set to `True` by default.
+
+The code below will return a `str` object that corresponds to a YAML document. As we’ve set `sort_keys` to `False`, the original order of the keys is preserved.
+
+```python
+import yaml
+
+data = {
+    'Name':'John Doe',
+    'Position':'DevOps Engineer',
+    'Location':'England',
+    'Age':'26',
+    'Experience': {'GitHub':'Software Engineer',\
+    'Google':'Technical Engineer', 'Linkedin':'Data Analyst'},
+    'Languages': {'Markup':['HTML'], 'Programming'\
+    :['Python', 'JavaScript','Golang']}
+}
+
+yaml_output = yaml.dump(data, sort_keys=False) 
+
+print(yaml_output) 
+```
+
+output:
+
+```
+Name: John Doe
+Position: DevOps Engineer
+Location: England
+Age: '26'
+Experience:
+  GitHub: Software Engineer
+  Google: Technical Engineer
+  Linkedin: Data Analyst
+Languages:
+  Markup:
+  - HTML
+  Programming:
+  - Python
+  - JavaScript
+  - Golang
+```
+
