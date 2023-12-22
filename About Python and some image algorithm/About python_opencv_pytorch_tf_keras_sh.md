@@ -416,15 +416,7 @@ output:
 
 ## About pickle
 
-Pickle in Python is primarily used in **serializing/ˈsɪriəlaɪzɪŋ/ and deserializing( 序列化和反序列化) a Python object structure**. In other words, it's the process of converting a Python object into a byte stream to store it in a file/database, maintain program state across sessions, or transport data over the network.
-
-**Serialization** refers to the process of converting a data object (e.g., Python objects, Tensorflow models) into a format that allows us to store or transmit the data and then recreate the object when needed using the reverse process of **deserialization**.
-
-There are different formats for the serialization of data, such as JSON, XML, HDF5, and Python’s pickle, for different purposes. JSON, for instance, returns a human-readable string form, while Python’s pickle library can return a byte array.
-
-**Serialization** is the process of converting the object into a format that can be stored or transmitted. After transmitting or storing the serialized data, we are able to reconstruct the object later and obtain the exact same structure/object, which makes it really convenient for us to continue using the stored object later on instead of reconstructing the object from scratch.
-
-In Python, there are many different formats for serialization available. One common example of hash maps (Python dictionaries) that works across many languages is the JSON file format which is human-readable and allows us to store the dictionary and recreate it with the same structure. But JSON can only store basic structures such as a list and dictionary, and it can only keep strings and numbers. We cannot ask JSON to remember the data type (e.g., numpy float32 vs. float64). It also cannot distinguish between Python tuples and lists.
+Python Pickle is used to `serialize` and `deserialize` a python object structure. Any object on python can be pickled so that it can be saved on disk. At first Python pickle serialize the object and then converts the object into a character stream so that this character stream contains all the information necessary to reconstruct the object in another python script. Note that the pickle module is not secure against erroneous or maliciously constructed data according to the documentation. So, never **unpickle** data received from an untrusted or unauthenticated source.
 
 
 
@@ -452,7 +444,11 @@ output:
 {'name': 'Bruce', 'age': 25, 'high': 175}
 ```
 
-or combine with 'with as'
+or combine with 'with as'. 
+
+
+
+Hence the "*rb*" mode opens the file in binary format for reading.
 
 ```python
 import pickle
@@ -462,6 +458,8 @@ with open("./pickle_pth_files/stats_1.pickle", "rb") as infile:
 
 print(test_dict_reconstructed)
 ```
+
+
 
 #### 1. pickle.HIGHEST_PROTOCOL
 
@@ -474,9 +472,120 @@ with open(exp_dir + '/stats_' + str(epoch) +'.pickle', 'wb') as handle:
             pickle.dump(stats, handle, protocol=pickle.HIGHEST_PROTOCOL)
 ```
 
+That is the mode with which you are opening the file. `"wb"` means that you are writing to the file (w), and that you are writing in binary mode (b).
+
+#### 2. pickle.dump()
+
+`pickle.dump()` function takes 3 arguments. The first argument is the object that you want to store. The second argument is the file object you get by opening the desired file in `write-binary` (wb) mode. And the third argument is the key-value argument. This argument defines the protocol. There are two type of protocol - **pickle.HIGHEST_PROTOCOL** and **pickle.DEFAULT_PROTOCOL**. See the sample code to know how to dump data using pickle.
+
+```python
+import pickle
+
+# take user input to take the amount of data
+number_of_data = int(input('Enter the number of data : '))
+data = []
+
+# take input of the data
+for i in range(number_of_data):
+    raw = input('Enter data '+str(i)+' : ')
+    data.append(raw)
+
+# open a file, where you ant to store the data
+file = open('important', 'wb')
+
+# dump information to that file
+pickle.dump(data, file)
+
+# close the file
+file.close()
+```
+
+![](https://journaldev.nyc3.cdn.digitaloceanspaces.com/2017/09/python-pickle-input.png)
+
+#### 3. pickle.load()
+
+To retrieve pickled data, the steps are quite simple. You have to use `pickle.load()` function to do that. The primary argument of pickle load function is the file object that you get by opening the file in read-binary (rb) mode. Simple! Isn’t it. Let’s write the code to retrieve data we pickled using the pickle dump code. See the following code for understanding.
+
+```python
+import pickle
+
+# open a file, where you stored the pickled data
+file = open('important', 'rb')
+
+# dump information to that file
+data = pickle.load(file)
+
+# close the file
+file.close()
+
+print('Showing the pickled data:')
+
+cnt = 0
+for item in data:
+    print('The data ', cnt, ' is : ', item)
+    cnt += 1
+```
+
+output:
+
+```
+Showing the pickled data:
+The data  0  is :  123
+The data  1  is :  abc
+The data  2  is :  !@#$
+```
+
+##### Another example:
+
+since we had already dumped the data following the certain order, we have to follow the same order when we load the data. the circumstance can be found via code in below.
+
+```python
+import pickle
+
+filename ="../cinc2021-focus_without_attention/model/PROGRESS_0.pickle"
+with open(filename, 'rb') as handle:
+    models = pickle.load(handle)
+    train_files = pickle.load(handle)
+    valid_files = pickle.load(handle)
+    classes = pickle.load(handle)
+    lossweights = pickle.load(handle)
+
+print(type(models))
+print(type(train_files))
+print(type(valid_files))
+print(type(classes))
+print(lossweights)
+```
+
+output:
+
+```
+<class 'list'>
+<class 'list'>
+<class 'list'>
+<class 'list'>
+[ 15.79376784   9.53903568 172.46683047 298.15677966  58.08033473
+  17.32364391  23.97382384  46.51076716  10.56445536  39.36649514
+ 222.42088608  54.20015637  45.26539974  49.17839375   2.04616646
+  26.05019157  58.62922297 137.43333333  44.5784377   41.7108288
+  67.94628906  22.28529024   3.66505881   8.1381051    6.53238024
+  21.12503917]
+```
+
 
 
 ## About Pytorch
+
+#### 1. model.train() & model.eval()
+
+`model.train()` tells your model that you are training the model. This helps inform layers such as Dropout and BatchNorm, which are designed to behave differently during training and evaluation. For instance, in training mode, BatchNorm updates a moving average on each new batch; whereas, for evaluation mode, these updates are frozen.
+
+More details: `model.train()` sets the mode to train (see [source code](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module.train)). You can call either `model.eval()` or `model.train(mode=False)` to tell that you are testing. It is somewhat intuitive to expect `train` function to train model but it does not do that. It just sets the mode.
+
+| `model.train()`                                              | [`model.eval()`](https://stackoverflow.com/a/66843176/9067615) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Sets model in **train**ing mode i.e.  • `BatchNorm` layers use per-batch statistics • `Dropout` layers activated [etc](https://stackoverflow.com/questions/66534762/which-pytorch-modules-are-affected-by-model-eval-and-model-train) | Sets model in **eval**uation (inference) mode i.e.  • `BatchNorm` layers use running statistics • `Dropout` layers de-activated etc |
+|                                                              | Equivalent to `model.train(False)`.                          |
 
 
 
@@ -2815,13 +2924,13 @@ print(X.grad)
 
 
 
-#### 48. optimizer.zero_grad()
+#### 48. optimizer.zero_grad(), loss.backward(), optimizer.step(), Scheduler.step()
 
 
 
 **1. zero_grad（）函数的应用：**
 
-  在pytorch中做随机梯度下降时往往会用到zero_grad（）函数，相关代码如下。
+  在pytorch中做随机梯度下降时往往会用到zero_grad（）函数，相关代码如下。just like a loop. the order will be repeat via below code.
 
 ​               optimizer.zero_grad()                       # 将模型的参数梯度初始化为0
 
@@ -2837,9 +2946,31 @@ print(X.grad)
 
 **2. zero_grad（）函数的作用：**
 
-  根据pytorch中backward（）函数的计算，当网络参量进行反馈时，梯度是累积计算而不是被替换，但在处理每一个batch时并不需要与其他batch的梯度混合起来累积计算，因此需要对每个batch调用一遍zero_grad（）将参数梯度置0.
+根据pytorch中backward（）函数的计算，当网络参量进行反馈时，梯度是累积计算而不是被替换，但在处理每一个batch时并不需要与其他batch的梯度混合起来累积计算，因此需要对每个batch调用一遍zero_grad（）将参数梯度置0.
 
   另外，如果不是处理每个batch清除一次梯度，而是两次或多次再清除一次，相当于提高了batch_size，对硬件要求更高，更适用于需要更高batch_size的情况。
+
+
+
+Because of this, when you start your training loop, ideally you should [`zero out the gradients`](https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad) so that you do the parameter update correctly. Otherwise, the gradient would be a combination of the old gradient, which you have already used to update your model parameters and the newly-computed gradient. 
+
+
+
+1. When we pass the 1st batch for the forward pass and compute the loss for the 1st batch. We calculate the back propagation to compute d_loss/dx for all layers. By loss.backward().
+
+2. Then with optimization technique we updates the weights with help of optimizer.step() function for the 1st batch.
+
+3. Later for the second batch whether the updated weights from the 1st batch will be used or what. And before applying the backward() function for second batch weather we should do optimizer.zero_grade() .
+
+   
+
+optimizer step() is used for updating the parameter on every mini batch.
+
+**scheduler step()** is used for changing the learning rate for each epoch. 
+
+[1]: https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch
+
+
 
 
 
@@ -3052,123 +3183,102 @@ class AutocastModel(nn.Module):
 
 
 
-#### 52. torch.optim.lr_scheduler.MultiStepLR()
+#### 52. torch.optim.Adam()
 
-`torch.optim.lr_scheduler.``MultiStepLR`(*optimizer*, *milestones*, *gamma=0.1*, *last_epoch=- 1*, *verbose=False*)
+this part will be re-summarized in the future.
 
-Decays the learning rate of each parameter group by gamma once the number of epoch reaches one of the milestones. Notice that such decay can happen simultaneously with other changes to the learning rate from outside this scheduler. When last_epoch=-1, sets initial lr as lr.
+Hint: *Optimizer step is performed on every mini batch*, while scheduler step is usually performed per-epoch.
+
+optimizer step() is used for updating the parameter on every mini batch.
+
+scheduler step() is used for changing the learning rate for each epoch. 
+
+
+
+[1]: https://pythonguides.com/adam-optimizer-pytorch/	"the example of Adam"
+
+
+
+#### 53. torch.optim.lr_scheduler.MultiStepLR()
+
+`torch.optim.lr_scheduler.MultiStepLR`(*optimizer*, *milestones*, *gamma=0.1*, *last_epoch=- 1*, *verbose=False*)
+
+Decays the learning rate of each parameter group by gamma once the number of epoch reaches **one of the milestones**. Notice that such decay can happen simultaneously with other changes to the learning rate from outside this scheduler. When last_epoch=-1, sets initial lr as lr.
 
 
 
 ```python
-import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torchvision.models import AlexNet
-import matplotlib.pyplot as plt
 
 model = AlexNet(num_classes=2)
 
 optimizer = optim.Adam(params=model.parameters(), lr=0.01)
+scheduler = lr_scheduler.MultiStepLR(optimizer, list(range(5,10)), gamma=0.5)
 
-scheduler = lr_scheduler.MultiStepLR(optimizer, list(range(5,26)), gamma=0.5)
+print("This is the scheduler.get_lr(): ",scheduler.get_lr(),type(scheduler.get_lr()), len(scheduler.get_lr()))
+scheduler.step()
+print("This is the scheduler.get_lr(): ",scheduler.get_lr(),type(scheduler.get_lr()), len(scheduler.get_lr()))
+print("-----------------------------------------")
 
-plt.figure()
-x = list(range(100))
-y = []
-\# print(100,scheduler.get_lr()[0])
-
-for epoch in range(100):
-​    scheduler.step()
-​    \# lr = scheduler.get_lr()
-​    print(epoch, scheduler.get_lr()[0])
+for epoch in range(20):
+    scheduler.step()
+    print(epoch, scheduler.get_lr())
 ```
 
 output:
 
 ```bash
-0 0.01
-1 0.01
-2 0.01
-3 0.01
-4 0.0025
-5 0.00125
-6 0.000625
-7 0.0003125
-8 0.00015625
-9 7.8125e-05
-10 3.90625e-05
-11 1.953125e-05
-12 9.765625e-06
-13 4.8828125e-06
-14 2.44140625e-06
-15 1.220703125e-06
-16 6.103515625e-07
-17 3.0517578125e-07
-18 1.52587890625e-07
-19 7.62939453125e-08
-20 3.814697265625e-08
+This is the scheduler.get_lr():  [0.01] <class 'list'> 1
+This is the scheduler.get_lr():  [0.01] <class 'list'> 1
+-----------------------------------------
+0 [0.01]
+1 [0.01]
+2 [0.01]
+3 [0.0025]
+4 [0.00125]
+5 [0.000625]
+6 [0.0003125]
+7 [0.00015625]
+8 [0.0003125]
+9 [0.0003125]
+10 [0.0003125]
+11 [0.0003125]
+12 [0.0003125]
+13 [0.0003125]
+14 [0.0003125]
+15 [0.0003125]
+16 [0.0003125]
+17 [0.0003125]
+18 [0.0003125]
+19 [0.0003125]
 ```
 
 
 
-#### 53. torch.nn.DataParallel
+#### 54. torch.optim.lr_scheduler.StepLR(*optimizer*, *step_size*, *gamma=0.1*, *last_epoch=-1*, *verbose=False*)
 
-在多卡的GPU服务器，当我们在上面跑程序的时候，当迭代次数或者epoch足够大的时候，我们通常会使用nn.DataParallel函数来用多个GPU来加速训练。一般我们会在代码中加入以下这些：
+Decays the learning rate of each parameter group by gamma every step_size epochs. Notice that such decay can happen simultaneously with other changes to the learning rate from outside this scheduler. When last_epoch=-1, sets initial lr as lr.
+
+
 
 ```python
-model = model.cuda() 
-device_ids = [0, 1] 	# id为0和1的两块显卡
-model = torch.nn.DataParallel(model, device_ids=device_ids)
+# Assuming optimizer uses lr = 0.05 for all groups
+# lr = 0.05     if epoch < 30
+# lr = 0.005    if 30 <= epoch < 60
+# lr = 0.0005   if 60 <= epoch < 90
+# ...
+scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+for epoch in range(100):
+    train(...)
+    validate(...)
+    scheduler.step()
 ```
 
-
-或者
-
-```python
-device_ids = [0, 1]
-model = torch.nn.DataParallel(model, device_ids=device_ids).cuda()
-```
-
-函数定义：
-
-```python
-CLASS torch.nn.DataParallel(module, device_ids=None, output_device=None, dim=0)
-```
-
-Parameters 参数：
-module即表示你定义的模型；
-device_ids表示你训练的device；
-output_device这个参数表示输出结果的device；
-而这最后一个参数output_device一般情况下是省略不写的，那么默认就是在device_ids[0]，也就是第一块卡上，也就解释了为什么第一块卡的显存会占用的比其他卡要更多一些。
+Hint: If we don’t call the operation `scheduler.step()`, the learning rate won’t be changed and stays at the initial value.
 
 
-
-#### 54. torch.optim.Adam()
-
-class torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)[source]
-实现Adam算法。
-
-它在Adam: A Method for Stochastic Optimization中被提出。
-
-参数：
-
-params (iterable) – 待优化参数的iterable或者是定义了参数组的dict
-lr (float, 可选) – 学习率（默认：1e-3）
-betas (Tuple[float, float], 可选) – 用于计算梯度以及梯度平方的运行平均值的系数（默认：0.9，0.999）
-eps (float, 可选) – 为了增加数值计算的稳定性而加到分母里的项（默认：1e-8）
-weight_decay (float, 可选) – 权重衰减（L2惩罚）（默认: 0）
- 个人理解：
-
-lr：同样也称为学习率或步长因子，它控制了权重的更新比率（如 0.001）。较大的值（如 0.3）在学习率更新前会有更快的初始学习，而较小的值（如 1.0E-5）会令训练收敛到更好的性能。
-
-betas = （beta1，beta2）
-
-beta1：一阶矩估计的指数衰减率（如 0.9）。
-
-beta2：二阶矩估计的指数衰减率（如 0.999）。该超参数在稀疏梯度（如在 NLP 或计算机视觉任务中）中应该设置为接近 1 的数。
-
-eps：epsilon：该参数是非常小的数，其为了防止在实现中除以零（如 10E-8）。
 
 
 
@@ -3973,11 +4083,14 @@ print(model)
 
 
 
-#### 69. state_dict
+#### 69. state_dict()
+
+In PyTorch, the learnable parameters (i.e. weights and biases) of a `torch.nn.Module` model are contained in the model’s parameters (accessed with `model.parameters()`). A `state_dict` is simply a Python dictionary object that maps each layer to its parameter tensor.
 
 ```python
 import torch.optim as optim
 import torch.nn.functional as F
+import torch.nn as nn
 
 # Define model
 
@@ -3991,14 +4104,14 @@ class TheModelClass(nn.Module):
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
-​    def forward(self, x):
-​        x = self.pool(F.relu(self.conv1(x)))
-​        x = self.pool(F.relu(self.conv2(x)))
-​        x = x.view(-1, 16 * 5 * 5)
-​        x = F.relu(self.fc1(x))
-​        x = F.relu(self.fc2(x))
-​        x = self.fc3(x)
-​        return x
+    def forward(self, x):
+       x = self.pool(F.relu(self.conv1(x)))
+       x = self.pool(F.relu(self.conv2(x)))
+       x = x.view(-1, 16 * 5 * 5)
+       x = F.relu(self.fc1(x))
+       x = F.relu(self.fc2(x))
+       x = self.fc3(x)
+       return x
 
 # Initialize model
 
@@ -4009,13 +4122,13 @@ model = TheModelClass()
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 # Print model's state_dict
-
 print("Model's state_dict:")
 for param_tensor in model.state_dict():
     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
-# Print optimizer's state_dict
 
+print("----------------------------------------")
+# Print optimizer's state_dict
 print("Optimizer's state_dict:")
 for var_name in optimizer.state_dict():
     print(var_name, "\t", optimizer.state_dict()[var_name])
@@ -4026,10 +4139,21 @@ for var_name in optimizer.state_dict():
 output:
 
 ```
-Model's state_dict: conv1.weight 	 torch.Size([6, 3, 5, 5]) conv1.bias 	 torch.Size([6]) conv2.weight 	 torch.Size([16, 6, 5, 5]) conv2.bias 	 torch.Size([16]) fc1.weight 	 torch.Size([120, 400]) fc1.bias 	 torch.Size([120]) fc2.weight 	 torch.Size([84, 120]) fc2.bias 	 torch.Size([84]) fc3.weight 	 torch.Size([10, 84]) fc3.bias 	 torch.Size([10]) 
-Optimizer's state_dict: 
-state 	 {} 
-param_groups 	 [{'lr': 0.001, 'momentum': 0.9, 'dampening': 0, 'weight_decay': 0, 'nesterov': False, 'params': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}]
+Model's state_dict:
+conv1.weight 	 torch.Size([6, 3, 5, 5])
+conv1.bias 	 torch.Size([6])
+conv2.weight 	 torch.Size([16, 6, 5, 5])
+conv2.bias 	 torch.Size([16])
+fc1.weight 	 torch.Size([120, 400])
+fc1.bias 	 torch.Size([120])
+fc2.weight 	 torch.Size([84, 120])
+fc2.bias 	 torch.Size([84])
+fc3.weight 	 torch.Size([10, 84])
+fc3.bias 	 torch.Size([10])
+----------------------------------------
+Optimizer's state_dict:
+state 	 {}
+param_groups 	 [{'lr': 0.001, 'momentum': 0.9, 'dampening': 0, 'weight_decay': 0, 'nesterov': False, 'maximize': False, 'foreach': None, 'differentiable': False, 'params': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}]
 ```
 
 
@@ -4871,6 +4995,8 @@ This is the output: tensor([[0.7023, 0.5542, 0.5673],
         [0.3308, 0.3711, 0.8703]])
 ```
 
+Hint: Sigmoid is used for **binary classification** methods where we only have 2 classes, while SoftMax applies to **multiclass problems**. In fact, the SoftMax function is an extension of the Sigmoid function.
+
 
 
 #### 92. torch.nn.DataParallel() 
@@ -5132,7 +5258,35 @@ writer.close()
 
 
 
+#### 97. torch.nn.DataParallel
 
+在多卡的GPU服务器，当我们在上面跑程序的时候，当迭代次数或者epoch足够大的时候，我们通常会使用nn.DataParallel函数来用多个GPU来加速训练。一般我们会在代码中加入以下这些：
+
+```python
+model = model.cuda() 
+device_ids = [0, 1] 	# id为0和1的两块显卡
+model = torch.nn.DataParallel(model, device_ids=device_ids)
+```
+
+
+或者
+
+```python
+device_ids = [0, 1]
+model = torch.nn.DataParallel(model, device_ids=device_ids).cuda()
+```
+
+函数定义：
+
+```python
+CLASS torch.nn.DataParallel(module, device_ids=None, output_device=None, dim=0)
+```
+
+Parameters 参数：
+module即表示你定义的模型；
+device_ids表示你训练的device；
+output_device这个参数表示输出结果的device；
+而这最后一个参数output_device一般情况下是省略不写的，那么默认就是在device_ids[0]，也就是第一块卡上，也就解释了为什么第一块卡的显存会占用的比其他卡要更多一些。
 
 ## About timm
 
@@ -10591,6 +10745,117 @@ output:
 
 
 
+#### 28. numpy.nanargmax()
+
+Return the indices of the maximum values in the specified axis ignoring NaNs. For all-NaN slices `ValueError` is raised. Warning: the results cannot be trusted if a slice contains only NaNs and -Infs.
+
+Parameters:
+
+- **a**array_like
+
+  Input data.
+
+- **axis**int, optional
+
+  Axis along which to operate. By default flattened input is used.
+
+- **out**array, optional
+
+  If provided, the result will be inserted into this array. It should be of the appropriate shape and dtype.**New in version 1.22.0.**
+
+- **keepdims**bool, optional
+
+  If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the array.**New in version 1.22.0.**
+
+Returns:
+
+- **index_array**ndarray
+
+  An array of indices or a single index value.
+
+  
+
+```python
+import numpy as np
+
+a = np.array([[np.nan, 4], [2, 3],[5, 6]])
+
+print("This is the np.argmax(): ",np.argmax(a))
+print("This is the default flattened np.nanargmax(): ",np.nanargmax(a))
+
+print("This is the axis=0 np.nanargmax(): ",np.nanargmax(a, axis=0))
+print("This is the axis=1 np.nanargmax(): ",np.nanargmax(a, axis=1))
+```
+
+output:
+
+```
+This is the np.argmax():  0
+This is the default flattened np.nanargmax():  5
+This is the axis=0 np.nanargmax():  [2 2]
+This is the axis=1 np.nanargmax():  [1 1 1]
+```
+
+
+
+#### 29. numpy.nanmax()
+
+Return the maximum of an array or maximum along an axis, **ignoring any NaNs**. When all-NaN slices are encountered a `RuntimeWarning` is raised and NaN is returned for that slice.
+
+Parameters:
+
+- **a**array_like
+
+  Array containing numbers whose maximum is desired. If *a* is not an array, a conversion is attempted.
+
+- **axis**{int, tuple of int, None}, optional
+
+  Axis or axes along which the maximum is computed. The default is to compute the maximum of the flattened array.
+
+- **out**ndarray, optional
+
+  Alternate output array in which to place the result. The default is `None`; if provided, it must have the same shape as the expected output, but the type will be cast if necessary. See [Output type determination](https://numpy.org/doc/stable/user/basics.ufuncs.html#ufuncs-output-type) for more details.**New in version 1.8.0.**
+
+- **keepdims**bool, optional
+
+  If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the original *a*.If the value is anything but the default, then *keepdims* will be passed through to the [`max`](https://numpy.org/doc/stable/reference/generated/numpy.max.html#numpy.max) method of sub-classes of [`ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray). If the sub-classes methods does not implement *keepdims* any exceptions will be raised.**New in version 1.8.0.**
+
+- **initial**scalar, optional
+
+  The minimum value of an output element. Must be present to allow computation on empty slice. See [`reduce`](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce) for details.**New in version 1.22.0.**
+
+- **where**array_like of bool, optional
+
+  Elements to compare for the maximum. See [`reduce`](https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce) for details.**New in version 1.22.0.**
+
+Returns:
+
+- **nanmax**ndarray
+
+  An array with the same shape as *a*, with the specified axis removed. If *a* is a 0-d array, or if axis is None, an ndarray scalar is returned. The same dtype as *a* is returned.
+
+  
+
+```python
+import numpy as np
+
+a = np.array([[1, 2], [3, np.nan]])
+
+print("This is the default flattened array:",np.nanmax(a))
+print("This is the axis=0 array:",np.nanmax(a, axis=0))
+print("This is the axis=1 array:",np.nanmax(a, axis=1))
+```
+
+output:
+
+```
+This is the default flattened array: 3.0
+This is the axis=0 array: [3. 2.]
+This is the axis=1 array: [2. 3.]
+```
+
+
+
 ## About sklearn
 
 #### 1. about sklearn.preprocessing.MinMaxScaler()
@@ -10692,9 +10957,33 @@ print(auc)#0.75
 
 
 
-#### 3. metrics.accuracy_score()
+#### 3. sklearn.metrics.accuracy_score()
 
+In multilabel classification, this function computes subset accuracy: the set of labels predicted for a sample must *exactly* match the corresponding set of labels in y_true.
 
+Parameters:
+
+- **y_true***1d array-like, or label indicator array / sparse matrix*
+
+  Ground truth (correct) labels.
+
+- **y_pred***1d array-like, or label indicator array / sparse matrix*
+
+  Predicted labels, as returned by a classifier.
+
+- **normalize***bool, default=True*
+
+  If `False`, return the number of correctly classified samples. Otherwise, return the fraction of correctly classified samples.
+
+- **sample_weight***array-like of shape (n_samples,), default=None*
+
+  Sample weights.
+
+Returns:
+
+- **score***float*
+
+  If `normalize == True`, return the fraction of correctly classified samples (float), else returns the number of correctly classified samples (int).The best performance is 1 with `normalize == True` and the number of samples with `normalize == False`.
 
 ```python
 import numpy as np
@@ -10758,17 +11047,52 @@ code explain:
 
 
 
-#### 5. metrics.average_precision_score()
+#### 5. sklearn.metrics.**average_precision_score**(*y_true*, *y_score*, ***, *average='macro'*, *pos_label=1*, *sample_weight=None*)[
+](https://github.com/scikit-learn/scikit-learn/blob/3f89022fa/sklearn/metrics/_ranking.py#L117)
 
-##### Average Precision explained
+Compute average precision (AP) from prediction scores.
 
-Like the Area under the Precision-Recall curve (AUC-PR) metric, **Average Precision is a way to summarize the PR curve into a single value.** To define the term, the Average Precision metric (or just AP) is the weighted mean of Precision scores achieved at each PR curve threshold, with the increase in Recall from the previous threshold used as the weight.
+AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the increase in recall from the previous threshold used as the weight:
 
-##### Average Precision formula
+```tex
+\text{AP} = \sum_n (R_n - R_{n-1}) P_n
+```
 
-Sure, such a definition might be tough to process. Still, everything will become accessible as soon as you look at the formula.
+where  P_n and R_n are the precision and recall at the nth threshold [[1\]](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#rcdf8f32d7f9d-1). This implementation is not interpolated and **is different from computing the area under the precision-recall curve with the trapezoidal rule**, which uses linear interpolation and can be too optimistic.
 
 
+
+There are several ways to summarize the precision-recall curve with a single number called **average precision**;
+
+
+
+- Parameters:
+
+  - **y_true***array-like of shape (n_samples,) or (n_samples, n_classes)*
+
+    True binary labels or binary label indicators.
+
+  - **y_score***array-like of shape (n_samples,) or (n_samples, n_classes)*
+
+    Target scores, can either be probability estimates of the positive class, confidence values, or non-thresholded measure of decisions (as returned by [decision_function](https://scikit-learn.org/stable/glossary.html#term-decision_function) on some classifiers).
+
+  - **average***{‘micro’, ‘samples’, ‘weighted’, ‘macro’} or None, default=’macro’*
+
+    If `None`, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data:`'micro'`:Calculate metrics globally by considering each element of the label indicator matrix as a label.`'macro'`:Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.`'weighted'`:Calculate metrics for each label, and find their average, weighted by support (the number of true instances for each label).`'samples'`:Calculate metrics for each instance, and find their average.Will be ignored when `y_true` is binary.
+
+  - **pos_label***int, float, bool or str, default=1*
+
+    The label of the positive class. Only applied to binary `y_true`. For multilabel-indicator `y_true`, `pos_label` is fixed to 1.
+
+  - **sample_weight***array-like of shape (n_samples,), default=None*
+
+    Sample weights.
+
+  Returns:
+
+  - **average_precision***float*
+
+    Average precision score.
 
 ```python
 import numpy as np
@@ -10793,7 +11117,146 @@ Chineses: https://blog.csdn.net/weixin_43479947/article/details/129141599
 
 
 
-#### 6. sklearn.datasets.make_multilabel_classification()
+#### 6. sklearn.metrics.precision_recall_curve() 
+
+Compute precision-recall pairs for **different probability thresholds**.
+
+Note: this implementation is restricted to the binary classification task.
+
+The last precision and recall values are 1. and 0. respectively and do not have a corresponding threshold. This ensures that the graph starts on the y axis.
+
+The first precision and recall values are precision=class balance and recall=1.0 which corresponds to a classifier that always predicts the positive class.
+
+**hint:** The thresholds returned by `sklearn.metrics.precision_recall_curve()` are typically in descending order of the `probas_pred`.
+
+Parameters:
+
+- **y_true***array-like of shape (n_samples,)*
+
+  True binary labels. If labels are not either {-1, 1} or {0, 1}, then pos_label should be explicitly given.
+
+- **probas_pred***array-like of shape (n_samples,)*
+
+  Target scores, can either be probability estimates of the positive class, or non-thresholded measure of decisions (as returned by `decision_function` on some classifiers).
+
+- **pos_label***int, float, bool or str, default=None*
+
+  The label of the positive class. When `pos_label=None`, if y_true is in {-1, 1} or {0, 1}, `pos_label` is set to 1, otherwise an error will be raised.
+
+- **sample_weight***array-like of shape (n_samples,), default=None*
+
+  Sample weights.
+
+- **drop_intermediate***bool, default=False*
+
+  Whether to drop some suboptimal thresholds which would not appear on a plotted precision-recall curve. This is useful in order to create lighter precision-recall curves.*New in version 1.3.*
+
+Returns:
+
+- **precision***ndarray of shape (n_thresholds + 1,)*
+
+  Precision values such that element i is the precision of predictions with score >= thresholds[i] and the last element is 1.
+
+- **recall***ndarray of shape (n_thresholds + 1,)*
+
+  Decreasing recall values such that element i is the recall of predictions with score >= thresholds[i] and the last element is 0.
+
+- **thresholds***ndarray of shape (n_thresholds,)*
+
+  Increasing thresholds on the decision function used to compute precision and recall where `n_thresholds = len(np.unique(probas_pred))`.
+
+```python
+import numpy as np
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_recall_curve, auc
+
+y_true = np.array([0, 0, 1, 1])
+y_scores = np.array([0.1, 0.4, 0.35, 0.8])
+precision, recall, thresholds= precision_recall_curve(y_true, y_scores)
+print("This is the precision:", precision)
+print("This is the recall:", recall)
+print("This is the threshold:", thresholds)
+```
+
+output:
+
+```
+This is the precision: [0.5        0.66666667 0.5        1.         1.        ]
+This is the recall: [1.  1.  0.5 0.5 0. ]
+This is the threshold: [0.1  0.35 0.4  0.8 ]
+```
+
+
+
+#### 7. sklearn.metrics.**auc**(*x*, *y*)
+
+Compute Area Under the Curve (AUC) using the trapezoidal rule.  **area calculation**.
+
+This is a general function, given points on a curve.
+
+Parameters:
+
+- **x***array-like of shape (n,)*
+
+  X coordinates. These must be either monotonic increasing or monotonic decreasing.
+
+- **y***array-like of shape (n,)*
+
+  Y coordinates.
+
+Returns:
+
+- **auc***float*
+
+  Area Under the Curve.
+
+  
+
+```python
+import numpy as np
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_recall_curve, auc
+import matplotlib.pyplot as plt
+
+
+y_true = np.array([0, 0, 1, 1])
+y_scores = np.array([0.1, 0.4, 0.35, 0.8])
+precision, recall, thresholds= precision_recall_curve(y_true, y_scores)
+print("This is the precision:", precision)
+print("This is the recall:", recall)
+print("This is the threshold:", thresholds)
+auprc=auc(recall, precision)
+print("-----------------")
+print(auc)
+
+# Plot the precision-recall curve
+plt.figure(figsize=(8, 8))
+plt.plot(recall, precision, label=f'AUPRC = {auprc:.6f}')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.show()
+```
+
+output:
+
+```
+This is the precision: [0.5        0.66666667 0.5        1.         1.        ]
+This is the recall: [1.  1.  0.5 0.5 0. ]
+This is the threshold: [0.1  0.35 0.4  0.8 ]
+-----------------
+<function auc at 0x7f5c1cdf4820>
+
+```
+
+
+
+
+
+
+
+#### 8. sklearn.datasets.make_multilabel_classification()
 
 `make_multilabel_classification()` is a function provided by the scikit-learn library in Python, which allows the generation of random multilabel classification datasets for testing and evaluation purposes. It is particularly useful for generating synthetic datasets with a known ground truth that can be used to evaluate the performance of multilabel classification algorithms.
 
@@ -11078,6 +11541,31 @@ path.mkdir(parents=True, exist_ok=True)
 ```
 
 In this code, the `parents=True` argument tells Python to create any necessary parent directories, and `exist_ok=True` allows the operation to proceed without raising an exception if the directory already exists.
+
+
+
+## About pathlib
+
+
+
+```python
+from pathlib import Path
+
+# Define the path
+model_directory = "model"
+name = Path(model_directory, f'PROGRESS_{1}.pickle')
+print(name)
+
+name = Path(model_directory, 'PROGRESS_{1}.pickle')
+print(name)
+```
+
+output:
+
+```
+model/PROGRESS_1.pickle
+model/PROGRESS_{1}.pickle
+```
 
 
 
@@ -11434,6 +11922,14 @@ Resample *x* along the given axis using polyphase filtering.
 #### 5. scipy.signal.filtfilt()
 
 Apply a digital filter forward and backward to a signal.
+
+
+
+#### 6. scipy.optimize.differential_evolution()
+
+Finds the global minimum of a multivariate function.
+
+
 
 
 
@@ -12226,6 +12722,8 @@ win_102_01_02_0.flac--1.wav win_103_02_02_0.flac--0.wav win_103_02_02_0.flac--1.
 
 #### 05. pandas.DataFrame() and pandas.DataFrame.iloc()
 
+A Pandas DataFrame is a 2 dimensional data structure, like a 2 dimensional array, or a table with rows and columns.
+
 below is the example:
 
 ```python
@@ -12518,7 +13016,47 @@ To demonstrate, consider a series `s` of characters with a non-monotonic integer
 
 
 
+#### 11. pandas.DataFrame.drop()
 
+The `drop()` method removes the specified row or column.
+
+By specifying the column axis (`axis='columns'`), the `drop()` method removes the specified column.
+
+By specifying the row axis (`axis='index'`), the `drop()` method removes the specified row.
+
+##### Parameters
+
+The `axis`, `index`, `columns`, `level`, `inplace`, `errors` parameters are [keyword arguments](https://www.w3schools.com/python/gloss_python_function_keyword_arguments.asp).
+
+| Parameter | Value                 | Description                                                  |
+| :-------- | :-------------------- | :----------------------------------------------------------- |
+| labels    |                       | Optional, The labels or indexes to drop. If more than one, specify them in a list. |
+| axis      | `01'index''columns'`  | Optional, Which axis to check, default 0.                    |
+| index     | *String* *List*       | Optional, Specifies the name of the rows to drop. Can be used instead of the `labels` parameter. |
+| columns   | *String* *List*       | Optional, Specifies the name of the columns to drop. Can be used instead of the `labels` parameter. |
+| level     | *Number* *level name* | Optional, default None. Specifies which level ( in a hierarchical multi index) to check along |
+| inplace   | `TrueFalse`           | Optional, default False. If True: the removing is done on the current DataFrame. If False: returns a copy where the removing is done. |
+| errors    | `'ignore''raise'`     | Optional, default 'ignore'. Specifies whether to ignore errors or not |
+
+
+
+```python
+import pickle
+import pandas as pd
+
+filename ="../cinc2021-focus_without_attention/model/PROGRESS_0.pickle"
+with open(filename, 'rb') as handle:
+    models = pickle.load(handle)
+    train_files = pickle.load(handle)
+    valid_files = pickle.load(handle)
+    classes = pickle.load(handle)
+    lossweights = pickle.load(handle)
+
+results = pd.DataFrame(models)
+results.drop(columns=['model'], inplace=True)
+
+print(results)
+```
 
 
 
@@ -12810,7 +13348,7 @@ pip install scikit-multilearn
 #### 1. Here is an example of how to use `iterative_train_test_split()`:
 
 ```python
-pythonCopy codefrom sklearn.datasets import make_multilabel_classification
+from sklearn.datasets import make_multilabel_classification
 from skmultilearn.model_selection import iterative_train_test_split
 
 # Generate a random multilabel classification dataset
@@ -13258,4 +13796,116 @@ Languages:
   - JavaScript
   - Golang
 ```
+
+
+
+## About copy
+
+In [Python](https://www.geeksforgeeks.org/python-programming-language/), Assignment statements do not copy objects, they create bindings(绑定) between a target and an object. When we use the ***\*=\**** operator, It only creates a new variable that shares the reference of the original object. In order to create “real copies” or “clones” of these objects, we can use the copy module in [Python](https://www.geeksforgeeks.org/python-programming-language/).
+
+#### Syntax of Python Deepcopy
+
+> ***\*Syntax:\**** copy.deepcopy(x)
+
+#### Syntax of Python Shallowcopy
+
+> ***\*Syntax:\**** copy.copy(x)
+
+#### Example 1:
+
+In order to make these copies, we use the copy module. The copy() returns a shallow copy of the list, and deepcopy() returns a deep copy of the list. As you can see that both have the same value but have different IDs.
+
+```python
+import copy
+
+li1 = [1, 2, 3, 4]
+print("li1 ID: ", id(li1), "Value: ", li1,"\n")
+
+li2 = copy.copy(li1)
+print("li2 ID: ", id(li2), "Value: ", li2,"\n")
+
+li3 = copy.deepcopy(li1)
+print("li3 ID: ", id(li3), "Value: ", li3,"\n")
+
+li4 = li1
+print("li4 ID: ", id(li4), "Value: ", li4,"\n")
+
+print("----------------------------------------")
+li4[0] = li4[0]-2
+print("This is the li1 and li4: ",li1, li4)
+
+print("----------------------------------------")
+print("This is the li2 and li3: ",li2, li3)
+```
+
+output:
+
+```
+li1 ID:  139688315343744 Value:  [1, 2, 3, 4] 
+
+li2 ID:  139688314582144 Value:  [1, 2, 3, 4] 
+
+li3 ID:  139688314607808 Value:  [1, 2, 3, 4] 
+
+li4 ID:  139688315343744 Value:  [1, 2, 3, 4] 
+
+----------------------------------------
+This is the li1 and li4:  [-1, 2, 3, 4] [-1, 2, 3, 4]
+----------------------------------------
+This is the li2 and li3:  [1, 2, 3, 4] [1, 2, 3, 4]
+
+```
+
+
+
+#### Example 2
+
+```python
+import copy
+
+li1 = 6
+print("li1 ID: ", id(li1), "Value: ", li1,"\n")
+
+li2 = copy.copy(li1)
+print("li2 ID: ", id(li2), "Value: ", li2,"\n")
+
+li3 = copy.deepcopy(li1)
+print("li3 ID: ", id(li3), "Value: ", li3,"\n")
+
+li4 = li1
+print("li4 ID: ", id(li4), "Value: ", li4,"\n")
+
+print("----------------------------------------")
+li4 = li4-2
+print("This is the li1 and li4: ",li1, li4)
+print("This is the ID of li4: ",id(li4))
+print("----------------------------------------")
+print("This is the li2 and li3: ",li2, li3)
+```
+
+output:
+
+```
+li1 ID:  7585632 Value:  6 
+
+li2 ID:  7585632 Value:  6 
+
+li3 ID:  7585632 Value:  6 
+
+li4 ID:  7585632 Value:  6 
+
+----------------------------------------
+This is the li1 and li4:  6 4
+This is the ID of li4:  7585568
+----------------------------------------
+This is the li2 and li3:  6 6
+```
+
+
+
+#### shallow copy vs deep copy
+
+<img src="https://media.geeksforgeeks.org/wp-content/uploads/deep-copy.jpg" style="zoom:25%;" />
+
+<img src="https://media.geeksforgeeks.org/wp-content/uploads/shallow-copy.jpg" style="zoom:25%;" />
 
