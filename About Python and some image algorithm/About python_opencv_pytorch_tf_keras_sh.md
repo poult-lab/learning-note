@@ -2616,7 +2616,8 @@ class TensorDataset(Dataset):
     def __getitem__(self, index):
 
         # 两边都是输出相同索引的数值,根据输出栏目可以看到data和taeget是一套输出的
-        return self.data_tensor[index], self.target_tensor[index]
+        k=20
+        return self.data_tensor[index], self.target_tensor[index], k
 
     def __len__(self):
         return self.data_tensor.size(0)
@@ -2643,15 +2644,17 @@ tensor_dataloader = DataLoader(tensor_dataset,   # 封装的对象
                                num_workers=0)    # 只有1个进程
 
 # 以for循环形式输出,这里会直接调用
-for data, target in tensor_dataloader: 
-    print("This is data: ",data)
-    print("This is target: ",target)
+for data, target, k in tensor_dataloader: 
+    print("This is data: ", data)
+    print("This is target: ", target)
+    print("This is the k ", k, type(k))
+#### Hint: we can find the k is the tensor, even we had definded as int. each value from this loop will be the tensor.
+print("---------------------------------------------------------------")
+# # 输出一个batch
+# print ('one batch tensor data: ', iter(tensor_dataloader).next())
 
-# 输出一个batch
-print ('one batch tensor data: ', iter(tensor_dataloader).next())
-
-# 输出batch数量
-print ('len of batchtensor: ', len(list(iter(tensor_dataloader))))
+# # 输出batch数量
+# print ('len of batchtensor: ', len(list(iter(tensor_dataloader))))
 
  
 ```
@@ -2661,16 +2664,22 @@ print ('len of batchtensor: ', len(list(iter(tensor_dataloader))))
 output:
 
 ```python
-This is data_tensor:  tensor([[ 1.0177,  0.1941,  0.9400],        [-1.0706, -0.1892,  0.1676],        [ 2.0725, -2.3246,  1.2797],        [-1.2711, -0.0427,  0.4700]]) 
-This is target_tensor:  tensor([0.5486, 0.5824, 0.4074, 0.3199]) 
-tensor_data[0]:  (tensor([1.0177, 0.1941, 0.9400]), tensor(0.5486)) 
-len os tensor_dataset:  4 
-This is data:  tensor([[-1.0706, -0.1892,  0.1676],        [ 2.0725, -2.3246,  1.2797]]) 
-This is target:  tensor([0.5824, 0.4074]) 
-This is data:  tensor([[ 1.0177,  0.1941,  0.9400],        [-1.2711, -0.0427,  0.4700]]) 
-This is target:  tensor([0.5486, 0.3199]) 
-one batch tensor data:  [tensor([[-1.2711, -0.0427,  0.4700],        [-1.0706, -0.1892,  0.1676]]), tensor([0.3199, 0.5824])] 
-len of batchtensor:  2
+This is data_tensor:  tensor([[-0.4201,  1.3954,  0.4135],
+        [-1.2717, -1.6161,  0.3224],
+        [ 1.3073,  1.4076,  0.9184],
+        [ 0.6659, -0.8728,  0.1131]])
+This is target_tensor:  tensor([0.8892, 0.2531, 0.7626, 0.3117])
+tensor_data[0]:  (tensor([-0.4201,  1.3954,  0.4135]), tensor(0.8892), 20)
+len os tensor_dataset:  4
+This is data:  tensor([[ 0.6659, -0.8728,  0.1131],
+        [ 1.3073,  1.4076,  0.9184]])
+This is target:  tensor([0.3117, 0.7626])
+This is the k  tensor([20, 20]) <class 'torch.Tensor'>
+This is data:  tensor([[-0.4201,  1.3954,  0.4135],
+        [-1.2717, -1.6161,  0.3224]])
+This is target:  tensor([0.8892, 0.2531])
+This is the k  tensor([20, 20]) <class 'torch.Tensor'>
+---------------------------------------------------------------
 ```
 
 
@@ -3048,46 +3057,46 @@ def eval():
 import torch
 
 A=torch.ones(2,3) #2x3的张量（矩阵）                                     
-
 print(f"This is A:{A}")
 
 
-
 B=2*torch.ones(4,3)#4x3的张量（矩阵）                                    
-
 print(f"This is B:{B}")
 
 
-
 C=torch.cat((A,B),0)#按维数0（行）拼接
-
 print(f"This is C:{C}")
-
 print(f"This is C size:{C.size()}")
 
 
-
 D=2*torch.ones(2,4) #2x4的张量（矩阵）
+print(f"This is D:{D}")
 
 C=torch.cat((A,D),1)#按维数1（列）拼接，此时的tensor 行数必须一致
-
 print(f"This is C:{C}")
-
 print(f"This is C size:{C.size()}")
 ```
 
 output:
 
 ```bash
-This is A:tensor([[1., 1., 1.],        [1., 1., 1.]]) 
-
-This is B:tensor([[2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.]]) 
-
-This is C:tensor([[1., 1., 1.],        [1., 1., 1.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.],        [2., 2., 2.]]) 
-This is C size:torch.Size([6, 3]) 
-
-This is C:tensor([[1., 1., 1., 2., 2., 2., 2.], [1., 1., 1., 2., 2., 2., 2.]]) 
-
+This is A:tensor([[1., 1., 1.],
+        [1., 1., 1.]])
+This is B:tensor([[2., 2., 2.],
+        [2., 2., 2.],
+        [2., 2., 2.],
+        [2., 2., 2.]])
+This is C:tensor([[1., 1., 1.],
+        [1., 1., 1.],
+        [2., 2., 2.],
+        [2., 2., 2.],
+        [2., 2., 2.],
+        [2., 2., 2.]])
+This is C size:torch.Size([6, 3])
+This is D:tensor([[2., 2., 2., 2.],
+        [2., 2., 2., 2.]])
+This is C:tensor([[1., 1., 1., 2., 2., 2., 2.],
+        [1., 1., 1., 2., 2., 2., 2.]])
 This is C size:torch.Size([2, 7])
 ```
 
@@ -5389,275 +5398,6 @@ a:224,b:(224, 224),c:(224, 224, 224)
 
 
 ## About python's syntax
-
-tuple**:A tuple looks just like a list except you use parentheses instead of square brackets. Once you define a tuple, you can access individual elements by using each item’s index, just as you would for a list. 
-
-For example, if we have a rectangle that should always be a certain size, we can ensure that its size doesn’t change by putting the dimensions into a tuple:
-
-for example:
-
-```python
-dimensions = (200, 50)
-
-print(dimensions[0])
-
-print(dimensions[1])
-tuple.shape # 可以用这个命令查看元组的形状
-```
-
-keyword: can't be changed   ()
-
-
-
-**list**: In Python, square brackets ([]) indicate a list, and individual elements in the list are separated by commas. Here’s a simple example of a list that contains a few kinds of bicycles:
-
-for example:
-
-```python
-bicycles = ['trek', 'cannondale', 'redline', 'specialized'] 
-
-print(bicycles)
-```
-
-keyword: can be changed  orderly []
-
-**hint**: 当索引列表时，索引值为negative. (-1永远表示最后一项)
-
-```python
-li=[1,2,3,4,5,6]
-
-print("This is test: ",li[-1])
-
-print("This is test: ",li[-2])
-
-print("This is test: ",li[-3])
-```
-
-output:
-
-```powershell
-This is test:  6 
-
-This is test:  5 
-
-This is test:  4
-```
-
-
-
-**dictionary**: Consider a game featuring aliens that can have different colors and point values. This simple dictionary stores information about a particular alien
-
-字典是另一种可变容器模型，且可存储任意类型对象。
-
-字典的每个键值 **key=>value** 对用冒号 : 分割，每个键值对之间用逗号 , 分割，整个字典包括在花括号 {} 中 ,格式如下所示：
-
-for example:
-
-```python
-alien_0 = {'color': 'green', 'points': 5} 
-
-print(alien_0['color']) 
-
-print(alien_0['points'])
-```
-
-keyword: {} is fast of inserting and searching  waste memory
-
-
-
-#### dict.keys()
-
-```python
-tinydict = {'Name': 'Zara', 'Age': 7}
-
-print("Value : %s" %  tinydict.keys())
-```
-
-以列表返回一个字典所有的键
-
-```powershell
-Value : ['Age', 'Name']
-```
-
-#### dict.items()
-
-##### Definition and Usage
-
-The `items()` method returns a view object. The view object contains the key-value pairs of the dictionary, as tuples in a list.
-
-The view object will reflect any changes done to the dictionary, see example below.
-
-```python
-car = {
-  "brand": "Ford",
-  "model": "Mustang",
-  "year": 1964
-}
-
-x = car.items()
-
-print(x)
-```
-
-output:
-
-```
-dict_items([('brand', 'Ford'), ('model', 'Mustang'), ('year', 1964)])
-```
-
-
-
-**nested dictionary**:
-
-```python
-#多级字典（嵌套字典）
-FamousDict ``=` `{
- ``'薛之谦'``:{
-  ``'身高'``:``178``,
-  ``'体重'``:``130``,
-  ``'口头禅'``:[``'你神经病啊！'``,``'我不要面子啊'``] ``#相应的值可以是 一个列表
- ``},
- ``'吴青峰'``:{
-  ``'身高'``:``170``,
-  ``'体重'``:``120``,
-  ``'口头禅'``:[``'我叫吴青峰'``,``'你好'``]
- ``}
-}
-#访问多级字典：
-print``(``'薛之谦的体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
-#修改薛之谦体重为125
-FamousDict[``'薛之谦'``][``'体重'``] ``=` `125
-print``(``'减肥后的薛之谦体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
-#新添薛之谦腰围100
-FamousDict[``'薛之谦'``][``'腰围'``] ``=` `100
-print``(``'薛之谦的腰围为：'``,FamousDict[``'薛之谦'``][``'腰围'``],``'cm'``)
-#多级字典删除
-FamousDict[``'吴青峰'``].pop(``'身高'``) ``#标准删除
-del` `FamousDict[``'吴青峰'``][``'体重'``] ``#另一个删除方法
-print``(``'关于吴青峰现在只剩下：'``,FamousDict[``'吴青峰'``])
-```
-
-
-
-**set**:
-
-for example:
-
-```python
-\>>> basket = {'apple', 'orange', 'apple', 'pear', 'orange', 'banana'}
-\>>> **print**(basket)            # 这里演示的是去重功能
-{'orange', 'banana', 'pear', 'apple'}
-```
-
-keyword: no orderly  on repeat
-
-
-
-**slice from list**:
-
-1. 切片操作不是列表特有的，python中的有序序列都支持切片，如字符串，元组。
-2. 切片的返回结果类型和切片对象类型一致，返回的是切片对象的子序列，如：对一个列表切片返回一个列表，
-3. 字符串切片返回字符串。
-4. 切片生成的子序列元素是源版的拷贝。因此切片是一种浅拷贝。
-
-```python
-li=["A","B","C","D"]
-```
-
-格式： li[start : end : step]  
-
-start是切片起点索引，end是切片终点索引，但切片结果不包括**终点索引的值**。step是步长默认是1。
-
-```python
-t=li[0:3]      ["A","B","C"]     #起点的0索引可以省略，t=li[:3]
-
-t=li[2: ]      ["C","D"]         #省略end，则切到末尾
-
-t=li[1:3]      ["B","C"]
-
-t=li[0:4:2]    ["A","C"]         #从li[0]到li[3],设定步长为2。
-```
-
-如何确定start和end，他们是什么关系？
-
- 在step的符号一定的情况下，start和end可以混合使用正向和反向索引，无论怎样，你都要保证start和end之间有和step方向一致元素 间隔，否则会切出空列表.
-
-```python
-       t=li[0:2]
-
-​      t=li[0:-2]
-
-​      t=li[-4:-2]
-
-​      t=li[-4:2]
-
-# 上面的结果都是一样的；t为["A","B"]
-```
-
-![20150702234502400](./pictures source/20150702234502400.png)
-
-```python
-     t=li[-1:-3:-1]
-
-​     t=li[-1:1:-1]
-
-​     t=li[3:1:-1]
-
-​     t=li[3:-3:-1]
-
-# 上面的结果都是一样的；t为["D","C"]
-```
-
-![20150702234736704](./pictures source/20150702234736704.png)
-
-```python
-      t=li[-1:-3]
-
-​     t=li[-1:1]
-
-​     t=li[3:1]
-
-​     t=li[3:-3]
-
-
-
-# 都切出空列表
-```
-
-![20150702235107635](./pictures source/20150702235107635.png)
-
- 同时，step的正负决定了切片结果的元素采集的先后,省略**start 和 end**表示以原列表全部为目标.
-
-```python
-   t=li[::-1]   t--->["D","C","B","A"]   #反向切，切出全部
-
-   t=li[:]    t--->["A","B","C","D"]     #正向切全部
-```
-
-
-
-**slice from Numpy**:
-
-```python
-import numpy as np  
-
-a = np.array([[1, 2, 3, 4], [3, 4, 5, 6], [4, 5, 6, 7]])
-print(a[..., 1])  # 第2列元素
-print(a[1, ...])  # 第2行元素
-print(a[..., 1:])  # 第2列及剩下的所有元素
-```
-
-output:
-
-```bash
-[2 4 5]
-[3 4 5 6]
-[[2 3 4]
- [4 5 6]
- [5 6 7]]
-```
-
-
 
 #### 1.关于python中self的问题
 
@@ -9063,6 +8803,310 @@ Difference between the Keyword and Positional Argument
 
 
 
+#### 73. tuple
+
+A tuple looks just like a list except you use parentheses instead of square brackets. Once you define a tuple, you can access individual elements by using each item’s index, just as you would for a list. 
+
+For example, if we have a rectangle that should always be a certain size, we can ensure that its size doesn’t change by putting the dimensions into a tuple:
+
+for example:
+
+```python
+dimensions = (200, 50)
+
+print(dimensions[0])
+
+print(dimensions[1])
+tuple.shape # 可以用这个命令查看元组的形状
+```
+
+keyword: can't be changed   ()
+
+
+
+#### 74. list
+
+In Python, square brackets ([]) indicate a list, and individual elements in the list are separated by commas. Here’s a simple example of a list that contains a few kinds of bicycles:
+
+for example:
+
+```python
+bicycles = ['trek', 'cannondale', 'redline', 'specialized'] 
+
+print(bicycles)
+```
+
+keyword: can be changed  orderly []
+
+**hint**: 当索引列表时，索引值为negative. (-1永远表示最后一项)
+
+```python
+li=[1,2,3,4,5,6]
+
+print("This is test: ",li[-1])
+
+print("This is test: ",li[-2])
+
+print("This is test: ",li[-3])
+```
+
+output:
+
+```powershell
+This is test:  6 
+
+This is test:  5 
+
+This is test:  4
+```
+
+
+
+#### 75. dictionary 
+
+Consider a game featuring aliens that can have different colors and point values. This simple dictionary stores information about a particular alien
+
+字典是另一种可变容器模型，且可存储任意类型对象。
+
+字典的每个键值 **key=>value** 对用冒号 : 分割，每个键值对之间用逗号 , 分割，整个字典包括在花括号 {} 中 ,格式如下所示：
+
+for example:
+
+```python
+alien_0 = {'color': 'green', 'points': 5} 
+
+print(alien_0['color']) 
+
+print(alien_0['points'])
+```
+
+keyword: {} is fast of inserting and searching  waste memory
+
+
+
+##### dict.keys()
+
+```python
+tinydict = {'Name': 'Zara', 'Age': 7}
+
+print("Value : %s" %  tinydict.keys())
+```
+
+以列表返回一个字典所有的键
+
+```powershell
+Value : ['Age', 'Name']
+```
+
+##### dict.items()
+
+Definition and Usage
+
+The `items()` method returns a view object. The view object contains the key-value pairs of the dictionary, as tuples in a list.
+
+The view object will reflect any changes done to the dictionary, see example below.
+
+```python
+car = {
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+
+x = car.items()
+
+print(x)
+```
+
+output:
+
+```
+dict_items([('brand', 'Ford'), ('model', 'Mustang'), ('year', 1964)])
+```
+
+
+
+**nested dictionary**:
+
+```python
+#多级字典（嵌套字典）
+FamousDict ``=` `{
+ ``'薛之谦'``:{
+  ``'身高'``:``178``,
+  ``'体重'``:``130``,
+  ``'口头禅'``:[``'你神经病啊！'``,``'我不要面子啊'``] ``#相应的值可以是 一个列表
+ ``},
+ ``'吴青峰'``:{
+  ``'身高'``:``170``,
+  ``'体重'``:``120``,
+  ``'口头禅'``:[``'我叫吴青峰'``,``'你好'``]
+ ``}
+}
+#访问多级字典：
+print``(``'薛之谦的体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
+#修改薛之谦体重为125
+FamousDict[``'薛之谦'``][``'体重'``] ``=` `125
+print``(``'减肥后的薛之谦体重为：'``,FamousDict[``'薛之谦'``][``'体重'``],``'斤'``)
+#新添薛之谦腰围100
+FamousDict[``'薛之谦'``][``'腰围'``] ``=` `100
+print``(``'薛之谦的腰围为：'``,FamousDict[``'薛之谦'``][``'腰围'``],``'cm'``)
+#多级字典删除
+FamousDict[``'吴青峰'``].pop(``'身高'``) ``#标准删除
+del` `FamousDict[``'吴青峰'``][``'体重'``] ``#另一个删除方法
+print``(``'关于吴青峰现在只剩下：'``,FamousDict[``'吴青峰'``])
+```
+
+
+
+**set**:
+
+for example:
+
+```python
+\>>> basket = {'apple', 'orange', 'apple', 'pear', 'orange', 'banana'}
+\>>> **print**(basket)            # 这里演示的是去重功能
+{'orange', 'banana', 'pear', 'apple'}
+```
+
+keyword: no orderly  on repeat
+
+
+
+**slice from list**:
+
+1. 切片操作不是列表特有的，python中的有序序列都支持切片，如字符串，元组。
+2. 切片的返回结果类型和切片对象类型一致，返回的是切片对象的子序列，如：对一个列表切片返回一个列表，
+3. 字符串切片返回字符串。
+4. 切片生成的子序列元素是源版的拷贝。因此切片是一种浅拷贝。
+
+```python
+li=["A","B","C","D"]
+```
+
+格式： li[start : end : step]  
+
+start是切片起点索引，end是切片终点索引，但切片结果不包括**终点索引的值**。step是步长默认是1。
+
+```python
+t=li[0:3]      ["A","B","C"]     #起点的0索引可以省略，t=li[:3]
+
+t=li[2: ]      ["C","D"]         #省略end，则切到末尾
+
+t=li[1:3]      ["B","C"]
+
+t=li[0:4:2]    ["A","C"]         #从li[0]到li[3],设定步长为2。
+```
+
+如何确定start和end，他们是什么关系？
+
+ 在step的符号一定的情况下，start和end可以混合使用正向和反向索引，无论怎样，你都要保证start和end之间有和step方向一致元素 间隔，否则会切出空列表.
+
+```python
+       t=li[0:2]
+
+​      t=li[0:-2]
+
+​      t=li[-4:-2]
+
+​      t=li[-4:2]
+
+# 上面的结果都是一样的；t为["A","B"]
+```
+
+![20150702234502400](./pictures source/20150702234502400.png)
+
+```python
+     t=li[-1:-3:-1]
+
+​     t=li[-1:1:-1]
+
+​     t=li[3:1:-1]
+
+​     t=li[3:-3:-1]
+
+# 上面的结果都是一样的；t为["D","C"]
+```
+
+![20150702234736704](./pictures source/20150702234736704.png)
+
+```python
+      t=li[-1:-3]
+
+​     t=li[-1:1]
+
+​     t=li[3:1]
+
+​     t=li[3:-3]
+
+
+
+# 都切出空列表
+```
+
+![20150702235107635](./pictures source/20150702235107635.png)
+
+ 同时，step的正负决定了切片结果的元素采集的先后,省略**start 和 end**表示以原列表全部为目标.
+
+```python
+   t=li[::-1]   t--->["D","C","B","A"]   #反向切，切出全部
+
+   t=li[:]    t--->["A","B","C","D"]     #正向切全部
+```
+
+
+
+**slice from Numpy**:
+
+```python
+import numpy as np  
+
+a = np.array([[1, 2, 3, 4], [3, 4, 5, 6], [4, 5, 6, 7]])
+print(a[..., 1])  # 第2列元素
+print(a[1, ...])  # 第2行元素
+print(a[..., 1:])  # 第2列及剩下的所有元素
+```
+
+output:
+
+```bash
+[2 4 5]
+[3 4 5 6]
+[[2 3 4]
+ [4 5 6]
+ [5 6 7]]
+```
+
+Hint: 
+
+As of Python version 3.7, dictionaries are *ordered*. In Python 3.6 and earlier, dictionaries are *unordered*.
+
+
+
+#### 76. list.append() and list.extend()
+
+The `list.append()` to append *a single* value, and `list.extend()` to append *multiple* values.
+
+```python
+>>> lst = [1, 2]
+>>> lst.append(3)
+>>> lst.append(4)
+>>> lst
+[1, 2, 3, 4]
+
+>>> lst.extend([5, 6, 7])
+>>> lst.extend((8, 9, 10))
+>>> lst
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+>>> lst.extend(range(11, 14))
+>>> lst
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+```
+
+
+
+
+
 ## About opencv4
 
 #### Regular Contour detection
@@ -11627,6 +11671,15 @@ output:
 ```bash
 Tue Aug  2 11:33:21 2022
 ```
+
+#### 2. time.sleep()
+
+```python
+import time
+time.sleep(3) # Sleep for 3 seconds
+```
+
+If you run this code in your console, then you should experience a delay before you can enter a new statement in the REPL.
 
 
 
