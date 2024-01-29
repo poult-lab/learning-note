@@ -509,20 +509,15 @@ To retrieve pickled data, the steps are quite simple. You have to use `pickle.lo
 ```python
 import pickle
 
-# open a file, where you stored the pickled data
-file = open('important', 'rb')
-
-# dump information to that file
-data = pickle.load(file)
-
-# close the file
-file.close()
+# Open the pickle file for reading in binary mode (rb)
+with open('./i-ARAVDESS/i-ACT_with_ImageNet_MixUp_Masking_STTS/pickle/stats_32.pickle', 'rb') as file:
+    # Load the data from the file
+    data = pickle.load(file)
 
 print('Showing the pickled data:')
-
 cnt = 0
 for item in data:
-    print('The data ', cnt, ' is : ', item)
+    print('The data ', cnt, ' is : ', item, "\n")
     cnt += 1
 ```
 
@@ -530,9 +525,21 @@ output:
 
 ```
 Showing the pickled data:
-The data  0  is :  123
-The data  1  is :  abc
-The data  2  is :  !@#$
+The data  0  is :  {'precisions': array([0.08208208]), 'recalls': array([1.]), 'AP': 0.40935198861863037, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.8910010403421569, 'acc': 0.5408970976253298} 
+
+The data  1  is :  {'precisions': array([0.31526104]), 'recalls': array([1.]), 'AP': 0.7405314271095732, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.9479201871831535, 'acc': 0.5408970976253298} 
+
+The data  2  is :  {'precisions': array([0.13789954]), 'recalls': array([1.]), 'AP': 0.4960821782132826, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.8036215628064425, 'acc': 0.5408970976253298} 
+
+The data  3  is :  {'precisions': array([0.14052584]), 'recalls': array([1.]), 'AP': 0.4593533617061196, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.7871920373168648, 'acc': 0.5408970976253298} 
+
+The data  4  is :  {'precisions': array([0.15034619]), 'recalls': array([1.]), 'AP': 0.7469121837987309, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.901923590702645, 'acc': 0.5408970976253298} 
+
+The data  5  is :  {'precisions': array([0.14066986]), 'recalls': array([1.]), 'AP': 0.54269096349896, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.8382257953686525, 'acc': 0.5408970976253298} 
+
+The data  6  is :  {'precisions': array([0.14933059]), 'recalls': array([1.]), 'AP': 0.5835201611343612, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.8572997775305896, 'acc': 0.5408970976253298} 
+
+The data  7  is :  {'precisions': array([0.13297394]), 'recalls': array([1.]), 'AP': 0.6565312880880461, 'fpr': array([0.]), 'fnr': array([1.]), 'auc': 0.89231205421802, 'acc': 0.5408970976253298} 
 ```
 
 ##### Another example:
@@ -11296,10 +11303,6 @@ This is the threshold: [0.1  0.35 0.4  0.8 ]
 
 
 
-
-
-
-
 #### 8. sklearn.datasets.make_multilabel_classification()
 
 `make_multilabel_classification()` is a function provided by the scikit-learn library in Python, which allows the generation of random multilabel classification datasets for testing and evaluation purposes. It is particularly useful for generating synthetic datasets with a known ground truth that can be used to evaluate the performance of multilabel classification algorithms.
@@ -11327,19 +11330,149 @@ Here is an example of how to use `make_multilabel_classification()` to generate 
 ```python
 from sklearn.datasets import make_multilabel_classification
 
-X, y = make_multilabel_classification(n_samples=1000, n_features=20, n_classes=5, n_labels=3, random_state=42)
-
-print("X shape:", X.shape)
-print("y shape:", y.shape)
+# Generate a random multilabel classification dataset
+X, y = make_multilabel_classification(n_samples=12, n_features=7, n_classes=3, random_state=42)
+print("This is the X: ", X.shape)
+print(X)
+print("This is the y: ", y.shape)
+print(y)
 ```
 
-In this example, we generate a dataset with 1000 samples, 20 features, 5 classes, and an average of 3 labels per sample. **We set the random seed to 42 to ensure that the generated dataset is reproducible.** The resulting `X` and `y` arrays contain the features and labels, respectively, for the generated dataset. We print their shapes to verify that the generation was successful.
+output:
+
+```
+This is the X:  (12, 7)
+[[11. 11.  4.  7.  3.  9.  7.]
+ [ 3.  7. 17.  5.  5. 10.  6.]
+ [ 6. 14.  2. 11.  6.  7.  4.]
+ [ 5.  4. 13.  9.  8.  6.  7.]
+ [ 5. 15.  0.  8.  8.  9.  5.]
+ [12.  5. 10. 14.  3.  3.  4.]
+ [ 2. 23.  0.  4.  6. 14.  9.]
+ [ 9.  4.  6. 10. 11.  9.  8.]
+ [ 5. 23.  1.  5.  3.  4.  7.]
+ [ 4.  3. 10. 11.  5.  8.  4.]
+ [ 7.  7. 12. 10.  6.  7.  2.]
+ [ 8.  4.  4.  9.  7.  7.  5.]]
+This is the y:  (12, 3)
+[[1 1 0]
+ [0 0 1]
+ [1 1 0]
+ [1 0 1]
+ [0 1 0]
+ [1 1 0]
+ [0 1 0]
+ [0 0 0]
+ [0 1 0]
+ [1 1 1]
+ [1 1 1]
+ [1 1 1]]
+```
+
+In this example, we generate a dataset with 12 samples, 7 features, 3 classes. **We set the random seed to 42 to ensure that the generated dataset is reproducible.** The resulting `X` and `y` arrays contain the features and labels, respectively, for the generated dataset. We print their shapes to verify that the generation was successful.
+
+Hint: The generated dataset is imbalanced dataset, it means the each generated data may contains a label or multiple labels. 
 
 Note that `make_multilabel_classification()` returns two arrays: `X` and `y`. The `X` array contains the features of the generated dataset, while the `y` array contains the labels. The shape of the `y` array is `(n_samples, n_classes)`, where each element is either 0 or 1, indicating whether the corresponding sample belongs to the corresponding class or not.
 
 
 
+#### 9. sklearn.datasets.make_classification()
 
+Generate a random n-class classification problem.
+
+Hint: generating a random classification problem, the value of n_informative needs to be reset when the number of category is more than 5. 
+
+```python
+from sklearn.datasets import make_classification
+
+# Generate sample data
+X, y = make_classification(n_samples=20, n_features=100, n_classes=8, n_clusters_per_class=1, random_state=42, n_informative=3)
+print("This is the Label:", y)
+```
+
+output:
+
+```
+This is the Label: [1 1 5 0 3 2 1 2 6 4 7 0 3 2 3 5 7 6 0 4]
+```
+
+
+
+#### 10. sklearn.metrics.confusion_matrix()
+
+Compute confusion matrix to evaluate the accuracy of a classification.
+
+```python
+#### sklearn.metrics.confusion_matrix()
+
+from sklearn.metrics import confusion_matrix
+
+target_value=[]
+predicted_value=[]
+
+# Compute confusion matrix
+cm = confusion_matrix(target_value, predicted_value)
+print(cm)
+```
+
+output:
+
+```
+This is the y_test(actual, taget label): [0 4 3 7 5 5 4 7 7 7 6 7 5 6 5 1 4 5 0 5 0 2 5 7 3 1 0 0 6 4 6 6 0 2 3 2 7 0 0 4 4 2 2 5 2 4 1 2 1 1 6 0 4 3 4 7 2 6 4 7 0 5 2 1 7 7 3 2 6 5 5 0 1 4 2 4 3 3 7 3 3 3 1 3 0 6 4 7 0 7 3 7 5 6 2 1 1 3 5 6 2 1 6 4 0 5 5 7 3 7 4 7 6 0 1 1 4 7 1 0 1 4 5 6 6 0 2 1 3 0 3 5 7 1 1 3 4 4 2 3 1 0 0 6 0 6 6 1 0 2 1 4 6 7 6 2 0 0 1 0 7 5 5 5 2 4 4 2 5 5 5 3 3 2 7 1 5 3 4 1 6 0 6 5 3 0 2 2 3 6 7 5 2 0 5 5 2 3 6 3] 
+
+This is the y_pred: [0 6 3 6 6 1 5 7 3 7 6 7 3 0 7 1 4 1 0 5 0 2 5 3 3 3 0 1 0 4 6 2 4 3 3 2 1 0 0 4 5 1 2 7 2 0 1 0 2 1 6 1 4 2 0 7 2 5 4 1 0 3 2 1 5 5 3 0 6 4 5 0 3 4 2 4 1 2 7 2 3 3 1 3 6 6 6 3 0 7 1 5 5 6 3 1 1 3 0 0 3 6 6 4 6 5 5 7 7 5 4 7 6 6 1 1 4 7 1 0 0 4 1 6 6 2 1 1 1 0 7 7 7 1 1 7 4 4 2 3 3 4 0 6 0 6 6 0 0 2 1 5 0 7 6 3 0 0 1 0 7 5 1 0 2 4 0 2 5 4 1 3 3 2 2 5 5 3 1 1 6 0 1 5 2 2 3 0 3 0 3 5 3 0 5 5 2 3 6 2] 
+
+This is the cm: 
+
+[[19  2  2  0  2  0  3  0] 
+
+[ 2 16  1  3  0  1  1  0] 
+
+[ 3  2 13  6  0  0  0  0] 
+
+[ 0  3  5 14  0  0  0  3] 
+
+[ 3  1  0  0 14  3  2  0] 
+
+[ 2  5  0  2  2 13  1  3] 
+
+[ 5  1  1  0  0  1 16  0] 
+
+[ 0  2  1  4  0  4  1 12]]
+```
+
+
+
+#### 11. sklearn.metrics.classification_report()
+
+Build a text report showing the main classification metrics.
+
+```python
+from sklearn.metrics import classification_report
+
+print("Classification Report:\n", classification_report(target_value, predicted_value))
+```
+
+output:
+
+```
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.56      0.68      0.61        28
+           1       0.50      0.67      0.57        24
+           2       0.57      0.54      0.55        24
+           3       0.48      0.56      0.52        25
+           4       0.78      0.61      0.68        23
+           5       0.59      0.46      0.52        28
+           6       0.67      0.67      0.67        24
+           7       0.67      0.50      0.57        24
+
+    accuracy                           0.58       200
+   macro avg       0.60      0.59      0.59       200
+weighted avg       0.60      0.58      0.59       200
+```
 
 
 
@@ -12677,6 +12810,18 @@ output:
 
 ![img1-300x266](./pictures source/img1-300x266.png)
 
+#### 5.matplotlib.pyplot.**savefig**(**args*, ***kwargs*)
+
+Save the current figure.
+
+**hint: set the "bbox_inches="tight"", otherwise the image will be cropped.**
+
+```python
+import matplotlib.pyplot as plt
+
+plt.savefig('learning_curve.png', dpi=300, bbox_inches="tight")
+```
+
 
 
 ## About csv & pandas
@@ -12688,11 +12833,13 @@ output:
 ![这里写图片描述](./pictures source/DictReader)
 
 ```python
-with open(‘name.csv’) as csvfile:
+import csv
+
+with open('name.csv') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         #循环打印数据的id和class值，此循环执行7次
-        print(row[‘id’],row[‘class’])
+        print(row['id'],row['class'])
 ```
 
 
@@ -12714,12 +12861,15 @@ output:
 现假设我们要创建一个格式如上图所示的csv文件，则实现代码应该如下：
 
 ```python
-with open(‘name.csv’,’w’) as csvfile:
-    writer = csv.DictWriter(csvfile,fieldnames=[‘id’,’class’])
+import csv
+datas=[1, 2, 3, 4, 5, 6]
+
+with open('name.csv','w') as csvfile:
+    writer = csv.DictWriter(csvfile,fieldnames=['Name', 'Target', 'Label_code', 'Frequency', 'Duration'])
     #写入列标题，即DictWriter构造方法的fieldnames参数
     writer.writeheader()
     for data in datas:
-        writer.writerow({‘id’:data[0],’class’:data[1]})
+        writer.writerow({'Name': 'abc', 'Target': data, 'Label_code': 'abc', 'Frequency': 'abc', 'Duration': 'abc'})
 ```
 
 
@@ -12731,8 +12881,6 @@ with open(‘name.csv’,’w’) as csvfile:
 ```python
 # importing the pandas library
 import pandas as pd
-
-
 
 # reading the csv file
 df = pd.read_csv("data/short-audio-master/meta/instantaneous_dataset_7284_edit.csv")
@@ -12769,6 +12917,24 @@ bea_001_00_00_0.flac--0.wav bea_001_00_00_0.flac--1.wav bea_001_00_00_0.flac--2.
 ...
 
 win_102_01_02_0.flac--1.wav win_103_02_02_0.flac--0.wav win_103_02_02_0.flac--1.wav win_104_01_02_0.flac--0.wav
+```
+
+
+
+If your CSV file doesn't contain a header, you can use the `header=None` option while reading the file. By doing this, pandas will automatically assign default column names (0, 1, 2, ...) to your DataFrame. Here's an example:
+
+```python
+import pandas as pd
+
+# Assuming your CSV file is named 'your_file.csv'
+file_path = 'path/to/your_file.csv'
+
+# Read the CSV file without a header
+df = pd.read_csv(file_path, header=None)
+
+# Display the DataFrame
+print(df)
+
 ```
 
 
@@ -13961,4 +14127,36 @@ This is the li2 and li3:  6 6
 <img src="https://media.geeksforgeeks.org/wp-content/uploads/deep-copy.jpg" style="zoom:25%;" />
 
 <img src="https://media.geeksforgeeks.org/wp-content/uploads/shallow-copy.jpg" style="zoom:25%;" />
+
+## About Seaborn
+
+Seaborn is a Python visualization library based on matplotlib. It provides a high-level interface for drawing attractive statistical graphics.
+
+
+
+#### 01. seaborn.**heatmap**()
+
+This is an Axes-level function and will draw the heatmap into the currently-active Axes if none is provided to the `ax` argument. Part of this Axes space will be taken and used to plot a colormap, unless `cbar` is False or a separate Axes is provided to `cbar_ax`.
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# Compute confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+print("This is the cm:", cm)
+
+# Print classification report (precision, recall, f1-score, support)
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# Visualize confusion matrix using seaborn
+classes=["neutral", "calm", "happy", "sad", "angry", "fearful", "disgust", "surprised"]
+sns.set(font_scale=1.2)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', annot_kws={"size": 14}, xticklabels=classes, yticklabels=classes)
+plt.title('Confusion matrix for i-RAVDESS ')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+```
 
