@@ -3298,46 +3298,39 @@ Hint: If we don’t call the operation `scheduler.step()`, the learning rate won
 
 
 
-#### 55. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
+#### 55. torch.grad()
 
-Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
+The wrapper `with torch.no_grad()` temporarily sets all of the `requires_grad` flags to false. 
 
- This is the whole purpose of the **loss function**! It should return **high values** for **bad predictions** and **low values** for **good predictions**.
+`Torch.no_grad()` deactivates autograd engine. Eventually it will reduce the memory usage and speed up computations.
 
-Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
+Use of `Torch.no_grad()`:
 
-这里关于BCE的公式可以google.
+- To perform inference without Gradient Calculation.
+- To make sure there's no leak test data into the model.
 
-![BCE](./pictures source/BCE.webp)
-
-where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
-
-Reading this formula, it tells you that, for each **green** point (*y=1*), it adds *log(p(y))* to the loss, that is, the **log probability of it being green**. Conversely, it adds *log(1-p(y))*, that is, the **log probability of it being red**, for each **red** point (*y=0*). Not necessarily difficult, sure, but no so intuitive too…
-
-
+It's generally used to perform Validation.
 
 ```python
-import torch
-import torch.nn as nn
+x = torch.randn(3, requires_grad=True)
+print(x.requires_grad)
+print((x ** 2).requires_grad)
 
-label = torch.Tensor([1, 1, 0])
-pred = torch.Tensor([3, 2, 1])
-pred_sig = torch.sigmoid(pred)
-print(f'This is pred:{pred_sig}')
-
-
-loss = nn.BCELoss()
-print(loss(pred_sig, label))# 这里面的权重默认为1
-
-# BCEWithLogitsLoss()=BCELoss()+sigmoid()
-
-loss = nn.BCEWithLogitsLoss()
-print(loss(pred, label))
-
-import numpy as np
-
-print(np.log(10)) # 这里面底数为常数e
+with torch.no_grad():
+    print((x ** 2).requires_grad)
 ```
+
+output:
+
+```
+True
+True
+False
+```
+
+
+
+
 
 
 
@@ -4752,7 +4745,7 @@ a.numpy()
 
 #### 84. torch.mm(*input*, *mat2*, ***, *out=None*)
 
-Performs a matrix multiplication of the matrices `input` and `mat2`.
+Performs a **m**atrix **m**ultiplication of the matrices `input` and `mat2`.
 
 - Parameters:
 
@@ -5068,35 +5061,48 @@ Hint:If you are working with only **one GPU**, **you don't need to use** `torch.
 
 
 
-#### 93. torch.grad()
+#### 93. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
 
-The wrapper `with torch.no_grad()` temporarily sets all of the `requires_grad` flags to false. 
+Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
 
-`Torch.no_grad()` deactivates autograd engine. Eventually it will reduce the memory usage and speed up computations.
+ This is the whole purpose of the **loss function**! It should return **high values** for **bad predictions** and **low values** for **good predictions**.
 
-Use of `Torch.no_grad()`:
+Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
 
-- To perform inference without Gradient Calculation.
-- To make sure there's no leak test data into the model.
+这里关于BCE的公式可以google.
 
-It's generally used to perform Validation.
+![BCE](./pictures source/BCE.webp)
+
+where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
+
+Reading this formula, it tells you that, for each **green** point (*y=1*), it adds *log(p(y))* to the loss, that is, the **log probability of it being green**. Conversely, it adds *log(1-p(y))*, that is, the **log probability of it being red**, for each **red** point (*y=0*). Not necessarily difficult, sure, but no so intuitive too…
+
+
 
 ```python
-x = torch.randn(3, requires_grad=True)
-print(x.requires_grad)
-print((x ** 2).requires_grad)
+import torch
+import torch.nn as nn
 
-with torch.no_grad():
-    print((x ** 2).requires_grad)
+label = torch.Tensor([1, 1, 0])
+pred = torch.Tensor([3, 2, 1])
+pred_sig = torch.sigmoid(pred)
+print(f'This is pred:{pred_sig}')
+
+
+loss = nn.BCELoss()
+print(loss(pred_sig, label))# 这里面的权重默认为1
+
+# BCEWithLogitsLoss()=BCELoss()+sigmoid()
+
+loss = nn.BCEWithLogitsLoss()
+print(loss(pred, label))
+
+import numpy as np
+
+print(np.log(10)) # 这里面底数为常数e
 ```
 
-output:
-
-```
-True
-True
-False
-```
+#### 
 
 
 
@@ -5303,6 +5309,79 @@ module即表示你定义的模型；
 device_ids表示你训练的device；
 output_device这个参数表示输出结果的device；
 而这最后一个参数output_device一般情况下是省略不写的，那么默认就是在device_ids[0]，也就是第一块卡上，也就解释了为什么第一块卡的显存会占用的比其他卡要更多一些。
+
+
+
+#### 98. torch.cuda.manual_seed()
+
+In PyTorch, `torch.cuda.manual_seed(seed)` is a function that sets the seed for generating random numbers on the CUDA (GPU) devices. This function is used to ensure reproducibility when running code that involves random operations on GPU.
+
+Here's how you can use it:
+
+```python
+pythonCopy codeimport torch
+
+# Set the seed for CPU
+torch.manual_seed(42)
+
+# Set the seed for GPU
+torch.cuda.manual_seed(42)
+
+# If using multi-GPU, you can set the seed for all GPUs
+torch.cuda.manual_seed_all(42)
+```
+
+Setting the seed is important when you want to reproduce the same random numbers during different runs of your code. By setting the seed, you ensure that the random operations, such as initializing weights or shuffling data, produce the same results each time the code is run.
+
+It's worth noting that using `torch.manual_seed` for **CPU** and `torch.cuda.manual_seed` for **GPU** is a common practice to ensure consistency in results across different devices.
+
+
+
+#### 99. dim()
+
+Let's create a simple neural network using PyTorch and then print the dimensions of its parameters:
+
+```python
+import torch.nn as nn
+
+# Define a simple neural network class
+class SimpleNN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        return x
+
+# Create an instance of the model
+input_size = 10
+hidden_size = 5
+output_size = 3
+
+model = SimpleNN(input_size, hidden_size, output_size)
+
+# Print the dimensions of each parameter in the model
+for name, param in model.named_parameters():
+    print(f"{name}: {param.dim()} dimensions - {param.size()} shape")
+```
+
+In this example, we define a simple neural network with one hidden layer. The `named_parameters()` method is used to iterate over all named parameters of the model. For each parameter, we print its name, the number of dimensions, and the shape.
+
+When you run this code, you'll see output similar to:
+
+```
+cssCopy codefc1.weight: 2 dimensions - torch.Size([5, 10])
+fc1.bias: 1 dimensions - torch.Size([5])
+fc2.weight: 2 dimensions - torch.Size([3, 5])
+fc2.bias: 1 dimensions - torch.Size([3])
+```
+
+Here, `fc1.weight` is a 2-dimensional tensor (weight matrix) with a shape of (5, 10), and `fc1.bias` is a 1-dimensional tensor (bias vector) with a shape of (5). Similarly, `fc2.weight` is a 2-dimensional tensor with a shape of (3, 5), and `fc2.bias` is a 1-dimensional tensor with a shape of (3).
 
 ## About timm
 
@@ -10177,6 +10256,12 @@ Cosine values :
 
 调整numpy输出的宽度
 
+linewidth : int, optional
+
+​        The number of characters per line for the purpose of inserting
+
+​        line breaks (default 75).
+
 ```python
 import numpy as np
 
@@ -10433,7 +10518,7 @@ output:
 
 #### 19. numpy.stack()
 
-Join a sequence of arrays along a new axis.
+**Join** a sequence of arrays along a new axis.
 
 ```python
 import numpy as np
@@ -10903,6 +10988,19 @@ output:
 This is the default flattened array: 3.0
 This is the axis=0 array: [3. 2.]
 This is the axis=1 array: [2. 3.]
+```
+
+
+
+#### 30.numpy.sum()
+
+Sum of array elements over a given axis.
+
+```python
+np.sum([[0, 1], [0, 5]], axis=0)
+array([0, 6])
+np.sum([[0, 1], [0, 5]], axis=1)
+array([1, 5])
 ```
 
 
@@ -11702,22 +11800,6 @@ I am process 29041, running on jiang-B460MDS3HV2: starting (Tue Aug  2 10:20:27 
 - **machine** - 硬件标识符。
 
 
-
-#### 6. path.mkdir(parents=True, exist_ok=True)
-
-Here is an example:
-
-```python
-from pathlib import Path
-
-# Define the path
-path = Path('/path/to/directory')
-
-# Create the directory
-path.mkdir(parents=True, exist_ok=True)
-```
-
-In this code, the `parents=True` argument tells Python to create any necessary parent directories, and `exist_ok=True` allows the operation to proceed without raising an exception if the directory already exists.
 
 
 
@@ -13279,6 +13361,106 @@ print(results)
 
 
 
+#### 12. pandas.Series()
+
+One-dimensional ndarray with axis labels (including time series).
+
+```python
+import pandas as pd
+
+a = [1, 7, 2]
+myvar = pd.Series(a, index = ["x", "y", "z"])
+
+print(myvar)
+```
+
+output:
+
+```
+x    1
+y    7
+z    2
+dtype: int64
+```
+
+
+
+#### 13. pandas.concat()
+
+`pandas.concat()` is a function in the Pandas library used for concatenating two or more pandas objects along a particular axis, either rows or columns. The objects can be DataFrames or Series. This function allows you to combine and merge data efficiently.
+
+Here is a basic syntax for `pandas.concat()`:
+
+```python
+pandas.concat(objs, axis=0, join='outer', ignore_index=False, keys=None, levels=None, names=None, verify_integrity=False, sort=False, copy=True)
+```
+
+- `objs`: This is a list or dictionary of pandas objects (DataFrames or Series) that you want to concatenate.
+- `axis`: Specifies the axis along which the concatenation will occur. It can be either 0 (concatenate along rows) or 1 (concatenate along columns).
+- `join`: Specifies how to handle indexes on other axes. It can take values like 'inner' or 'outer'. 'outer' will union the indexes, and 'inner' will intersect them.
+- `ignore_index`: If True, the resulting concatenated object will have a new index, ignoring the existing indexes.
+- `keys`: If you pass a list of keys, it will be used as the outermost level of a MultiIndex.
+- `levels`, `names`: These parameters are used when the keys parameter is specified.
+- `verify_integrity`: If True, it will check for duplicate indexes. If there are duplicates and verify_integrity is True, it will raise a ValueError.
+- `sort`: If True, it will sort the non-concatenation axis.
+- `copy`: If False, do not copy data unnecessarily.
+
+Here's an example of using `pandas.concat()` to concatenate two DataFrames along rows:
+
+```python
+import pandas as pd
+
+df1 = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
+df2 = pd.DataFrame({'A': [5, 6], 'B': [7, 8]})
+
+result = pd.concat([df1, df2], axis=0, ignore_index=True)
+print(result)
+```
+
+output:
+
+```
+   A  B
+0  1  3
+1  2  4
+2  5  7
+3  6  8
+```
+
+This will produce a DataFrame with the rows of both `df1` and `df2` concatenated.
+
+Keep in mind that there are more advanced use cases and options for `pandas.concat()`, so I recommend checking the official Pandas documentation for further details: pandas.concat() documentation.
+
+
+
+#### 14. pandas.Series.values
+
+In Python, the `.values` attribute is commonly associated with Pandas DataFrames and Series. Here's an explanation of its usage in that context:
+
+1. **Pandas Series:**
+
+   - If you have a Pandas Series object, calling `.values` will return the underlying NumPy array representation of the Series.
+
+   ```python
+   import pandas as pd
+   
+   # Creating a Pandas Series
+   series_data = pd.Series([1, 2, 3, 4])
+   
+   # Getting the underlying NumPy array using .values
+   array_representation = series_data.values
+   
+   print(array_representation, type(array_representation))
+   ```
+
+output:
+
+```
+[1 2 3 4] <class 'numpy.ndarray'>
+```
+
+
+
 ## About util.AverageMeter()
 
 AverageMeter可以记录当前的输出，累加到某个变量之中，然后根据需要可以打印出历史上的平均
@@ -13402,11 +13584,59 @@ print(p)
 
 output:
 
-
+```
+/media/huawei/ECG/effective-ECG-recognition/Prna_2020_challenge_NO1/physionet2020-submission/helper.py
+```
 
 In this example, we import the Pathlib module. Then, we create a new variable called `p` to store the path. Here, we use the Path object from Pathlib with a built-in variable in Python called **__file__** to refer to the file path we are currently writing in it `example.py`.
 
 If we print `p`, we will get the path to the file we are currently in:
+
+
+
+#### 01. path.mkdir(parents=True, exist_ok=True)
+
+Here is an example:
+
+```python
+from pathlib import Path
+
+# Define the path
+path = Path('/path/to/directory')
+
+# Create the directory
+path.mkdir(parents=True, exist_ok=True)
+```
+
+In this code, the `parents=True` argument tells Python to create any necessary parent directories, and `exist_ok=True` allows the operation to proceed without raising an exception if the directory already exists.
+
+
+
+#### 02. pathlib.Path().glob()
+
+The `glob` method is used to search for files or directories matching a specified pattern.
+
+Here's a basic example of how you can use `glob` with `Path`:
+
+```python
+pythonCopy codefrom pathlib import Path
+
+# Create a Path object for the directory you want to search in
+directory_path = Path('/path/to/your/directory')
+
+# Use the glob method to find files matching a specific pattern
+files = directory_path.glob('*.txt')
+
+# Iterate through the matched files
+for file_path in files:
+    print(file_path)
+```
+
+In this example, `*.txt` is the pattern, which matches all files with a `.txt` extension in the specified directory. You can customize the pattern based on your specific requirements.
+
+Remember to replace `'/path/to/your/directory'` with the actual path of the directory you want to search in.
+
+
 
 
 
@@ -13597,6 +13827,16 @@ In this example, we first generate a random multilabel classification dataset us
 The resulting arrays `X_train`, `y_train`, `X_test`, and `y_test` contain the training and testing data and labels, respectively. We print their shapes to verify that the splitting was successful.
 
 Note that `iterative_train_test_split()` returns four arrays: `X_train`, `y_train`, `X_test`, and `y_test`. The `X_train` and `y_train` arrays contain the training data and labels, while the `X_test` and `y_test` arrays contain the testing data and labels.
+
+
+
+#### 02. skmultilearn.model_selection.iterative_stratification.IterativeStratification()
+
+
+
+```
+
+```
 
 
 
@@ -14160,3 +14400,84 @@ plt.ylabel('Actual')
 plt.show()
 ```
 
+
+
+## BioSPPy
+
+`BioSPPy` is a toolbox for biosignal processing written in Python. The toolbox bundles together various signal processing and pattern recognition methods geared torwards the analysis of biosignals.
+
+
+
+#### 01. biosppy.signals.tools.filter_signal()
+
+The `biosppy.signals.tools.filter_signal()` function is a part of the BioSPPy (BIological Signal Processing in Python) library. This function is used to filter a given signal.
+
+Here’s a basic explanation of the parameters it takes:
+
+- `signal`: This is the input signal that you want to filter.
+- `ftype`: This is the type of the filter. Common types include “butter” (Butterworth), “FIR” (Finite Impulse Response), etc.
+- `band`: This is the band of the filter. It can be “lowpass”, “highpass”, “bandpass”, etc.
+- `order`: This is the order of the filter. A higher order means a steeper roll-off, but it might also lead to more distortion.
+- `frequency`: This is the critical frequency or frequencies. For a lowpass or highpass filter, this is a scalar. For a bandpass or bandstop filter, this is a pair of values.
+- `sampling_rate`: This is the sampling rate of the signal.
+
+Here are some examples of how it’s used:
+
+1. [Lowpass filter](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal)[1](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal):
+
+Python
+
+
+
+```python
+original, _, _ = biosppy.tools.filter_signal(
+    signal=eda,
+    ftype="butter",
+    band="lowpass",
+    order=4,
+    frequency=5,
+    sampling_rate=sampling_rate
+)
+```
+
+AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
+
+1. [Bandpass filter](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal)[1](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal):
+
+Python
+
+
+
+```python
+original, _, _ = biosppy.tools.filter_signal(
+    signal=rsp,
+    ftype="butter",
+    band="bandpass",
+    order=2,
+    frequency=[0.1, 0.35],
+    sampling_rate=sampling_rate
+)
+```
+
+AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
+
+1. [Bandpass FIR filter](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal)[1](https://snyk.io/advisor/python/biosppy/functions/biosppy.tools.filter_signal):
+
+Python
+
+
+
+```python
+original, _, _ = biosppy.tools.filter_signal(
+    signal=ecg,
+    ftype="FIR",
+    band="bandpass",
+    order=int(0.3 * sampling_rate),
+    frequency=[3, 45],
+    sampling_rate=sampling_rate
+)
+```
+
+AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
+
+These examples show how the function can be used to apply different types of filters to different types of signals. The filtered signal can then be used for further analysis or processing. Please note that the exact parameters used will depend on the specific requirements of your application. Always refer to the BioSPPy documentation for more details.
