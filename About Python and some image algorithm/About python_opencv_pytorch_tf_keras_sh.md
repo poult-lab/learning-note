@@ -97,6 +97,52 @@ nvidia-smi
 
 
 
+## Visual Studio Code
+
+#### 1.debugging
+
+Debugging a Python file in Visual Studio Code with arguments involves setting up a launch configuration in the `launch.json` file. Here are the steps:
+
+1. **Open the Python file you want to debug:** Open the Python file you want to debug in Visual Studio Code.
+
+2. **Install the Python extension:** Make sure you have the Python extension installed in Visual Studio Code. You can install it from the Extensions view (Ctrl+Shift+X).
+
+3. **Create a `launch.json` file:** If you don't already have a `launch.json` file in your project, you can create one by going to the Run view (Ctrl+Shift+D), clicking on the gear icon, and selecting "Add Configuration...". Choose "Python" as the environment.
+
+4. **Edit the `launch.json` file:** In the `launch.json` file, you can set up your debugging configuration. Here's an example with arguments:
+
+   ```python
+   jsonCopy code{
+       "version": "0.2.0",
+       "configurations": [
+           {
+               "name": "Python: Debug with Arguments",
+               "type": "python",
+               "request": "launch",
+               "program": "your_file.py",
+               "args": ["arg1", "arg2", "arg3"],
+               "console": "integratedTerminal",
+               "cwd": "${workspaceFolder}",
+               "env": {},
+               "stopOnEntry": false,
+               "pythonPath": "${config:python.pythonPath}",
+               "debugOptions": [],
+               "externalConsole": false,
+               "preLaunchTask": null,
+               "postDebugTask": null
+           }
+       ]
+   }
+   ```
+
+   Replace `"your_file.py"` with the actual name of your Python file and `["arg1", "arg2", "arg3"]` with the arguments you want to pass.
+
+5. **Start debugging:** Save the `launch.json` file, set breakpoints in your code if needed, and then press F5 or select "Run > Start Debugging" from the menu. The debugger will start, and your Python script will run with the specified arguments.
+
+Remember to customize the configuration based on your project structure and requirements.
+
+
+
 ## Slurm Workload Manager
 
 The **Slurm Workload Manager**, formerly known as **Simple Linux Utility for Resource Management** (**SLURM**), or simply **Slurm**, is a [free and open-source](https://en.wikipedia.org/wiki/Free_and_open-source) [job scheduler](https://en.wikipedia.org/wiki/Job_scheduler) for [Linux](https://en.wikipedia.org/wiki/Linux) and [Unix-like](https://en.wikipedia.org/wiki/Unix-like) [kernels](https://en.wikipedia.org/wiki/Kernel_(operating_system)), used by many of the world's [supercomputers](https://en.wikipedia.org/wiki/Supercomputer) and [computer clusters](https://en.wikipedia.org/wiki/Computer_cluster).
@@ -5382,6 +5428,70 @@ fc2.bias: 1 dimensions - torch.Size([3])
 ```
 
 Here, `fc1.weight` is a 2-dimensional tensor (weight matrix) with a shape of (5, 10), and `fc1.bias` is a 1-dimensional tensor (bias vector) with a shape of (5). Similarly, `fc2.weight` is a 2-dimensional tensor with a shape of (3, 5), and `fc2.bias` is a 1-dimensional tensor with a shape of (3).
+
+
+
+#### 100. tenor.float().to(device)
+
+the code is converting the tensor to a float data type and then moving it to a specified device. This can be useful when you are working with PyTorch models that might be trained on a GPU but need to be used on a CPU or vice versa, or if you want to ensure that the tensor has a specific data type.
+
+```python
+import torch
+
+# Create a tensor with integer values
+tensor_int = torch.tensor([1, 2, 3])
+
+# Convert the tensor to float and move it to a specified device (e.g., GPU)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+tensor_float_on_device = tensor_int.float().to(device)
+
+# Print the original tensor, converted tensor, and the device it's on
+print("Original Tensor (int):", tensor_int)
+print("Converted Tensor (float) on Device:", tensor_float_on_device)
+print("Device:", tensor_float_on_device.device)
+```
+
+output:
+
+```
+Original Tensor (int): tensor([1, 2, 3])
+Converted Tensor (float) on Device: tensor([1., 2., 3.], device='cuda:0')
+Device: cuda:0
+```
+
+
+
+#### 101. torch.from_numpy()
+
+To transfer a NumPy array to a PyTorch tensor, you can use the `torch.from_numpy()` function in PyTorch. 
+
+```python
+import numpy as np
+import torch
+
+# Create a NumPy array
+numpy_array = np.array([[1, 2, 3], [4, 5, 6]])
+
+# Convert NumPy array to PyTorch tensor
+torch_tensor = torch.from_numpy(numpy_array)
+
+# Print the PyTorch tensor
+print(torch_tensor)
+
+```
+
+In this example, `numpy_array` is a NumPy array, and `torch_tensor` is the corresponding PyTorch tensor created using `torch.from_numpy(numpy_array)`.
+
+It's important to note that the NumPy array and the PyTorch tensor share the same underlying data, so modifications to one will affect the other. If you want to create a separate copy, you can use the `.copy()` method:
+
+```python
+torch_tensor_copy = torch.from_numpy(numpy_array.copy())
+```
+
+This ensures that changes to `torch_tensor_copy` do not affect the original NumPy array.
+
+
 
 ## About timm
 
@@ -10846,6 +10956,42 @@ output:
 
 
 
+#### 27. np.zeros()[None]
+
+```python
+import numpy as np
+
+# Create a 1-dimensional array of zeros with 20 elements
+m = np.zeros(20)
+print(m)
+
+```
+
+This part initializes an array `m` with 20 elements, all set to zero. The output will look like this:
+
+```
+[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+```
+
+Now, let's move on to the second part of the code:
+
+```python
+n = np.zeros(20)[None]
+print(n)
+```
+
+Here, an array of zeros is created just like before, but there is an additional `[None]` indexing. This indexing is used to add an extra dimension to the array. In NumPy, `None` is equivalent to `np.newaxis`, and it is used to add a new axis (dimension) to the array. In this case, it adds a new axis to the array created by `np.zeros(20)`.
+
+The output will look like this:
+
+```
+[[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
+```
+
+So, `n` is now a 2D array with one row and 20 columns. Adding the extra dimension can be useful in certain operations where you need to work with arrays of different dimensions.
+
+
+
 #### 27. numpy.random.randint()
 
 Parameters:
@@ -10992,7 +11138,7 @@ This is the axis=1 array: [2. 3.]
 
 
 
-#### 30.numpy.sum()
+#### 30. numpy.sum()
 
 Sum of array elements over a given axis.
 
@@ -11002,6 +11148,43 @@ array([0, 6])
 np.sum([[0, 1], [0, 5]], axis=1)
 array([1, 5])
 ```
+
+
+
+#### 31. numpy.random.randint()
+
+ `numpy.random.randint()` is a function in the NumPy library that generates random integers from a specified low (inclusive) to a high (exclusive) value. Its syntax is as follows:
+
+```python
+numpy.random.randint(low, high=None, size=None, dtype=int)
+
+```
+
+- `low`: The lowest (inclusive) integer to be drawn from the distribution.
+- `high`: (Optional) If provided, one above the largest (exclusive) integer to be drawn from the distribution. If not provided, `high` is set to `low + 1`.
+- `size`: (Optional) Output shape. If the given shape is, e.g., `(m, n, k)`, then `m * n * k` samples are drawn, and the output shape is `(m, n, k)`.
+- `dtype`: (Optional) Data type of the output. If not specified, the data type is inferred from the input values.
+
+Here's an example:
+
+```python
+import numpy as np
+
+# Generate a single random integer between 0 (inclusive) and 10 (exclusive)
+random_int = np.random.randint(0, 10)
+print(random_int)
+
+# Generate a 1D array of 5 random integers between 0 (inclusive) and 10 (exclusive)
+array_1d = np.random.randint(0, 10, size=5)
+print(array_1d)
+
+# Generate a 2D array of shape (2, 3) with random integers between 0 (inclusive) and 5 (exclusive)
+array_2d = np.random.randint(0, 5, size=(2, 3))
+print(array_2d)
+
+```
+
+Keep in mind that the generated random numbers are pseudo-random and depend on the internal state of the NumPy random number generator. You can set the seed using `numpy.random.seed()` if you want reproducible results.
 
 
 
@@ -13315,6 +13498,50 @@ To demonstrate, consider a series `s` of characters with a non-monotonic integer
 49    a
 ```
 
+hint: 
+
+accessing elements from it. Let's break it down:
+
+```python
+import pandas as pd
+
+# Creating a Pandas Series with a custom index
+s = pd.Series(list("abcdef"), index=[49, 48, 47, 0, 1, 2]) 
+print(s)
+```
+
+Here, a Pandas Series is created with the values 'a', 'b', 'c', 'd', 'e', 'f', and a custom index provided as [49, 48, 47, 0, 1, 2]. The output of `print(s)` would be:
+
+```
+49    a
+48    b
+47    c
+0     d
+1     e
+2     f
+dtype: object
+```
+
+Now, let's look at the two different ways of accessing elements:
+
+```
+print(s[0])
+```
+
+This uses the **implicit integer index** to access the element at index 0. In this case, it prints the value 'd'. The output would be:
+
+```
+d
+
+print(s.loc[0])
+```
+
+This uses the `.loc` accessor to **explicitly locate** the element at the index 0. Again, it prints the value 'd'. The output is the same as the previous example:
+
+```python
+d
+```
+
 
 
 #### 11. pandas.DataFrame.drop()
@@ -13458,6 +13685,31 @@ output:
 ```
 [1 2 3 4] <class 'numpy.ndarray'>
 ```
+
+another example:
+
+```python
+import pandas as pd
+
+s = pd.Series(list("abcdef"), index=[49, 48, 47, 0, 1, 2]) 
+print(s)
+print(s.values)
+```
+
+output:
+
+```
+49    a
+48    b
+47    c
+0     d
+1     e
+2     f
+dtype: object
+['a' 'b' 'c' 'd' 'e' 'f']
+```
+
+Hint: be careful here, the values of index will be ignored.
 
 
 
@@ -14481,3 +14733,47 @@ original, _, _ = biosppy.tools.filter_signal(
 AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
 
 These examples show how the function can be used to apply different types of filters to different types of signals. The filtered signal can then be used for further analysis or processing. Please note that the exact parameters used will depend on the specific requirements of your application. Always refer to the BioSPPy documentation for more details.
+
+
+
+## wfdb
+
+The native Python waveform-database (WFDB) package. A library of tools for reading, writing, and processing WFDB signals and annotations.
+
+### processing
+
+#### 01. wfdb.processing.XQRS()
+
+```python
+import wfdb
+from wfdb import processing
+
+# filename = str(self.src_path/(row.Patient + '.hea'))
+filename = "../test/E00001.hea"
+data, hdr = load_challenge_data(filename)
+
+print(data, data.shape)
+xqrs = processing.XQRS(data[1,:], fs=500.)
+xqrs.detect(verbose=False)
+print(xqrs)
+print(xqrs.qrs_inds)
+
+wfdb.plot_items(signal=data[1,:], ann_samp=[xqrs.qrs_inds])
+```
+
+output:
+
+```
+[[136. 136. 136. ...  68.  73.  87.]
+ [ 87.  87.  87. ...  34.  34.  34.]
+ [-48. -48. -48. ... -34. -39. -53.]
+ ...
+ [ 97.  97.  97. ...  48.  48.  53.]
+ [ 87.  87.  87. ...  34.  34.  43.]
+ [ 78.  78.  78. ...  29.  29.  29.]] (12, 5000)
+<wfdb.processing.qrs.XQRS object at 0x7f9b07860670>
+[ 121  224  615  971 1343 1701 2051 2403 2753 3100 3458 3820 4178 4534
+ 4909]
+```
+
+![QRS](./pictures source/QRS.png)

@@ -23,7 +23,7 @@ signal = signal[0:int(3.5 * sample_rate)]  # Keep the first 3.5 seconds
 
 The raw signal has the following form in the time domain:
 
-![time_signal](/home/jiang/桌面/About Python and some image algorithm/pictures source/time_signal.jpg)
+![time_signal](./pictures source/time_signal.jpg)
 
 ## Pre-Emphasis
 
@@ -123,3 +123,43 @@ f=700(10m/2595−1)f=700(10m/2595−1)
 
 
 Each filter in the filter bank is triangular having a response of 1 at the center frequency and decrease linearly towards 0 till it reaches the center frequencies of the two adjacent filters where the response is 0, as shown in this figure:
+
+
+
+# FIR filter
+
+A Finite Impulse Response (FIR) filter is a type of filter used in digital signal processing. [Here are some key points about FIR filters](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response)[2](https://www.elprocus.com/fir-filter-for-digital-signal-processing/):
+
+- [**Finite Impulse Response**: The term “finite impulse response” means that the filter’s impulse response (or response to any finite length input) is of finite duration because it settles to zero in finite time](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- [**No Feedback Required**: FIR filters do not require feedback, which means that any rounding errors are not compounded by summed iterations](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- [**Stability**: FIR filters are inherently stable, since the output is a sum of a finite number of finite multiples of the input values](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- **Linear Phase**: FIR filters can easily be designed to be linear phase by making the coefficient sequence symmetric. [This property is sometimes desired for phase-sensitive applications](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- [**Implementation**: The output of an FIR filter is a weighted sum of the most recent input values](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response). [This computation is also known as discrete convolution](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+
+[The coefficients used in these terms are commonly referred to as taps, based on the structure of a tapped delay line that in many implementations or block diagrams provides the delayed inputs to the multiplication operations](https://en.wikipedia.org/wiki/Finite_impulse_response)[1](https://en.wikipedia.org/wiki/Finite_impulse_response).
+
+I hope this helps! Let me know if you have any other questions.
+
+##  what is the reason we use FIR filter in digital processing, why we use this filter on the ECG.
+
+[FIR filters are widely used in digital signal processing for several reasons](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[1](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[2](https://en.wikipedia.org/wiki/Finite_impulse_response)[3](https://adsantec.com/the-importance-of-filters-and-fir-filters-in-digital-signal-processing/)[4](https://dspguru.com/dsp/faqs/fir/basics/):
+
+- [**Stability**: FIR filters are inherently stable, as the output is a sum of a finite number of finite multiples of the input values](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[1](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[2](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- [**No Feedback Required**: FIR filters do not require feedback, which means that any rounding errors are not compounded by summed iterations](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[1](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[2](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- **Linear Phase**: FIR filters can easily be designed to be linear phase by making the coefficient sequence symmetric. [This property is sometimes desired for phase-sensitive applications](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[1](https://www.elprocus.com/fir-filter-for-digital-signal-processing/)[2](https://en.wikipedia.org/wiki/Finite_impulse_response).
+- [**Implementation Simplicity**: FIR filters are easy to implement and enable stable system designs](https://adsantec.com/the-importance-of-filters-and-fir-filters-in-digital-signal-processing/)[3](https://adsantec.com/the-importance-of-filters-and-fir-filters-in-digital-signal-processing/).
+- [**Efficiency**: FIR filters can provide computational efficiency in certain applications](https://dspguru.com/dsp/faqs/fir/basics/)[4](https://dspguru.com/dsp/faqs/fir/basics/).
+
+[As for ECG (Electrocardiogram) signal processing, FIR filters are particularly useful](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[5](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[6](https://www.gehealthcare.com/insights/article/a-guide-to-ecg-signal-filtering)[7](http://www.jscholaronline.org/articles/JBER/Signal-Processing.pdf):
+
+- **Noise Removal**: ECG signals can be contaminated with various types of noise, such as power line interference, baseline drift, and movement artifacts. [FIR filters can effectively remove these noises](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[5](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[6](https://www.gehealthcare.com/insights/article/a-guide-to-ecg-signal-filtering).
+- [**Preserving Signal Integrity**: Since the ECG signals are low-frequency signals (approximately 0.5–100 Hz), FIR filters can be designed to preserve the frequency components of interest while eliminating the unwanted noise](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[5](https://link.springer.com/chapter/10.1007/978-981-19-1324-2_34)[7](http://www.jscholaronline.org/articles/JBER/Signal-Processing.pdf).
+- [**Baseline Wander Correction**: FIR high-pass filters can be used to estimate and remove the baseline wander in the ECG signal](http://www.jscholaronline.org/articles/JBER/Signal-Processing.pdf)[7](http://www.jscholaronline.org/articles/JBER/Signal-Processing.pdf).
+
+I hope this helps! Let me know if you have any other questions.
+
+
+
+​              
+
+​              
