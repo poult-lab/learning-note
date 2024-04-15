@@ -182,8 +182,6 @@ nvcc --version
 
 #### 19. installing the nvidia driver
 
-# install nvidia driver
-
 *Mar 27, 2022*
 
 I had many driver installed I my virtual machine , so It was actually the reason why I was having the error.
@@ -218,6 +216,16 @@ nvidia-smi
 ```
 
 refer from:https://www.murhabazi.com/install-nvidia-driver
+
+
+
+#### 20. To search for Nvidia drivers
+
+```
+apt search nvidia-driver
+```
+
+
 
 ## Visual Studio Code
 
@@ -1259,23 +1267,14 @@ item() → number
 
 ```python
 logits = torch.tensor(
-
   [
-
 ​    [
-
 ​      [-0.5816, -0.3873, -1.0215, -1.0145, 0.4053],
-
 ​      [0.7265, 1.4164, 1.3443, 1.2035, 1.8823],
-
 ​      [-0.4451, 0.1673, 1.2590, -2.0757, 1.7255],
-
 ​      [0.2021, 0.3041, 0.1383, 0.3849, -1.6311],
-
 ​    ]
-
   ]
-
 )
 
 
@@ -1882,7 +1881,7 @@ print(result)
 # tensor([21., 24., 27.])
 ```
 
-![qwj0ottute](C:\Users\34890\Pictures\Camera Roll\qwj0ottute.png)
+![qwj0ottute](./pictures source/qwj0ottute.png)
 
 #### 21. pytorch nn.MSELoss() 均方损失函数
 
@@ -1915,643 +1914,493 @@ print(sum/6)#tensor(22.3333)
 
 
 
-#### 22. Python getattr() 函数 
+#### 22. torch.eye()
 
-描述
+Sure, `torch.eye()` is a function in PyTorch that generates an identity matrix. An identity matrix is a square matrix in which all the elements of the principal diagonal are ones and all other elements are zeros.
 
-**getattr()** 函数用于返回一个对象属性值。
-
-语法
+Here’s how you can use it:
 
 ```python
-getattr(object, name[, default])
-```
+import torch
 
-##### 参数
+# Create a 3x3 identity matrix
+I = torch.eye(3)
+print(I)
 
-- object -- 对象。
-- name -- 字符串，对象属性。
-- default -- 默认返回值，如果不提供该参数，在没有对应属性时，将触发 AttributeError。
-
-##### Example 1: How getattr() works in Python?
-
-```python
-class Person:
-    age = 23
-    name = "Adam"
-
-person = Person()
-print('The age is:', getattr(person, "age"))
-print('The age is:', person.age)
-```
-
-**Output**
-
-```powershell
-The age is: 23
-The age is: 23
-```
-
-------
-
-##### Example 2: getattr() when named attribute is not found
-
-```python
-class Person:
-    age = 23
-    name = "Adam"
-
-person = Person()
-
-# when default value is provided
-print('The sex is:', getattr(person, 'sex', 'Male'))
-
-# when no default value is provided
-print('The sex is:', getattr(person, 'sex'))
-```
-
-**Output**
-
-```powershell
-The sex is: Male
-AttributeError: 'Person' object has no attribute 'sex'
-```
-
-
-
-#### 23. python hasattr()
-
-The hasattr() method returns true if an object has the given named attribute and false if it does not.
-
-The syntax of `hasattr()` method is:
-
-```
-hasattr(object, name)
-```
-
-`hasattr()` is called by [getattr()](https://www.programiz.com/python-programming/methods/built-in/getattr) to check to see if AttributeError is to be raised or not.
-
-------
-
-##### hasattr() Parameters
-
-`hasattr()` method takes two parameters:
-
-- **object** - object whose named attribute is to be checked
-- **name** - name of the attribute to be searched
-
-------
-
-##### Return value from hasattr()
-
-`hasattr()` method returns:
-
-- **True**, if object has the given named attribute
-- **False**, if object has no given named attribute
-
-------
-
-##### Example: How hasattr() works in Python?
-
-```python
-class Person:
-    age = 23
-    name = 'Adam'
-
-person = Person()
-
-print('Person has age?:', hasattr(person, 'age'))
-print('Person has salary?:', hasattr(person, 'salary'))
-```
-
-**Output**
-
-```powershell
-Person has age?: True
-Person has salary?: False
-```
-
-
-
-#### 24. Python Anonymous [əˈnɒnɪməs]  [əˈnɑːnɪməs] /Lambda Function
-
-##### 1 for 简写
-
-先举一个例子：
-
-```python
-y = [1,2,3,4,5,6]
-[(i*2) for i in y ]
-```
-
-会输出  [2, 4, 6, 8, 10, 12]
-
-##### 1.1 一层for循环简写：
-
-一层 for 循环的简写格式是：（注意有中括号）
-
-```python
-[ 对i的操作 for i in 列表 ]
-
-```
-
-它相当于：
-
-```python
-for i in 列表:
-    对i的操作
-```
-
-##### 1.2 两层for循环
-
-两层的for循环就是：
-
-```python
-[对i的操作 for 单个元素 in 列表 for i in 单个元素]
-
-```
-
-举个简单的例子：
-
-```python
-y_list = ['assss','dvv']
-[print(i) for y in y_list for i in y]
-```
-
-得到结果：a s s s s d v v
-
-他类似于：
-
-```python
-y_list = ['assss','dvv']
-for y in y_list:
-    for i in y:
-        print(i) 
-```
-
-##### 2 if 简写
-
-格式是：
-
-```python
-True的逻辑 if 条件 else False的逻辑
-
-```
-
-举个例子：
-
-```python
-y = 0
-x = y+3 if y > 3 else y-1
-```
-
-此时 x = -1
-
-因为 y = 0 ，所以判断 y>3 时执行了 False的逻辑：y-1，所以x的值为 -1
-
-##### 2.1 for 与 if 的结合怎么简写
-
-举个l例子：
-
-```python
-x = [1,2,3,4,5,6,7]
-[print(i) for i in x if i > 3 ]
-```
-
-它会输出：4 5 6 7
-
-注：使用简写的方式无法对 if 判断为 False 的对象执行操作。
-
-所以它的模板是：
-
-```python
-[判断为True的i的操作 for i in 列表 if i的判断 ]
-```
-
-##### 3 匿名函数lambda
-
-匿名函数的使用方法是：
-
-lambda 参数: 表达式
-举个例子：
-
-```python
-x = 3
-(lambda k: k+3)(x)
-```
-
-输出 6
-
-这是一个比较简单的匿名函数表达式，一般匿名函数会结合很多其他函数，作为传递参数的作用。
-
-举一个有点儿hard的例子:
-
-```python
-      self._flat_weights = [(lambda wn: getattr(self, wn) if hasattr(self, wn) else None)(wn) for wn in self._flat_weights_names]
-```
-
-
-
-```python
-print("*******if...else语句*********")
-#if 条件为真的时候返回if前面内容，否则返回0 
-exp1= lambda x:x+1 if  2==1 else 0 
-print(exp1(2))
-exp2 = lambda x:x+1 if  1==1 else 0 
-print(exp2(2))
 ```
 
 output:
 
-```powershell
-****\**\*if…else语句\*\**\******
-0
-3
-[Finished in 0.2s]
+```
+tensor([[1., 0., 0.],
+        [0., 1., 0.],
+        [0., 0., 1.]])
+
 ```
 
+In this identity matrix, the diagonal from the top left to the bottom right is filled with ones, and all other elements are zeros. This is useful in many mathematical operations. For example, when an identity matrix is multiplied by any matrix of the same size, the original matrix is unchanged. This is analogous to multiplying numbers by one. The identity matrix serves as the “one” of matrix multiplication.
 
+
+
+#### 23. torch.hub.load_state_dict_from_url()
+
+`torch.hub.load_state_dict_from_url()` is a function from PyTorch that allows you to load pretrained model weights from a URL. Here's how you can use it:
 
 ```python
-print("*******if not...else语句*********")  
-#if not 为假返回if not前面内容，否则返回0  
-exp3 = lambda x:x+1 if not 2==1 else 0  
-print(exp3(2))  
+import torch
 
-exp4 = lambda x:x+1 if not 1==1 else 0  
-print(exp4(2))  
+# Define the URL from which to load the checkpoint
+url = "https://example.com/model_checkpoint.pth"
+
+# Load the checkpoint from the URL
+checkpoint = torch.hub.load_state_dict_from_url(
+    url=url,
+    map_location="cpu",
+    check_hash=True
+)
+
+# Now you can use the state dictionary to initialize your model
+# For example:
+# model = YourModel()
+# model.load_state_dict(checkpoint)
+
 ```
 
-```powershell
-结果
-3
-0
-[Finished in 0.3s]
-```
+- `url`: Specifies the URL from which to load the checkpoint.
+- `map_location`: Specifies where to load the model. In this case, it's set to `"cpu"`, meaning the model will be loaded onto the CPU. If you're using a GPU, you can specify `"cuda"` instead.
+- `check_hash`: A boolean indicating whether to check the hash of the downloaded file against the expected hash. This helps ensure the integrity of the downloaded file.
 
 
 
-#### 25. method 与 function的区别
+#### 24. @torch.jit.ignore
 
-我们在阅读英文资料时，可能经常会遇到method和function这两个单词，还可能经常以为两个是一样的。
+The `@torch.jit.ignore` is a decorator provided by PyTorch’s JIT (Just-In-Time) compiler. [It indicates to the compiler that a function or method should be ignored and left as a Python function](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html). [This allows you to leave code in your model that is not yet TorchScript compatible](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html).
 
-这次在读python的说明文档时，这两个词出现的频率挺高，所以我就查了以下它们的区别。
+[If called from TorchScript, ignored functions will dispatch the call to the Python interpreter](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html). [However, models with ignored functions cannot be exported; for that, you would use `@torch.jit.unused` instead](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html).
 
-method是依赖与一个对象的，function是独立于对象的。
-
-在c中，只有function;
-
-在c++中，既有method也有function,一个函数的称呼取决于它是否是一个类的对象，同理，python也是，php也是。
-
-在java中，只有method，因为它是一门纯面向对象的语言。
-
-下面是一段 python的代码：
+[Here’s an example of how to use `@torch.jit.ignore` on a method](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html):
 
 ```python
-def function(data):
-        return data;
-class A:
-        str1 = "I'm a method in class"
-        def method(self):
-                return self.str1
+import torch
+import torch.nn as nn
 
-str2 = "I'm a function"
-print(function(str2))
-a = A()
-print(a.method()) 
+class MyModule(nn.Module):
+    @torch.jit.ignore
+    def debugger(self, x):
+        import pdb
+        pdb.set_trace()
+
+    def forward(self, x):
+        x += 10
+        # The compiler would normally try to compile `debugger`,
+        # but since it is `@ignore`d, it will be left as a call to Python
+        self.debugger(x)
+        return x
+
+m = torch.jit.script(MyModule())
+# Error! The call `debugger` cannot be saved since it calls into Python
+m.save("m.pt")
 ```
 
+You can also use `@torch.jit.ignore(drop=True)` on a method. [In this case, the ignored method is not saved, and the call is replaced with a `raise`](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html). [This is useful when you want to ignore certain methods during training but still want to be able to export the model](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html)[1](https://pytorch.org/docs/stable/generated/torch.jit.ignore.html).
 
-从上面中可以看出来两者之间的差别:
+​             
 
-1 function是直接通过名字来调用的，它只能被传递参数来处理或者使用全局变量。
+#### 25. torch.nn.Identity()
 
-2 method 是通过与一个对象相关联的名字来调用的，它既可以被传递参数也可以，使用对象内部的数据。
+The `torch.nn.Identity()` is a module in PyTorch that acts as a placeholder identity operator. [It is argument-insensitive, meaning it does not modify or use any arguments passed to it](https://pytorch.org/docs/stable/generated/torch.nn.Identity.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Identity.html).
 
-  method 隐式的被传递了调用它的对象。
-
-
-
-#### 26. python underscore
-
-**Python****里的单下划线，双下划线，以及前后都带下划线的意义：**
-
-1. 单下划线如：_name
-
-   意思是：不能通过from modules import * 导入，如需导入需要：from modules import _name
-
-2. 对象前面加双下划线如：__name
-
-   意思是：生命对象为私有
-
-3. 前后双下划线如：__init __:python系统自带的一些函数和方法
-
-
-
-#### 27. python中的类型提示(type hint)
-
-在刷leetcode或者一些官方源码的时候，经常看到如下字样：
+Here’s an example of how it works:
 
 ```python
-class Solution:
-    def sortList(self, head: ListNode) -> ListNode:
+import torch
+import torch.nn as nn
+
+# Define the Identity module
+m = nn.Identity()
+
+# Create a random tensor
+input = torch.randn(5, 4)
+print("This is the input:", input)
+# Pass the tensor through the Identity module
+output = m(input)
+
+# Print the output size
+print(output.size())  # Output: torch.Size([128, 20])
+print("This is the output:", output)
+
 ```
 
-这就是类型提示(type hint)，下面来个简单的例子，
+output:
+
+```
+This is the input: tensor([[ 0.9613,  0.8207,  0.8217,  1.7528],
+        [-0.0525, -0.5623,  0.2284, -1.6684],
+        [ 1.8826, -0.8619, -2.0095, -0.0459],
+        [-2.4592, -0.2403, -1.3047,  0.7057],
+        [ 2.4735,  0.4918,  0.3385,  0.2276]])
+torch.Size([5, 4])
+This is the output: tensor([[ 0.9613,  0.8207,  0.8217,  1.7528],
+        [-0.0525, -0.5623,  0.2284, -1.6684],
+        [ 1.8826, -0.8619, -2.0095, -0.0459],
+        [-2.4592, -0.2403, -1.3047,  0.7057],
+        [ 2.4735,  0.4918,  0.3385,  0.2276]])
+```
+
+The `torch.nn.Identity()` module in PyTorch might seem like it doesn’t do much since it just **returns the input as is**. However, it can be quite useful in certain scenarios. Here are a few examples:
+
+
+
+#### 26. torch.nn.module.apply()
+
+[The `apply()` function is a method of the `torch.nn.Module` class in PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html). [It applies a function recursively to every submodule (as returned by `.children()`) as well as to the module itself](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+
+Here’s how it works:
 
 ```python
-def greeting(name: str) -> str:
-    return 'Hello ' + name
+def apply(self, fn):
+    for module in self.children():
+        module.apply(fn)
+    fn(self)
+    return self
 ```
 
-如上，其中name是传入的参数，而:右边的str则是name期望的类型即str，而->则指向期望函数的返回类型。
-如果不期望有返回值可以直接指向None，如下：
+[The typical use of `apply()` includes initializing the parameters of a model](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html). Here’s an example:
 
 ```python
-def feeder(get_next_item: Callable[[], str]) -> None:
+@torch.no_grad()
+def init_weights(m):
+    print(m)
+    if type(m) == nn.Linear:
+        m.weight.fill_(1.0)
+        print(m.weight)
 
+net = nn.Sequential(nn.Linear(2, 2), nn.Linear(2, 2))
+net.apply(init_weights)
+```
+
+In this example, `init_weights` is a function that fills the weights of linear layers with 1.0. [The `apply()` function is called on a network (`net`), and it applies the `init_weights` function to each submodule of the network](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+
+[Please note that the `apply()` function modifies the module in-place and returns the module itself](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+
+
+
+The `apply()` function in PyTorch is a utility function that applies a given function to the module itself and its submodules recursively.
+
+In the context of the example provided earlier, the `apply()` function is used to apply the `init_weights` function to each module (or layer) in the neural network. Here’s what happens step by step:
+
+1. The `apply()` function is called on the network (`net`) with `init_weights` as its argument: `net.apply(init_weights)`.
+2. The `apply()` function goes through each module (or layer) in the network.
+3. For each module, it calls the `init_weights` function, passing the module as the argument. This is where `m` comes from in `init_weights(m)`.
+4. Inside `init_weights`, if the module `m` is an instance of `nn.Linear` (a linear layer), it fills the weights of `m` with 1.0.
+
+So, the `apply()` function is essentially a way to apply a specific operation (defined in a function) to each module in a network. In this case, it’s used to initialize the weights of each linear layer in the network to 1.0. This is a common use case, but you could define any function to initialize the weights differently, or to perform any other operation on the modules. The `apply()` function gives you a convenient way to apply these operations to all modules in a network at once.
+
+​              
+
+#### 27. tensor.gt(0.0)
+
+`targets.gt(0.0)`: This is applying the `gt` function, which stands for “greater than”. It compares each element in the `targets` tensor to `0.0`, and returns a new tensor of the same shape as `targets` with each element being `True` if the corresponding element in `targets` is greater than `0.0`, and `False` otherwise. This operation does not change the original `targets` tensor.
+
+```
+import torch
+
+# original targets tensor
+targets = torch.tensor([-1.0, 0.0, 1.0, 2.0])
+print("Original targets:", targets)
+print("after the tensor.gt(0.0):", targets.gt(0.0))
+```
+
+output:
+
+```
+Original targets: tensor([-1.,  0.,  1.,  2.])
+after the tensor.gt(0.0): tensor([False, False,  True,  True])
 ```
 
 
 
-#### 28.关于 from . import 问题
+#### 28. `tensor.dtype` and `tensor.type()` and **tensor.type(arg)**
 
-一个点表示当前路径，二个点表示上一层路径。
+Sure, I’d be happy to explain!
+
+In PyTorch, `tensor.type()` is a method that returns the data type of the elements in the tensor. PyTorch supports various types of tensors, including:
+
+- FloatTensor: 32-bit floating point
+- DoubleTensor: 64-bit floating point
+- HalfTensor: 16-bit floating point
+- IntTensor: 32-bit integer
+- LongTensor: 64-bit integer
+- ShortTensor: 16-bit integer
+- ByteTensor: 8-bit unsigned integer
+- CharTensor: 8-bit signed integer
+
+Here’s an example:
 
 ```python
-from . import echo
+import torch
 
-from .. import formats
+# Create a float tensor
+x = torch.tensor([1.0, 2.0, 3.0])
+print(x.type())  # Outputs: 'torch.FloatTensor'
+
+# Create an integer tensor
+y = torch.tensor([1, 2, 3])
+print(y.type())  # Outputs: 'torch.LongTensor'
 ```
 
+In this code, we first create a tensor `x` with floating point numbers, and `x.type()` returns `'torch.FloatTensor'`. Then we create a tensor `y` with integers, and `y.type()` returns `'torch.LongTensor'`.
 
-
-#### 29.关于 from XXX import * ,import,from XXX import问题
-
-1. from XXX import* 会导入XXX模块的所有函数, 不建议用这个. 
-2. import  XXX (here the XXX can't be folder)
-3. **import 模块**：导入一个模块；注：相当于导入的是一个文件夹，是个相对路径。
-4. **from…import**：导入了一个模块中的一个函数；注：相当于导入的是一个文件夹中的文件，是个绝对路径。
+So, `tensor.type()` is a way to check the data type of your tensor in PyTorch. It can be useful when you want to ensure that your tensors are of the correct type before performing operations on them. For example, some operations in PyTorch require the tensors to be of a specific type, and using `tensor.type()` can help you debug issues related to incorrect tensor types.
 
 
 
-#### 30.关于sys模块
+In PyTorch, `tensor.dtype` is an attribute that returns the data type of the elements in the tensor. Similar to `tensor.type()`, it provides information about the type of data stored in the tensor, but it returns a `torch.dtype` object instead of a string.
 
-Python sys模块通过sys.argv提供对任何命令行参数的访问。这有两个常用指令：
-
-sys.argv 返回的是包含命令行参数的一个 list
-
-len(sys.argv) 返回的是命令行参数的个数
+Here’s an example:
 
 ```python
-import sys
+import torch
 
-print('Number of arguments:'+ len(sys.argv) + ' arguments.')
-print('Argument List:', str(sys.argv)
+# Create a float tensor
+x = torch.tensor([1.0, 2.0, 3.0])
+print(x.dtype)  # Outputs: torch.float32
+
+# Create an integer tensor
+y = torch.tensor([1, 2, 3])
+print(y.dtype)  # Outputs: torch.int64
 ```
 
-cmd 直接以下命令：
+In this code, we first create a tensor `x` with floating point numbers, and `x.dtype` returns `torch.float32`. Then we create a tensor `y` with integers, and `y.dtype` returns `torch.int64`.
 
-```powershell
- python test.py arg1 arg2 arg3
+So, `tensor.dtype` is another way to check the data type of your tensor in PyTorch. It can be useful when you want to ensure that your tensors are of the correct type before performing operations on them. For example, some operations in PyTorch require the tensors to be of a specific type, and using `tensor.dtype` can help you debug issues related to incorrect tensor types. It’s also worth noting that `tensor.dtype` is commonly used when you need to specify the data type for a new tensor. For instance, `torch.zeros(10, dtype=torch.float64)` will create a tensor of zeros with a data type of 64-bit floating point numbers.
 
-```
+​              
 
-可返回如下结果：
+The `tensor.type(arg)` function in PyTorch is used to change the data type of the tensor. Here, `arg` is a string representing the desired data type. The function returns a new tensor with the specified data type. If `arg` is not provided, the function will return the current data type of the tensor, similar to `tensor.type()` without any arguments.
 
-```powershell
-Number of arguments: 4 arguments.
-Argument List: ['test.py', 'arg1', 'arg2', 'arg3']
-```
-
-返回的第一个参数永远是文件名，且会被计入参数个数中。
-
-
-
-#### 31. for i in range()
-
-Create a sequence of numbers from 0 to 5, and print each item in the sequence:
+Here’s an example:
 
 ```python
-for i in range(10,15):
+import torch
 
-​    print(i)
+# Create a float tensor
+x = torch.tensor([1.0, 2.0, 3.0])
+print(x.type())  # Outputs: 'torch.FloatTensor'
+
+# Change the data type to 'torch.IntTensor'
+x = x.type('torch.IntTensor')
+print(x.type())  # Outputs: 'torch.IntTensor'
 ```
 
-```powershell
-10 11 12 13 14
-```
+In this code, we first create a tensor `x` with floating point numbers, and `x.type()` returns `'torch.FloatTensor'`. Then we use `x.type('torch.IntTensor')` to change the data type of `x` to `'torch.IntTensor'`, and `x.type()` now returns `'torch.IntTensor'`.
+
+So, `tensor.type(arg)` is a way to change the data type of your tensor in PyTorch. It can be useful when you want to convert your tensors to a different type for certain operations. For example, some operations in PyTorch require the tensors to be of a specific type, and using `tensor.type(arg)` can help you convert your tensors to the required type. Please note that this operation does not change the original tensor but returns a new tensor with the specified type. The original tensor `x` remains unchanged. If you want to change the type of `x`, you need to assign the result back to `x`, as shown in the example.
+
+
 
 another example:
 
 ```python
-x = range(3, 20, 2)
+import torch
 
-for n in x:
-  print(n)
+# original targets tensor
+targets = torch.tensor([-1.0, 0.0, 1.0, 2.0])
+print("Original targets:", targets)
+print("after the tensor.gt(0.0):", targets.gt(0.0))
+print("This is the dtype of target:", targets.dtype)
+
+# apply the operation
+targets = targets.gt(0.0).type(targets.dtype)
+
+print("After operation:", targets)
+```
+
+ output:
+
+```
+Original targets: tensor([-1.,  0.,  1.,  2.])
+after the tensor.gt(0.0): tensor([False, False,  True,  True])
+This is the dtype of target: torch.float32
+After operation: tensor([0., 0., 1., 1.])
+```
+
+
+
+#### 29. torch.linspace()
+
+`torch.linspace()` is a function in the PyTorch library. It returns a one-dimensional tensor of steps equally spaced points between `start` and `end` which are the first and second arguments respectively.
+
+Here is the basic syntax:
+
+```python
+torch.linspace(start, end, steps=100)
+```
+
+- `start`: This is the starting value for the set of points.
+- `end`: This is the ending value for the set of points.
+- `steps`: This defines the total number of sampling points. If not provided, the default is `100`.
+
+The function generates `steps` number of points between `start` and `end`, inclusive. The generated tensor can be used whenever you need a sequence of numbers spaced evenly between a start and end point.
+
+Here’s an example:
+
+```python
+import torch
+torch.linspace(0, 10, steps=5)
 ```
 
 output:
 
 ```
-3
-5
-7
-9
-11
-13
-15
-17
-19
+tensor([ 0.0000,  2.5000,  5.0000,  7.5000, 10.0000])
 ```
 
+This will output a tensor: `tensor([ 0.0000,  2.5000,  5.0000,  7.5000, 10.0000])`. As you can see, it generates 5 points (as specified by `steps=5`) between 0 and 10, inclusive.
 
+Remember, the `torch.linspace()` function is particularly useful in scenarios where you need to generate data for analysis or visualization that requires evenly spaced points in a specified interval.
 
-#### 32. split() function
+​            
 
-##### 描述
+#### 30. timm.models.layers.DropPath()
 
-split() 通过指定分隔符对字符串进行**切片**，如果第二个参数 num 有指定值，则分割为 num+1 个子字符串。
+[Sure, `timm.models.layers.DropPath()` is a function from the `timm` library, which stands for **PyTorch Image Models**](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py). [This library is a collection of image models, layers, utilities, and scripts for PyTorch](https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055)[2](https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055).
 
-##### 语法
+[The `DropPath()` function is a regularization layer that implements a technique known as **DropPath** or **Stochastic Depth**](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/). [The idea behind DropPath is to randomly drop some individual samples within a batch during training](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/). This is different from Dropout, which randomly sets a fraction of input units to 0 at each update during training time. [DropPath, on the other hand, drops entire samples (i.e., all features for a given sample) rather than individual features](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[4](https://stackoverflow.com/questions/69175642/droppath-in-timm-seems-like-a-dropout).
 
-split() 方法语法：
+This technique is used to prevent overfitting and improve the generalization of deep neural networks. [It introduces randomness in the training process that helps the model to learn more robust features](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/).
+
+[Here is a simplified version of the code from the `timm` library](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py):
 
 ```python
-str.split(str="", num=string.count(str))
+import torch
+import torch.nn.functional as F
+
+def drop_path(x, drop_prob):
+    if drop_prob > 0.:
+        keep_prob = 1. - drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # compute broadcast shape
+        random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
+        random_tensor.floor_()  # binarize
+        output = x.div(keep_prob) * random_tensor  # scale by keep_prob
+        return output
+    return x
 ```
 
-##### 参数
+In this code, `x` is the input tensor and `drop_prob` is the probability of dropping a sample. [The function returns the input tensor `x` with some samples randomly dropped out](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py).
 
-- str -- 分隔符，默认为所有的空字符，包括空格、换行(\n)、制表符(\t)等。
-- num -- 分割次数。默认为 -1, 即分隔所有。
+[Please note that the actual implementation in the `timm` library may be more complex and optimized for performance](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py). This simplified version is just to give you an idea of how DropPath works. [If you want to use this in your own code, I recommend using the `timm` library’s implementation](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py).
 
-##### 返回值
+​                 
 
-返回分割后的字符串列表。
+#### 31. torch.nn.ModuleList([])
 
-##### 实例
+In PyTorch, `torch.nn.ModuleList` is a class that is used to contain a list of PyTorch modules. It behaves like a regular Python list, but it ensures that all the modules contained within it are properly registered as submodules of the parent module when used in a PyTorch `Module`.
 
-以下实例展示了 split() 函数的使用方法：
+Here's a breakdown of its usage:
 
-##### Example
+1. **Initialization**: You can initialize a `ModuleList` instance with a list of PyTorch modules.
 
 ```python
-#!/usr/bin/python3  
+import torch.nn as nn
 
-
-
-str = "this is string example....wow!!!" 
-
-print (str.split( ))       # 以空格为分隔符 
-
-print (str.split('i',1))   # 以 i 为分隔符 
-
-print (str.split('w'))     # 以 w 为分隔符
+module_list = nn.ModuleList([nn.Linear(10, 10), nn.ReLU(), nn.Linear(10, 5)])
 ```
 
-以上实例输出结果如下：
+2. **Accessing Modules**: You can access individual modules within the `ModuleList` just like you would with a regular Python list.
 
 ```python
-['this', 'is', 'string', 'example....wow!!!']
-['th', 's is string example....wow!!!']
-['this is string example....', 'o', '!!!']
+linear_module = module_list[0]
 ```
 
-以下实例以 # 号为分隔符，指定第二个参数为 1，返回两个参数列表。
-
-##### Example
+3. **Adding Modules**: You can add new modules to the `ModuleList` using the `append()` method.
 
 ```python
-#!/usr/bin/python3  
-
-txt = "Google#Runoob#Taobao#Facebook"   
-
-x = txt.split("#", 1)  
-
-print(x)
+module_list.append(nn.Dropout(0.5))
 ```
 
-以上实例输出结果如下：
-
-```powershell
-['Google', 'Runoob#Taobao#Facebook']
-```
-
-
-
-#### 33. add_argument函数的metavar参数
-
-add_argument函数的metavar参数，用来控制部分命令行参数的显示，注意：它只是影响部分参数的显示信息，不影响代码内部获取命令行参数的对象。
+4. **Iterating Over Modules**: You can iterate over the modules in a `ModuleList` just like you would with a regular Python list.
 
 ```python
->>> parser = argparse.ArgumentParser()
->>> parser.add_argument('--foo', metavar='YYY')
->>> parser.add_argument('bar', metavar='XXX')
->>> parser.parse_args('X --foo Y'.split())
-Namespace(bar='X', foo='Y')
->>> parser.print_help()
-usage:  [-h] [--foo YYY] XXX
-
-positional arguments:
- XXX
-
-optional arguments:
- -h, --help  show this help message and exit
- --foo YYY
+for module in module_list:
+    print(module)
 ```
 
-
-
-metavar参数可以让命令的帮助信息更好看一些！
-
-初次之外，还有个功能可以关注，对于有nargs参数的命令行参数，可以用metavar来设置每一个具体的参数的名称：
+5. **Usage within PyTorch `Module`**: When a `ModuleList` is used within a PyTorch `Module`, all the modules it contains are automatically registered as submodules of the parent module. This is important because it ensures that parameters of these modules are properly tracked by PyTorch and are included in operations like model optimization.
 
 ```python
->>> parser = argparse.ArgumentParser(prog='PROG')
->>> parser.add_argument('-x', nargs=2)
->>> parser.add_argument('--foo', nargs=2, metavar=('bar', 'baz'))
->>> parser.print_help()
-usage: PROG [-h] [-x X X] [--foo bar baz]
+class MyModel(nn.Module):
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self.module_list = nn.ModuleList([nn.Linear(10, 10), nn.ReLU(), nn.Linear(10, 5)])
 
-optional arguments:
- -h, --help     show this help message and exit
- -x X X
- --foo bar baz
+    def forward(self, x):
+        for module in self.module_list:
+            x = module(x)
+        return x
 ```
 
--x参数没有使用metavar，显示出来的帮助信息就是两个X，而--foo参数也可以接收两个参数，这两个参数的名称就用metavar进行了具体的定义，看起来好多了。本文代码示例都是python官方文档中的。
+In summary, `torch.nn.ModuleList` is a convenient way to manage lists of PyTorch modules within your neural network architectures while ensuring proper tracking and registration of these modules within the PyTorch framework.
+
+​           
+
+> In summary, `Sequential` is useful for simple networks where the layer sequence **is fixed**, while `ModuleList` provides more flexibility for dynamic architectures or when you need to access or modify individual layers.
 
 
 
-Q1：*请问博主，第一个位置参数假如说是--max_episode_len,然后也有人写是--max-episode-len,但是他在调用的时候仍然用的是args.max_episode_len，也没报错，请问这个下划线_和-的区别在哪里呢？*
+#### 32. torch.randperm()
 
-A1：没啥区别，在这里表示同一个意思，-对应_，代码里写的不一样或者都改成一样的都可以
+`torch.randperm()` is a function in the PyTorch library which generates a random permutation of integers from 0 to `n-1`, where `n` is the input argument passed to the function. The permutation is generated randomly, meaning the order of the integers is shuffled.
 
-
-
-For anyone who doesn't know what is nargs:
-
-nargs stands for Number Of Arguments
-
-3: 3 values, can be any number you want
-?: a single value, which can be optional
-*: a flexible number of values, which will be gathered into a list
-+: like *, but requiring at least one value
-argparse.REMAINDER: all the values that are remaining in the command line
-
-#### 34. add_argument函数的prefix_chars
-
-许多命令行会使用 `-` 当作前缀，比如 `-f/--foo`。如果解析器需要支持不同的或者额外的字符，比如像 `+f` 或者 `/foo` 的选项，可以在参数解析构建器中使用 `prefix_chars=` 参数。
+Here's how you can use it:
 
 ```python
->>> parser = argparse.ArgumentParser(prog='PROG', prefix_chars='-+')
->>> parser.add_argument('+f')
->>> parser.add_argument('++bar')
->>> parser.parse_args('+f X ++bar Y'.split())
-Namespace(bar='Y', f='X')
+import torch
+
+n = 10  # Example: Generate a permutation of integers from 0 to 9
+perm = torch.randperm(n)
+print(perm)
 ```
 
-`prefix_chars=` 参数默认使用 `'-'`。 提供一组不包括 `-` 的字符将导致 `-f/--foo` 选项不被允许。
+Output might look something like:
+
+```
+tensor([4, 2, 9, 7, 3, 8, 5, 0, 1, 6])
+```
+
+This means that `perm` contains a random permutation of integers from 0 to 9. Each time you run the code, you will get a different permutation.
 
 
 
-#### 35. python var函数
+#### 33. torch.nn.LayerNorm()
+
+`torch.nn.LayerNorm` is a module in PyTorch used for normalizing the activations of a neural network layer. It operates on a per-channel basis, meaning it calculates the mean and standard deviation separately for each channel or feature in the input tensor.
+
+Here's a breakdown of how `torch.nn.LayerNorm` works:
+
+1. **Normalization**: It first computes the mean and standard deviation along the specified dimension of the input tensor.
+2. **Normalization**: It then subtracts the mean and divides by the standard deviation, effectively normalizing each channel.
+3. **Scaling and Shifting**: Optionally, it applies a learned affine transformation to the normalized tensor, which consists of a per-channel learnable scale and shift (bias). This allows the network to learn optimal scaling and shifting factors for each channel.
+
+This normalization process helps to stabilize the training of deep neural networks by reducing the internal covariate shift problem. It is commonly used in various architectures like transformer networks, recurrent neural networks (RNNs), and convolutional neural networks (CNNs).
+
+Here's a basic example of how to use `torch.nn.LayerNorm` in PyTorch:
 
 ```python
-class My():
+import torch
+import torch.nn as nn
 
-​    'Test'
-​    def __init__(self,name):
-​        self.name=name
+# Assuming input tensor has shape (batch_size, channels, height, width)
+input_tensor = torch.randn(32, 64, 10, 10)
 
-​    def test(self):
-​        print (self.name)
+# Create LayerNorm module
+layer_norm = nn.LayerNorm(normalized_shape=[64, 10, 10])  # Normalizing along channels dimension
 
-​    def abc(self):
-​        print("roll out")
-
-
-vars(My)#返回一个字典对象，他的功能其实和  My.__dict__  很像
-
-for key,value in vars(My).items():
-
-​    print (key,':',value)
+# Apply LayerNorm to input tensor
+output = layer_norm(input_tensor)
 ```
 
-output:
-
-```powershell
-__module__ : __main__ 
-__doc__ : Test 
-__init__ : <function My.__init__ at 0x7f21202c0170> 
-test : <function My.test at 0x7f21202c0ef0> 
-abc : <function My.abc at 0x7f21202c05f0> 
-__dict__ : <attribute '__dict__' of 'My' objects> 
-__weakref__ : <attribute '__weakref__' of 'My' objects>
-```
-
-
+In this example, `input_tensor` is normalized along the channels dimension (second dimension) because `normalized_shape` is set to `[64, 10, 10]`. The mean and standard deviation are calculated separately for each of the 64 channels in the input tensor.
 
 
 
@@ -4359,6 +4208,29 @@ print(model)
 
 
 
+##### The `map_location` parameter:
+
+In PyTorch, `torch.load()` is a function used to load serialized objects from files. The `map_location` parameter is used to specify where the tensors should be loaded, which is particularly useful when you are loading a model saved on a device (e.g., GPU) and want to load it onto another device (e.g., CPU).
+
+Here's how `map_location` works:
+
+- If `map_location` is a dictionary, it's used to remap storage locations. For example, if you saved a model on GPU and want to load it on CPU, you would specify `map_location={'cuda:0': 'cpu'}`.
+- If `map_location` is a string, it specifies where to load all tensors by default. For example, if you want to load tensors onto the CPU, you would specify `map_location='cpu'`.
+
+Here's an example of loading a model saved on GPU onto the CPU:
+
+```python
+import torch
+
+# Load the model
+model = torch.load('model.pth', map_location='cpu')
+
+```
+
+This will load the model stored in 'model.pth' and move all tensors to the CPU.
+
+
+
 #### 69. state_dict()
 
 In PyTorch, the learnable parameters (i.e. weights and biases) of a `torch.nn.Module` model are contained in the model’s parameters (accessed with `model.parameters()`). A `state_dict` is simply a Python dictionary object that maps each layer to its parameter tensor.
@@ -5237,41 +5109,7 @@ tensor([[-0.0271,  0.9370,  0.0759, -0.2608, -0.5547,  0.6845,  0.4430, -0.7851,
 
 
 
-#### 91. torch.sigmoid()
-
-The PyTorch sigmoid function is an element-wise operation that squishes  any real number **into a range between 0 and 1**. This is a very common  activation function to use as the last layer of binary classifiers  (including logistic regression) because it lets you treat model  predictions like probabilities that their outputs are true, i.e. `p(y == 1)`.
-
-Mathematically, the function is `1 / (1 + np.exp(-x))`. And plotting it creates a well-known curve:
-
-![sigmoid](./pictures source/sigmoid.jpeg)
-
-​																													y = sigmoid(x) for x in [-10, 10]
-
-Similar to other activation functions like [softmax](https://sparrow.dev/pytorch-softmax/), there are two patterns for applying the sigmoid activation function in  PyTorch. Which one you choose will depend more on your style preferences than anything else.
-
-```python
-import torch
-
-# torch.manual_seed(1)
-
-x = torch.randn((3, 3))
-y = torch.sigmoid(x)
-print("This is the input:",x)
-print("This is the output:",y)
-```
-
-output:
-
-```
-This is the input: tensor([[ 0.8585,  0.2175,  0.2708],
-        [ 0.5805, -0.1018,  0.0460],
-        [-0.7045, -0.5274,  1.9040]])
-This is the output: tensor([[0.7023, 0.5542, 0.5673],
-        [0.6412, 0.4746, 0.5115],
-        [0.3308, 0.3711, 0.8703]])
-```
-
-Hint: Sigmoid is used for **binary classification** methods where we only have 2 classes, while SoftMax applies to **multiclass problems**. In fact, the SoftMax function is an extension of the Sigmoid function.
+91.
 
 
 
@@ -5328,52 +5166,7 @@ Hint:If you are working with only **one GPU**, **you don't need to use** `torch.
 
 
 
-#### 93. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
-
-Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
-
- This is the whole purpose of the **loss function**! It should return **high values** for **bad predictions** and **low values** for **good predictions**.
-
-Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
-
-这里关于BCE的公式可以google.
-
-![BCE](./pictures source/BCE.webp)
-
-where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
-
-Reading this formula, it tells you that, for each **green** point (*y=1*), it adds *log(p(y))* to the loss, that is, the **log probability of it being green**. Conversely, it adds *log(1-p(y))*, that is, the **log probability of it being red**, for each **red** point (*y=0*). Not necessarily difficult, sure, but no so intuitive too…
-
-
-
-```python
-import torch
-import torch.nn as nn
-
-label = torch.Tensor([1, 1, 0])
-pred = torch.Tensor([3, 2, 1])
-pred_sig = torch.sigmoid(pred)
-print(f'This is pred:{pred_sig}')
-
-
-loss = nn.BCELoss()
-print(loss(pred_sig, label))# 这里面的权重默认为1
-
-# BCEWithLogitsLoss()=BCELoss()+sigmoid()
-
-loss = nn.BCEWithLogitsLoss()
-print(loss(pred, label))
-
-import numpy as np
-
-print(np.log(10)) # 这里面底数为常数e
-```
-
-#### 
-
-
-
-#### 94. torch.nn.BCEWithLogitsLoss()
+#### 93. torch.nn.BCEWithLogitsLoss()
 
 Sure, let's break down the calculation of the binary cross-entropy loss using the provided code:
 
@@ -5444,6 +5237,68 @@ The calculated loss is then printed using `loss.item()`.
 Please note that the exact values will depend on the specific values of the logits and targets, and the output will be the calculated binary cross-entropy loss for those values.
 
 **Hint: The base of log is e.**
+
+##### The difference with `torch.nn.functional.binary_cross_entropy_with_logits()`:
+
+- Unlike `BCEWithLogitsLoss`, this function does not include the sigmoid activation function. Therefore, you typically need to apply the sigmoid activation function separately to the logits before using this function.
+
+  ```python
+  logits = model(input_data)
+  sigmoid_logits = torch.sigmoid(logits)
+  loss = torch.nn.functional.binary_cross_entropy_with_logits(sigmoid_logits, targets)
+  
+  ```
+
+  
+
+#### 94. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
+
+Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
+
+ This is the whole purpose of the **loss function**! It should return **high values** for **bad predictions** and **low values** for **good predictions**.
+
+Binary Cross Entropy /ˈbaɪnəri/ /krɒs ˈentrəpi/二元交叉熵
+
+这里关于BCE的公式可以google.
+
+![BCE](./pictures source/BCE.webp)
+
+where **y** is the **label** (**1** **for** **green** points and **0** **for** **red** points) and **p(y)** is the predicted **probability of the point being green** for all **N** points.
+
+Reading this formula, it tells you that, for each **green** point (*y=1*), it adds *log(p(y))* to the loss, that is, the **log probability of it being green**. Conversely, it adds *log(1-p(y))*, that is, the **log probability of it being red**, for each **red** point (*y=0*). Not necessarily difficult, sure, but no so intuitive too…
+
+
+
+```python
+import torch
+import torch.nn as nn
+
+label = torch.Tensor([1, 1, 0])
+pred = torch.Tensor([3, 2, 1])
+pred_sig = torch.sigmoid(pred)
+print(f'This is pred:{pred_sig}')
+
+
+loss = nn.BCELoss()
+print(loss(pred_sig, label))# 这里面的权重默认为1
+
+# BCEWithLogitsLoss()=BCELoss()+sigmoid()
+
+loss = nn.BCEWithLogitsLoss()
+print(loss(pred, label))
+
+import numpy as np
+
+print(np.log(10)) # 这里面底数为常数e
+```
+
+`torch.nn.BCELoss()` requires probabilities
+
+`torch.nn.functional.binary_cross_entropy_with_logits()`  and `torch.nn.BCEWithLogitsLoss()`
+
+expect logits.
+
+In summary, logits are the raw scores produced by the model, while probabilities are the normalized scores obtained after applying an appropriate activation function. Logits are used internally in the computation of the loss function, while probabilities are used for interpretation and decision-making.
 
 
 
@@ -5743,6 +5598,314 @@ print("Converted Tensor Type:", tensor_float32.dtype)
 
 
 
+#### 104. torch.sigmoid()
+
+The PyTorch sigmoid function is an element-wise operation that squishes  any real number **into a range between 0 and 1**. This is a very common  activation function to use as the last layer of binary classifiers  (including logistic regression) because it lets you treat model  predictions like probabilities that their outputs are true, i.e. `p(y == 1)`.
+
+Mathematically, the function is `1 / (1 + np.exp(-x))`. And plotting it creates a well-known curve:
+
+![sigmoid](./pictures source/sigmoid.jpeg)
+
+​																													y = sigmoid(x) for x in [-10, 10]
+
+Similar to other activation functions like [softmax](https://sparrow.dev/pytorch-softmax/), there are two patterns for applying the sigmoid activation function in  PyTorch. Which one you choose will depend more on your style preferences than anything else.
+
+```python
+import torch
+
+# torch.manual_seed(1)
+
+x = torch.randn((3, 3))
+y = torch.sigmoid(x)
+print("This is the input:",x)
+print("This is the output:",y)
+```
+
+output:
+
+```
+This is the input: tensor([[ 0.8585,  0.2175,  0.2708],
+        [ 0.5805, -0.1018,  0.0460],
+        [-0.7045, -0.5274,  1.9040]])
+This is the output: tensor([[0.7023, 0.5542, 0.5673],
+        [0.6412, 0.4746, 0.5115],
+        [0.3308, 0.3711, 0.8703]])
+```
+
+Hint: Sigmoid is used for **binary classification** methods where we only have 2 classes, while SoftMax applies to **multiclass problems**. In fact, the SoftMax function is an extension of the Sigmoid function.
+
+
+
+#### 105. torch.nn.Parameter()
+
+`torch.nn.Parameter()` is a function that automatically registers tensors as trainable parameters within PyTorch modules, facilitating gradient tracking and optimization during training.
+
+
+
+We use `torch.nn.Parameter()` when we need finer control over individual parameters, such as custom initialization or when incorporating parameters into more complex custom modules, whereas `torch.nn.Linear()` is a higher-level abstraction that combines both weights and biases into a single module, providing convenience for standard linear transformations in neural networks.
+
+```python
+import torch
+import torch.nn as nn
+
+# Define a simple linear regression module
+class LinearRegression(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(LinearRegression, self).__init__()
+        self.weight = nn.Parameter(torch.randn(input_size, output_size))
+        self.bias = nn.Parameter(torch.zeros(output_size))
+
+    def forward(self, x):
+        return torch.matmul(x, self.weight) + self.bias
+
+# Create an instance of the LinearRegression module
+model = LinearRegression(input_size=10, output_size=1)
+
+# Access and print the parameters
+print("Weight:", model.weight)
+print("Bias:", model.bias)
+
+# Create some dummy input data
+input_data = torch.randn(5, 10)
+
+# Forward pass
+output = model(input_data)
+print("Output shape:", output.shape)
+
+```
+
+
+
+#### 106. torch.utils.data.RandomSampler()&torch.utils.data.SequentialSampler()
+
+1. `SequentialSampler`: Samples elements from the dataset sequentially.
+2. `RandomSampler`: Samples elements from the dataset randomly without replacement.
+
+##### Use sampler instead of the shuffle
+
+It is generally recommended to use a sampler instead of the `shuffle` argument when creating a `DataLoader` , especially when you want more control over the sampling process. Here are some reasons why you might want to use a sampler instead:
+
+1. **Reproducibility: When you use the `shuffle` argument, the order of the data can be different each time you run your code, which can make it difficult to reproduce your results. Using a sampler with a fixed seed allows you to control the order of the data, making your results more reproducible.**
+2. Customization: With a sampler, you can define your own sampling strategy, such as sampling a fixed subset of the data, or sampling the data with a certain probability distribution. This can be useful in scenarios where you have imbalanced classes or want to implement a custom sampling strategy.
+3. Flexibility: When you use the `shuffle` argument, the data is shuffled before each epoch, which can be computationally expensive for large datasets. With a sampler, you have more control over how often the data is shuffled, which can be useful for optimizing performance.
+
+
+
+#### 107. torch.distributed.is_available()
+
+The `torch.distributed.is_available()` function is a utility provided by PyTorch to check whether the distributed package is available and can be used in the current environment. It returns a boolean value indicating whether distributed training functionality is available.
+
+```python
+import torch
+
+if torch.distributed.is_available():
+    print("Distributed training is available.")
+else:
+    print("Distributed training is not available.")
+
+```
+
+output:
+
+```
+Distributed training is available.
+```
+
+
+
+#### 108. torch.split()
+
+Certainly! `torch.split()` is a PyTorch function used to split a tensor into a specific number of chunks along a given dimension. It takes in three main parameters:
+
+1. `tensor`: The input tensor that you want to split.
+
+2. ```
+   split_size_or_sections
+   ```
+
+   : This parameter defines how the tensor should be split. It can be either:
+
+   - An integer, in which case `tensor` will be split into chunks of equal size along the specified dimension.
+   - A list of integers, indicating the sizes of the chunks you want to create along the specified dimension.
+
+3. `dim` (optional): Specifies the dimension along which the tensor will be split. By default, it's set to 0.
+
+Here's the basic syntax:
+
+```python
+output = torch.split(tensor, split_size_or_sections, dim)
+```
+
+Let's see an example to illustrate how `torch.split()` works:
+
+```python
+import torch
+
+# Create a tensor
+tensor = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+# Split the tensor into chunks of size 2 along dimension 0
+chunks = torch.split(tensor, 2, dim=0)
+
+# Display the resulting chunks
+for chunk in chunks:
+    print(chunk)
+
+```
+
+output:
+
+```
+tensor([[1, 2, 3],
+        [4, 5, 6]])
+tensor([[7, 8, 9],
+        [7, 8, 9]])
+tensor([[7, 8, 9]])
+```
+
+
+
+#### 109. torch.backends.cudnn.benchmark
+
+`torch.backends.cudnn.benchmark = True` is a configuration option used in PyTorch to optimize performance when using NVIDIA CUDA. When this option is set to `True`, PyTorch will **automatically find the best convolution algorithms to use for your specific input sizes and hardware configuration during the first invocation of a CUDA operation. This can lead to faster runtime performance as it avoids the overhead of selecting the best algorithm for each input size dynamically.**
+
+However, it's important to note that enabling `torch.backends.cudnn.benchmark = True` can lead to nondeterministic behavior in the computation, particularly when dealing with different input sizes or non-identical model architectures. Therefore, it's usually recommended to enable it when the input size and model architecture are fixed, such as during model inference or when training on fixed-size data.
+
+Here's a brief breakdown of what this setting does:
+
+- **torch.backends.cudnn.benchmark**: When set to `True`, PyTorch will use CuDNN's auto-tuner to find the best convolution algorithm for the current input size and hardware configuration. This can lead to improved performance but may result in nondeterministic behavior.
+- **CuDNN**: CUDA Deep Neural Network library, provided by NVIDIA, which contains highly optimized implementations of deep learning primitives such as convolutions, activation functions, and pooling operations.
+- **Auto-tuner**: CuDNN's auto-tuner explores different convolution algorithms and selects the one that provides the best performance for the given input size and hardware.
+
+To use this configuration option in your PyTorch code, simply set it before running any CUDA operations:
+
+```python
+import torch
+
+torch.backends.cudnn.benchmark = True
+
+```
+
+Remember to use this option judiciously, especially in scenarios where determinism is crucial, such as when reproducing results or debugging.
+
+
+
+#### 110. torch.cuda.Event
+
+In PyTorch, `torch.cuda.Event` is a class representing an event that can be recorded and used for synchronization on a CUDA device. It is part of PyTorch's CUDA functionality, which allows for computations to be offloaded and accelerated on NVIDIA GPUs.
+
+Here's a brief overview of how `torch.cuda.Event` can be used:
+
+1. **Recording Events**: Events can be recorded on a CUDA device to mark points in a CUDA stream. This is typically done using the `record()` method.
+2. **Synchronization**: Events can be used to synchronize CUDA streams. This is done using the `wait()` method, which blocks the current stream until the event is recorded in another stream.
+3. **Timing**: Events can also be used for timing purposes to measure the execution time of CUDA operations. This is achieved by recording two events and then querying the time difference between them.
+
+Here's a simple example demonstrating how `torch.cuda.Event` can be used:
+
+```python
+import torch
+
+# Initialize CUDA events
+start_event = torch.cuda.Event(enable_timing=True)
+end_event = torch.cuda.Event(enable_timing=True)
+
+# Record the start event
+start_event.record()
+
+# Perform some CUDA operations
+# For example:
+# result = some_cuda_operation(input)
+
+# Record the end event
+end_event.record()
+
+# Synchronize streams
+torch.cuda.synchronize()
+
+# Calculate the elapsed time
+elapsed_time_ms = start_event.elapsed_time(end_event)
+print("Elapsed Time: {} milliseconds".format(elapsed_time_ms))
+
+```
+
+In this example, `start_event` and `end_event` are recorded at the beginning and end of the CUDA operations, respectively. Then, `torch.cuda.synchronize()` is used to ensure that all CUDA operations are completed before calculating the elapsed time. Finally, the elapsed time between the two events is calculated using the `elapsed_time()` method.
+
+
+
+#### 111. torch.cuda.synchronize()
+
+`torch.cuda.synchronize()` is a function used in PyTorch to synchronize the current stream with the host. In CUDA programming, streams are sequences of operations that are executed asynchronously on the GPU. When you call a function like `torch.cuda.synchronize()`, it ensures that all CUDA operations that were issued before this function call have been completed.
+
+This synchronization is useful in scenarios where you want to accurately measure the **time taken** by a specific operation on the GPU or ensure that certain operations are complete before proceeding. For example, you might use it when benchmarking different parts of your code to accurately measure their performance.
+
+Here's a basic example of how you might use `torch.cuda.synchronize()`:
+
+**Make sure matmul operation is complete**
+
+```python
+import torch
+
+# Some CUDA operations here
+x = torch.randn(1000, 1000, device='cuda')
+y = torch.randn(1000, 1000, device='cuda')
+
+torch.cuda.synchronize()  # Synchronize CUDA operations
+
+# Measure time taken by some operation
+start_time = torch.cuda.Event(enable_timing=True)
+end_time = torch.cuda.Event(enable_timing=True)
+
+start_time.record()
+result = torch.matmul(x, y)
+end_time.record()
+torch.cuda.synchronize()  # Make sure matmul operation is complete
+
+elapsed_time_ms = start_time.elapsed_time(end_time)
+print("Time taken for matrix multiplication:", elapsed_time_ms, "milliseconds")
+
+```
+
+output:
+
+```
+Time taken for matrix multiplication: 239.35533142089844 milliseconds
+```
+
+In this example, `torch.cuda.synchronize()` ensures that the `matmul` operation is complete before measuring the time taken by it.
+
+##### below is an example by normal method for time taken(that is a incorrect demonstration)
+
+used below code, the result of time taken is not correct at all.
+
+```python
+import torch
+import time 
+
+# Some CUDA operations here
+x = torch.randn(10000, 10000, device='cuda')
+y = torch.randn(10000, 10000, device='cuda')
+
+
+# Measure time taken by some operation
+start_time = torch.cuda.Event(enable_timing=True)
+end_time = torch.cuda.Event(enable_timing=True)
+
+start_time_normal = time.time()
+result = torch.matmul(x, y)
+
+total_time = time.time() - start_time_normal
+
+print("normal time taken calculation:", total_time)
+```
+
+output:
+
+```
+normal time taken calculation: 0.00010776519775390625
+```
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -5768,7 +5931,7 @@ create_model 函数的使用及常用参数
 model_name
 我们首先来看最简单地用法：直接传入模型名称 model_name
 
-#### 1. timm.create_model()
+#### 01. timm.create_model()
 
 ```python
 import timm 
@@ -5816,9 +5979,40 @@ model = timm.create_model('resnet34', pretrained=True)
 Downloading: "https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/resnet34-43635321.pth" to /home/song/.cache/torch/hub/checkpoints/resnet34-43635321.pth
 ```
 
+##### arguments
 
+Absolutely! [The `timm.create_model()` function accepts several arguments](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models)[2](https://timm.fast.ai/create_model):
 
-#### 2. timm.models.layers.to_2tuple,to_3tuple
+- `model_name (str)`: The name of the model architecture you want to create. [This is a required argument](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models)[2](https://timm.fast.ai/create_model).
+- `pretrained (bool)`: If set to `True`, the function will return a model with pretrained weights. [The default value is `False`](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models)[2](https://timm.fast.ai/create_model).
+- [`pretrained_cfg (Union)`: This argument is used to specify the configuration for the pretrained model](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`pretrained_cfg_overlay (Optional)`: This argument is used to overlay the configuration of the pretrained model](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`checkpoint_path (str)`: This argument is used to specify the path to the checkpoint file for the model](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`scriptable (Optional)`: This argument is used to specify whether the model should be scriptable](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`exportable (Optional)`: This argument is used to specify whether the model should be exportable](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`no_jit (Optional)`: This argument is used to specify whether the JIT compiler should be disabled](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+- [`**kwargs`: Additional keyword arguments that will be passed through the entrypoint function to `timm.models.build_model_with_cfg()` and then the model class `__init__()`](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models). Some of the common keyword arguments include:
+  - [`num_classes (int)`: The number of output classes for the model](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+  - [`drop_rate (float)`: The dropout rate for the classifier during training](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+  - [`drop_path_rate (float)`: The stochastic depth drop rate for training](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+  - [`global_pool (str)`: The type of global pooling for the classifier](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+
+Here’s an example of how to use these arguments:
+
+```python
+import timm
+
+# Create a MobileNetV3-Large model with pretrained weights and a new head with 10 classes.
+model = timm.create_model('mobilenetv3_large_100', pretrained=True, num_classes=10)
+```
+
+[In this example, `mobilenetv3_large_100` is the `model_name`, `pretrained=True` specifies that we want to use pretrained weights, and `num_classes=10` specifies that we want the model to have an output layer with 10 classes](https://huggingface.co/docs/timm/reference/models)[1](https://huggingface.co/docs/timm/reference/models).
+
+​                 
+
+ 
+
+#### 02. timm.models.layers.to_2tuple,to_3tuple
 
 这两个内置函数的作用是将输入转为元组(tuple)
 
@@ -5835,10 +6029,463 @@ print(type(a),type(b))
 
 output:
 
-```bash
+```
 a:224,b:(224, 224),c:(224, 224, 224)
 <class 'int'> <class 'tuple'>
 ```
+
+
+
+#### 03. timm.models.registry.register_model()
+
+`timm.models.registry.register_model` is a method used in the `timm` (pytorch-image-models) library, which is used for registering custom model architectures. This method allows users to register their custom model architectures so that they can be easily accessed via string identifier.
+
+Here's an example of how you might use it:
+
+```python
+from timm.models import registry
+
+class CustomModel(nn.Module):
+    def __init__(self, ...):
+        super(CustomModel, self).__init__()
+        # Define your model architecture here
+
+# Register your custom model
+registry.register_model({
+    'custom_model': CustomModel,
+})
+
+```
+
+After registering your custom model with a string identifier ('custom_model' in this example), you can later instantiate it using `create_model` method like so:
+
+```python
+import timm
+
+model = timm.create_model('custom_model', pretrained=False, ...)
+
+```
+
+This allows you to easily use your custom model architecture alongside the pre-defined models in the `timm` library.
+
+
+
+#### 04. timm.data.Mixup()
+
+To use the `Mixup()` method from the `timm.data` module, you typically need to follow these steps:
+
+1. **Import the necessary modules**: Make sure you import the `timm` library and any other required libraries such as PyTorch.
+2. **Instantiate the Mixup object**: Create an instance of the `Mixup()` class with appropriate parameters, such as the alpha parameter which controls the strength of mixing. The alpha parameter typically represents the concentration parameter of the Beta distribution used to sample the mixing ratio.
+3. **Apply Mixup augmentation to your dataset**: Use the instantiated Mixup object within your data loading pipeline to apply Mixup augmentation to your training dataset.
+
+Here's an example of how you might use the `Mixup()` method:
+
+```python
+import torch
+import timm
+from torch.utils.data import DataLoader, Dataset
+from timm.data import Mixup
+
+# Define your custom dataset class
+class CustomDataset(Dataset):
+    def __init__(self, data, targets):
+        self.data = data
+        self.targets = targets
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return self.data[index], self.targets[index]
+
+# Assuming you have your training data and labels loaded into 'train_data' and 'train_labels'
+train_dataset = CustomDataset(train_data, train_labels)
+
+# Define your DataLoader with Mixup augmentation
+mixup = Mixup(alpha=0.4)  # You can adjust alpha as needed
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4, collate_fn=mixup)
+
+# Iterate through the train_loader in your training loop
+for inputs, targets in train_loader:
+    # Inputs and targets will now contain mixed data and labels respectively
+    # Use these mixed samples for training your model
+    pass
+
+```
+
+In this example:
+
+- We first define a custom dataset class (`CustomDataset`) that wraps your training data and labels.
+- Then, we instantiate the `Mixup` object with a chosen alpha value (0.4 in this case).
+- Next, we create a `DataLoader` (`train_loader`) that utilizes the `Mixup` object for augmentation. We pass `mixup` to the `collate_fn` parameter of the DataLoader, which means Mixup augmentation will be applied to each batch during loading.
+- Finally, within your training loop, you'll receive mixed inputs and labels, which you can use for training your model.
+
+Adjust the parameters such as the batch size, number of workers, and alpha value according to your specific use case and requirements.
+
+
+
+#### 05. timm.utils.ModelEma()
+
+This function is designed to facilitate the implementation of exponential moving averages (EMAs) of model parameters during training.
+
+Similar to the general concept discussed earlier, `timm.utils.ModelEma()` would offer functionality to maintain an exponentially moving average of model parameters. It could be used within your training loop to update the EMA of the model's parameters over time, providing a more stable representation of the model's learned parameters.
+
+```python
+import torch
+from timm.utils import ModelEma
+
+# Assuming you have already defined your model
+model = MyModel()
+
+# Initialize ModelEma with your model and a decay factor
+ema = ModelEma(model, decay=0.999)
+
+# Assuming you have already defined your training data loader
+for inputs, targets in train_loader:
+    optimizer.zero_grad()
+    outputs = model(inputs)
+    loss = criterion(outputs, targets)
+    loss.backward()
+    optimizer.step()
+    
+    # Update the exponential moving average of the model's parameters
+    ema.update(model)
+
+# After training, you can use ema.model for inference
+
+```
+
+The purpose of using `ModelEma` is to create a more **stable and generalized model by incorporating the history of parameter updates throughout training, rather than relying solely on the final parameters obtained at the end of training.** This can potentially improve the performance of the model, especially in tasks where ensembling or model averaging is beneficial.
+
+
+
+#### 06. timm.data.create_transform()
+
+This function is used to create image transforms, which are transformations applied to images before feeding them into a neural network for tasks like classification or object detection.
+
+Here's a basic example of how you might use `timm.data.create_transform()`:
+
+```python
+import timm
+import torchvision.transforms as transforms
+
+# Define parameters for creating image transformations
+input_size = (224, 224)  # Input size of the images
+is_training = True       # Whether the transform is for training or not
+normalize = True         # Apply normalization
+auto_augment = 'rand-m9-mstd0.5'  # Auto-augmentation strategy
+color_jitter = 0.1       # Degree of color jittering
+interpolation = 'bilinear'  # Interpolation method for resizing
+re_prob = 0.25           # Probability of applying random erasing augmentation
+re_mode = 'pixel'        # Method used to fill erased region
+re_count = 2             # Number of random erasing operations
+
+# Create image transformations using create_transform() function
+transform = timm.data.create_transform(
+    input_size=input_size,
+    is_training=is_training,
+    normalize=normalize,
+    auto_augment=auto_augment,
+    color_jitter=color_jitter,
+    interpolation=interpolation,
+    re_prob=re_prob,
+    re_mode=re_mode,
+    re_count=re_count
+)
+
+# Now, you can use this transform with your dataset
+# For example, with torchvision.datasets.ImageFolder
+dataset = torchvision.datasets.ImageFolder(root='path/to/your/data', transform=transform)
+
+```
+
+Explanation:
+
+- `input_size`: Defines the size to which images will be resized.
+- `is_training`: Specifies whether the transformation is for training or not.
+- `normalize`: Indicates whether normalization will be applied to the images.
+- `auto_augment`: Specifies the auto-augmentation strategy to be applied.
+- `color_jitter`: Controls the degree of color jittering applied to images.
+- `interpolation`: Determines the interpolation method for resizing images.
+- `re_prob`: Sets the probability of applying random erasing augmentation.
+- `re_mode`: Determines how the erased region will be filled.
+- `re_count`: Specifies the number of random erasing operations to apply.
+
+By adjusting these parameters, you can customize the image transformations to suit the characteristics of your dataset and the requirements of your computer vision task.
+
+
+
+#### 07. timm.data.constants
+
+In `timm`, `constants` is a module that typically includes various constants used within the library.
+
+```python
+DEFAULT_CROP_PCT = 0.875
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
+IMAGENET_INCEPTION_MEAN = (0.5, 0.5, 0.5)
+IMAGENET_INCEPTION_STD = (0.5, 0.5, 0.5)
+IMAGENET_DPN_MEAN = (124 / 255, 117 / 255, 104 / 255)
+IMAGENET_DPN_STD = tuple([1 / (.0167 * 255)] * 3)
+```
+
+below is an example:
+
+```python
+import torch
+import torchvision.transforms as transforms
+
+# Assuming you have an input image in PIL format
+input_image = ...  # Your input image
+
+# Define the transformations to normalize the input image
+transform = transforms.Compose([
+    transforms.Resize(256),  # Resize the image to 256x256
+    transforms.CenterCrop(224),  # Crop the image to 224x224 around the center
+    transforms.ToTensor(),  # Convert the image to a PyTorch tensor
+    transforms.Normalize(mean=timm.data.constants.IMAGENET_DEFAULT_MEAN, 
+                         std=timm.data.constants.IMAGENET_DEFAULT_STD)  # Normalize the image
+])
+
+# Apply the transformations to the input image
+input_tensor = transform(input_image)
+
+# Check the shape and range of the normalized tensor
+print("Shape of normalized tensor:", input_tensor.shape)
+print("Minimum value in normalized tensor:", torch.min(input_tensor))
+print("Maximum value in normalized tensor:", torch.max(input_tensor))
+
+```
+
+
+
+#### 08. timm.loss.LabelSmoothingCrossEntropy()
+
+The `LabelSmoothingCrossEntropy` is a loss function provided by the `timm` library. [It’s essentially the same as the Negative Log-Likelihood (NLL) loss with label smoothing](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+Label smoothing is a regularization technique that prevents the model from becoming too confident about the class labels. [It works by encouraging the model to output a small amount of probability for incorrect classes, which can lead to better generalization and performance](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+Here’s how it works:
+
+```python
+import torch
+import torch.nn.functional as F
+from timm.loss import LabelSmoothingCrossEntropy
+
+# Define the inputs and targets
+x = torch.eye(2)  # Model's correct predictions
+x_i = 1 - x  # Model's incorrect predictions
+y = torch.arange(2)  # Target labels
+
+# Create the loss function with different smoothing values
+lsce_0 = LabelSmoothingCrossEntropy(0.0)
+lsce_01 = LabelSmoothingCrossEntropy(0.1)
+
+# Compute the loss
+loss_0_correct = lsce_0(x, y)
+loss_0_incorrect = lsce_0(x_i, y)
+loss_01_correct = lsce_01(x, y)
+loss_01_incorrect = lsce_01(x_i, y)
+
+print(loss_0_correct, loss_0_incorrect)  # tensor(0.3133), tensor(1.3133)
+print(loss_01_correct, loss_01_incorrect)  # tensor(0.3633), tensor(1.2633)
+
+```
+
+In this example, `x` represents the model’s correct predictions and `x_i` represents the model’s incorrect predictions. The target labels are represented by `y`. The `LabelSmoothingCrossEntropy` loss function is created with different smoothing values (0.0 and 0.1). [The loss is then computed for the correct and incorrect predictions with each smoothing value](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+As you can see, label smoothing increases the loss when the model’s predictions are correct and decreases the loss when the model’s predictions are incorrect. [This means that the model is not punished as harshly for incorrect predictions, which can be beneficial in situations where incorrect labels are expected](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+
+
+#### 09. timm.loss.SoftTargetCrossEntropy()
+
+The `SoftTargetCrossEntropy` is another loss function provided by the `timm` library. [It’s designed to be used with soft targets, which are probability distributions over classes, rather than hard targets, which are single class labels](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+[This loss function is particularly useful when you’re using techniques like mixup, where each training example is a combination of two examples, and the target is a weighted average of the two original targets](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+Here’s how it works:
+
+```python
+import torch
+import torch.nn.functional as F
+from timm.loss import SoftTargetCrossEntropy
+from timm.data.mixup import mixup_target
+
+# Define the inputs and targets
+x = torch.tensor([[[0,1.,0,0,1.]],[[1.,1.,1.,1.,1.]]], device='cuda')
+y = mixup_target(torch.tensor([1,4], device='cuda'), 5, lam=0.7)
+
+# Create the loss function
+stce = SoftTargetCrossEntropy()
+
+# Compute the loss
+loss = stce(x[0], y)
+print(loss)  # tensor(1.1326, device='cuda:0')
+
+```
+
+In this example, `x` represents the model’s predictions and `y` represents the soft targets. [The `SoftTargetCrossEntropy` loss function is then used to compute the loss](https://timm.fast.ai/loss.cross_entropy)[1](https://timm.fast.ai/loss.cross_entropy).
+
+The loss is computed as the sum of the negative log probabilities of the target classes, weighted by the target probabilities. [This encourages the model to increase the probabilities of the target classes](https://github.com/huggingface/pytorch-image-models/blob/main/timm/loss/cross_entropy.py)[2](https://github.com/huggingface/pytorch-image-models/blob/main/timm/loss/cross_entropy.py).
+
+
+
+#### 10. timm.utils.NativeScaler()
+
+
+
+```python
+from timm.utils import NativeScaler
+ 
+loss_scaler = NativeScaler()
+loss_scaler(loss_G, optimizer, parameters=model_restoration.parameters())
+
+loss_G.backward()
+optimizer.step()
+等价于下面的代码：
+loss_scaler(loss_G, optimizer, parameters=model_restoration.parameters())
+```
+
+
+
+#### 11. timm.optim.create_optimizer()
+
+[The `timm.optim.create_optimizer()` function is a factory method in the `timm` library that creates an optimizer for training a model](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers). [It’s designed to be used with PyTorch models and supports a variety of optimizers](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers).
+
+Here’s how you can use it:
+
+```python
+from types import SimpleNamespace
+from timm.optim.optim_factory import create_optimizer
+from timm import create_model
+
+model = create_model('resnet34')
+args = SimpleNamespace()
+args.weight_decay = 0
+args.lr = 1e-4
+args.opt = 'adam'  # 'lookahead_adam' to use `lookahead`
+args.momentum = 0.9
+
+optimizer = create_optimizer(args, model)
+
+```
+
+[In this example, `args` is a `SimpleNamespace` object that mimics the `args` parameter from `ArgumentParser` in the `timm` training script](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers). [The `args` object should have the following attributes set](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers):
+
+- `opt`: Optimizer name
+- `weight_decay`: Weight decay if any
+- `lr`: Learning rate
+- `momentum`: Decay rate for momentum if passed and not 0
+
+[The `model` is the model that you want to train](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers).
+
+Please note that the `create_optimizer` function in `timm` accepts `args` as the first argument. [This `args` parameter is from `ArgumentParser` so you might have to mock it to create an optimizer for your custom training script](https://timm.fast.ai/Optimizers)[1](https://timm.fast.ai/Optimizers).
+
+
+
+#### 12. timm.scheduler.create_scheduler()
+
+[The `timm.scheduler.create_scheduler()` function is a factory method in the `timm` library that creates a learning rate scheduler for training a model](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [It’s designed to be used with PyTorch models and supports a variety of schedulers](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+
+Here’s how you can use it:
+
+```python
+from types import SimpleNamespace
+from timm.optim.optim_factory import create_optimizer
+from timm.scheduler import create_scheduler
+from timm import create_model
+
+model = create_model('resnet34')
+args = SimpleNamespace()
+args.weight_decay = 0
+args.lr = 1e-4
+args.opt = 'adam'  # 'lookahead_adam' to use `lookahead`
+args.momentum = 0.9
+args.sched = 'cosine'
+args.epochs = 200
+args.decay_epochs = 90
+args.warmup_epochs = 10
+args.lr_noise = None
+
+optimizer = create_optimizer(args, model)
+scheduler = create_scheduler(args, optimizer)
+
+```
+
+[In this example, `args` is a `SimpleNamespace` object that mimics the `args` parameter from `ArgumentParser` in the `timm` training script](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [The `args` object should have the following attributes set](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers):
+
+- `sched`: Scheduler name
+- `epochs`: Total number of epochs
+- `decay_epochs`: Number of epochs for decay
+- `warmup_epochs`: Number of warmup epochs
+- `lr_noise`: Learning rate noise
+
+[The `optimizer` is the optimizer that you want to use for training](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+
+Please note that the `create_scheduler` function in `timm` accepts `args` as the first argument and `optimizer` as the second argument. [This `args` parameter is from `ArgumentParser` so you might have to mock it to create a scheduler for your custom training script](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+
+##### 'timm.scheduler.create_scheduler()' VS 'torch.optim.lr_scheduler.StepLR()'
+
+The `timm.scheduler.create_scheduler()` and `torch.optim.lr_scheduler.StepLR()` are both learning rate schedulers used in training deep learning models, but they have different functionalities and use-cases.
+
+1. [`timm.scheduler.create_scheduler()`: This is a factory function from the `timm` library that creates a learning rate scheduler](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [The `timm` library provides a variety of learning rate schedulers such as Cosine decay with restarts, MultiStepLR, PlateauLR, Polynomial decay, and StepLR](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers)[2](https://timm.fast.ai/schedulers). [The specific scheduler created by `timm.scheduler.create_scheduler()` depends on the arguments passed to it](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers)
+2. [`torch.optim.lr_scheduler.StepLR()`: This is a learning rate scheduler provided by PyTorch](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html). [It decays the learning rate of each parameter group by a factor of `gamma` every `step_size` epochs](https://huggingface.co/docs/timm/reference/schedulers)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html). [This is a more straightforward scheduler and is commonly used when you want to decrease the learning rate at a constant interval](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html).
+
+In summary, while both are used for adjusting the learning rate during training, `timm.scheduler.create_scheduler()` provides a variety of scheduling strategies and is more flexible, while `torch.optim.lr_scheduler.StepLR()` provides a simple and straightforward strategy for decreasing the learning rate at constant intervals.
+
+​         
+
+#### 13. timm.utils.accuracy()
+
+[Sure, the `timm.utils.accuracy()` function in the PyTorch Image Models (timm) library is used to compute the accuracy of a model’s predictions](https://huggingface.co/spaces/Roll20/pet_score/blob/3653888366407445408f2bfa8c68d6cdbdd4cba6/lib/timm/utils/metrics.py)[1](https://huggingface.co/spaces/Roll20/pet_score/blob/3653888366407445408f2bfa8c68d6cdbdd4cba6/lib/timm/utils/metrics.py).
+
+Here is a brief explanation of the function:
+
+```python
+def accuracy(output, target, topk=(1,)):
+    """Computes the accuracy over the k top predictions for the specified values of k"""
+    maxk = min(max(topk), output.size()[1])
+    batch_size = target.size(0)
+    _, pred = output.topk(maxk, 1, True, True)
+```
+
+- `output`: This is the tensor containing the raw output values from your model, typically before the softmax or sigmoid activation function. The size of `output` is typically `(batch_size, num_classes)`.
+- `target`: This is the tensor containing the ground truth labels for the batch of data. The size of `target` is typically `(batch_size,)`.
+- `topk`: This is a tuple specifying the top-k accuracies to be computed. For example, `topk=(1,5)` would compute the top-1 and top-5 accuracies.
+
+The function computes the top-k accuracy, which is a standard metric in image classification tasks. [Top-k accuracy is the proportion of test images where the true label is among the k classes predicted as most probable by the model](https://huggingface.co/spaces/Roll20/pet_score/blob/3653888366407445408f2bfa8c68d6cdbdd4cba6/lib/timm/utils/metrics.py)[1](https://huggingface.co/spaces/Roll20/pet_score/blob/3653888366407445408f2bfa8c68d6cdbdd4cba6/lib/timm/utils/metrics.py).
+
+[Please note that this function does not consider a weighted accuracy, it is calculated in terms of the batch and it is gradually updated](https://github.com/huggingface/pytorch-image-models/discussions/1272)[2](https://github.com/huggingface/pytorch-image-models/discussions/1272). This means that all classes are treated equally regardless of their frequency in the dataset. If your dataset is imbalanced, you might want to consider other metrics that take this into account.
+
+I hope this helps! Let me know if you have any other questions.
+
+##### Top-1 Accuracy vs Top-5 Accuracy
+
+Sure, I’d be happy to explain!
+
+- **Top-1 Accuracy**: This is the conventional accuracy metric. [It checks if the class with the highest predicted probability exactly matches the true class](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5). [In other words, the model’s top prediction must be the correct label](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
+- **Top-5 Accuracy**: This is a more lenient metric. [It checks if the true class is among the top 5 classes predicted as most probable by the model](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5). [So, even if the model’s top prediction (highest probability) is not the correct label, but the correct label is among the model’s top 5 predictions, it is considered correct under Top-5 accuracy](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
+
+For example, let’s say you’re applying machine learning to object recognition using a neural network. A picture of a cat is shown, and these are the outputs of your neural network:
+
+```
+Tiger: 0.4
+Dog: 0.3
+Cat: 0.1
+Lynx: 0.09
+Lion: 0.08
+Bird: 0.02
+Bear: 0.01
+```
+
+Using top-1 accuracy, you count this output as wrong, because it predicted a tiger. [Using top-5 accuracy, you count this output as correct, because cat is among the top-5 guesses](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
+
+[In a classification problem with `k` possible classes, every classifier has 100% top-`k` accuracy](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5). [The “normal” accuracy is top-1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
+
+I hope this helps! Let me know if you have any other questions.
+
+ 
 
 
 
@@ -6951,7 +7598,7 @@ Optional argument:  4
 
 ****kwargs**
 
-而**kwargs则是将一个可变的关键字参数的字典传给函数实参，同样参数列表长度可以为0或为其他值。下面这段代码演示了如何使用kwargs
+而**kwargs则是将一个可变的关键字参数的"字典"传给函数实参，同样参数列表长度可以为0或为其他值。下面这段代码演示了如何使用kwargs
 
 
 
@@ -7038,7 +7685,7 @@ args和kwargs组合起来可以传入任意的参数，这在参数未知的情�
 
 #### 21. About decorator of python
 
-什么是装饰器：
+什么是装饰器@：
 
 对于什么是装饰器，我们其实应该知道为什么会存在装饰器。
 
@@ -7047,6 +7694,81 @@ args和kwargs组合起来可以传入任意的参数，这在参数未知的情�
  例如：当你在调试代码的时候，你想要给一些功能函数添加打印调试信息。但是，这个功能只在我们调试的时候使用，正式发布的时候是不需要的。如果此时，你在函数内部修改，由于有多个函数都需要添加相同的或类似的信息，那么，你就需要逐一修改，这个就有点麻烦了，此时我们就可以使用装饰器来解决这一问题。
 
  在解释如何使用装饰器之前，我们需要先把和装饰器有关的基本概念给讲一下。
+
+Below is an example of Decorator
+
+```python
+def my_decorator(func):
+    def wrapper():
+        print("Something is happening before the function is called.")
+        func()
+        print("Something is happening after the function is called.")
+    return wrapper
+
+@my_decorator
+def say_hello():
+    print("Hello!")
+
+say_hello()
+
+```
+
+output:
+
+```
+Something is happening before the function is called.
+Hello!
+Something is happening after the function is called.
+```
+
+Let's simplify it further.
+
+In Python, **a decorator is a special type of function that takes another function as an argument and returns a new function.** It allows you to "decorate" or modify functions or classes without changing their source code directly.
+
+Here's a basic example to illustrate:
+
+```python
+# Define a decorator function
+def my_decorator(func):
+    def wrapper():
+        print("Something is happening before the function is called.")
+        func()  # Call the original function
+        print("Something is happening after the function is called.")
+    return wrapper
+
+# Define a function to be decorated
+def say_hello():
+    print("Hello!")
+
+# Decorate the function using the decorator function
+say_hello = my_decorator(say_hello)
+
+# Now when we call say_hello, it will invoke the wrapper function
+say_hello()
+
+```
+
+In this example:
+
+- `my_decorator` is a decorator function that takes `func` as an argument. It defines a new function `wrapper` that adds behavior before and after calling `func`.
+- `say_hello` is a function we want to decorate.
+- We apply the decorator `my_decorator` to `say_hello` by reassigning `say_hello` to the result of calling `my_decorator` with `say_hello` as an argument.
+- When we call `say_hello()`, it actually invokes the `wrapper` function, which then calls the original `say_hello` function inside it.
+
+The `@` symbol provides a more convenient syntax for applying decorators, as shown below:
+
+```python
+@my_decorator
+def say_hello():
+    print("Hello!")
+
+say_hello()
+
+```
+
+This is functionally equivalent to the previous example where we manually applied the decorator.
+
+
 
 
 
@@ -7293,18 +8015,56 @@ Out[4]: {'a': 'j', 'b': 'k', 'c': 'l'}
 
 
 
-#### 26. assert  断言函数
+#### 26. assert /əˈsɜːrt/ [verb]  断言，声称函数
 
-使用assert是学习python的一个非常好的习惯，在没完善一个程序之前，我们不知道程序在哪里会出错，与其让它在运行时崩溃，不如在出现错误条件时就崩溃。
+In Python, the `assert` statement is used as a debugging aid. It tests whether a condition is true. If the condition is false, it raises an `AssertionError` exception with an optional error message.
+
+Here's the basic syntax:
 
 ```python
-def  zero(s):
-    a = int(s)
-    assert a > 0,"a超出范围"   #这句的意思：如果a确实大于0，程序正常往下运行
-    return a
-
-zero("-2")  #但是如果a是小于0的，程序会抛出AssertionError错误，报错为参数内容“a超出范围”
+assert condition, message
 ```
+
+- `condition`: The expression that is tested. If it evaluates to False, the assertion fails.
+- `message` (optional): A string that will be output if the assertion fails. It's useful for providing additional information about why the assertion failed.
+
+Here's an example:
+
+```python
+x = 10
+assert x == 10, "x should be 10"
+```
+
+In this example, the assertion will pass because `x` is indeed equal to 10. However, if `x` were not equal to 10, the assertion would fail, and Python would raise an `AssertionError` with the message "x should be 10". You can see this counter-example from below:
+
+```python
+x = 5
+assert x == 10, "x should be 10, and this is edited by programmer"
+```
+
+output:
+
+```
+---------------------------------------------------------------------------
+AssertionError                            Traceback (most recent call last)
+Cell In[12], line 2
+      1 x = 5
+----> 2 assert x == 10, "x should be 10, and this is edited by programmer"
+
+AssertionError: x should be 10, and this is edited by programmer
+```
+
+You can also use `assert` without a message:
+
+```python
+assert x == 10
+```
+
+However, it's generally good practice to include a descriptive message to help you understand why the assertion failed, especially in more complex programs.
+
+It's worth noting that you can disable all assertions at once by running Python with the `-O` (optimize) option, which will turn off assertion checking. This can be useful in production environments to improve performance, as assertions are primarily used for debugging during development.
+
+
 
 
 
@@ -8252,6 +9012,20 @@ print "Second list length : ", len(list2);
 以上实例输出结果如下：
 
 
+
+#### 51. [0.0]+list
+
+```python
+a = [1,2,3]
+b = [0.0]+a
+print(b)
+```
+
+output:
+
+```
+[0.0, 1, 2, 3]
+```
 
 
 
@@ -9598,7 +10372,7 @@ If the substring is not found, the method returns -1, and the corresponding mess
 
 
 
-#### 78. string.strip()
+#### 79. string.strip()
 
 The `string.strip()` method is a built-in string method in many programming languages, including Python. It is used to remove leading and trailing whitespaces (spaces, tabs, and newline characters) from a string. The method does not modify the original string; instead, it returns a new string with the leading and trailing whitespaces removed.
 
@@ -9622,6 +10396,758 @@ Stripped String: 'Hello, World!'
 ```
 
 As you can see, the `strip()` method has removed the leading and trailing spaces from the original string.
+
+#### 80. Python getattr() 函数 
+
+描述
+
+**getattr()** 函数用于返回一个对象属性值。
+
+语法
+
+```python
+getattr(object, name[, default])
+```
+
+##### 参数
+
+- object -- 对象。
+- name -- 字符串，对象属性。
+- default -- 默认返回值，如果不提供该参数，在没有对应属性时，将触发 AttributeError。
+
+##### Example 1: How getattr() works in Python?
+
+```python
+class Person:
+    age = 23
+    name = "Adam"
+
+person = Person()
+print('The age is:', getattr(person, "age"))
+print('The age is:', person.age)
+```
+
+**Output**
+
+```powershell
+The age is: 23
+The age is: 23
+```
+
+------
+
+##### Example 2: getattr() when named attribute is not found
+
+```python
+class Person:
+    age = 23
+    name = "Adam"
+
+person = Person()
+
+# when default value is provided
+print('The sex is:', getattr(person, 'sex', 'Male'))
+
+# when no default value is provided
+print('The sex is:', getattr(person, 'sex'))
+```
+
+**Output**
+
+```powershell
+The sex is: Male
+AttributeError: 'Person' object has no attribute 'sex'
+```
+
+
+
+#### 81. python hasattr()
+
+The hasattr() method returns true if an object has the given named attribute and false if it does not.
+
+The syntax of `hasattr()` method is:
+
+```
+hasattr(object, name)
+```
+
+`hasattr()` is called by [getattr()](https://www.programiz.com/python-programming/methods/built-in/getattr) to check to see if AttributeError is to be raised or not.
+
+------
+
+##### hasattr() Parameters
+
+`hasattr()` method takes two parameters:
+
+- **object** - object whose named attribute is to be checked
+- **name** - name of the attribute to be searched
+
+------
+
+##### Return value from hasattr()
+
+`hasattr()` method returns:
+
+- **True**, if object has the given named attribute
+- **False**, if object has no given named attribute
+
+------
+
+##### Example: How hasattr() works in Python?
+
+```python
+class Person:
+    age = 23
+    name = 'Adam'
+
+person = Person()
+
+print('Person has age?:', hasattr(person, 'age'))
+print('Person has salary?:', hasattr(person, 'salary'))
+```
+
+**Output**
+
+```powershell
+Person has age?: True
+Person has salary?: False
+```
+
+
+
+#### 82. Python Anonymous [əˈnɒnɪməs]  [əˈnɑːnɪməs] /Lambda Function
+
+##### 1 for 简写
+
+先举一个例子：
+
+```python
+y = [1,2,3,4,5,6]
+[(i*2) for i in y ]
+```
+
+会输出  [2, 4, 6, 8, 10, 12]
+
+##### 1.1 一层for循环简写：
+
+一层 for 循环的简写格式是：（注意有中括号）
+
+```python
+[ 对i的操作 for i in 列表 ]
+
+```
+
+它相当于：
+
+```python
+for i in 列表:
+    对i的操作
+```
+
+##### 1.2 两层for循环
+
+两层的for循环就是：
+
+```python
+[对i的操作 for 单个元素 in 列表 for i in 单个元素]
+
+```
+
+举个简单的例子：
+
+```python
+y_list = ['assss','dvv']
+[print(i) for y in y_list for i in y]
+```
+
+得到结果：a s s s s d v v
+
+他类似于：
+
+```python
+y_list = ['assss','dvv']
+for y in y_list:
+    for i in y:
+        print(i) 
+```
+
+##### 2 if 简写
+
+格式是：
+
+```python
+True的逻辑 if 条件 else False的逻辑
+
+```
+
+举个例子：
+
+```python
+y = 0
+x = y+3 if y > 3 else y-1
+```
+
+此时 x = -1
+
+因为 y = 0 ，所以判断 y>3 时执行了 False的逻辑：y-1，所以x的值为 -1
+
+##### 2.1 for 与 if 的结合怎么简写
+
+举个l例子：
+
+```python
+x = [1,2,3,4,5,6,7]
+[print(i) for i in x if i > 3 ]
+```
+
+它会输出：4 5 6 7
+
+注：使用简写的方式无法对 if 判断为 False 的对象执行操作。
+
+所以它的模板是：
+
+```python
+[判断为True的i的操作 for i in 列表 if i的判断 ]
+```
+
+##### 3 匿名函数lambda
+
+匿名函数的使用方法是：
+
+lambda 参数: 表达式
+举个例子：
+
+```python
+x = 3
+(lambda k: k+3)(x)
+```
+
+输出 6
+
+这是一个比较简单的匿名函数表达式，一般匿名函数会结合很多其他函数，作为传递参数的作用。
+
+举一个有点儿hard的例子:
+
+```python
+      self._flat_weights = [(lambda wn: getattr(self, wn) if hasattr(self, wn) else None)(wn) for wn in self._flat_weights_names]
+```
+
+
+
+```python
+print("*******if...else语句*********")
+#if 条件为真的时候返回if前面内容，否则返回0 
+exp1= lambda x:x+1 if  2==1 else 0 
+print(exp1(2))
+exp2 = lambda x:x+1 if  1==1 else 0 
+print(exp2(2))
+```
+
+output:
+
+```powershell
+****\**\*if…else语句\*\**\******
+0
+3
+[Finished in 0.2s]
+```
+
+
+
+```python
+print("*******if not...else语句*********")  
+#if not 为假返回if not前面内容，否则返回0  
+exp3 = lambda x:x+1 if not 2==1 else 0  
+print(exp3(2))  
+
+exp4 = lambda x:x+1 if not 1==1 else 0  
+print(exp4(2))  
+```
+
+```powershell
+结果
+3
+0
+[Finished in 0.3s]
+```
+
+
+
+#### 83. method 与 function的区别
+
+我们在阅读英文资料时，可能经常会遇到method和function这两个单词，还可能经常以为两个是一样的。
+
+这次在读python的说明文档时，这两个词出现的频率挺高，所以我就查了以下它们的区别。
+
+method是依赖与一个对象的，function是独立于对象的。
+
+在c中，只有function;
+
+在c++中，既有method也有function,一个函数的称呼取决于它是否是一个类的对象，同理，python也是，php也是。
+
+在java中，只有method，因为它是一门纯面向对象的语言。
+
+下面是一段 python的代码：
+
+```python
+def function(data):
+        return data;
+class A:
+        str1 = "I'm a method in class"
+        def method(self):
+                return self.str1
+
+str2 = "I'm a function"
+print(function(str2))
+a = A()
+print(a.method()) 
+```
+
+
+从上面中可以看出来两者之间的差别:
+
+1 function是直接通过名字来调用的，它只能被传递参数来处理或者使用全局变量。
+
+2 method 是通过与一个对象相关联的名字来调用的，它既可以被传递参数也可以，使用对象内部的数据。
+
+  method 隐式的被传递了调用它的对象。
+
+
+
+#### 84. python underscore
+
+**Python****里的单下划线，双下划线，以及前后都带下划线的意义：**
+
+1. 单下划线如：_name
+
+   意思是：不能通过from modules import * 导入，如需导入需要：from modules import _name
+
+2. 对象前面加双下划线如：__name
+
+   意思是：生命对象为私有
+
+3. 前后双下划线如：__init __:python系统自带的一些函数和方法
+
+
+
+#### 85. python中的类型提示(type hint)
+
+在刷leetcode或者一些官方源码的时候，经常看到如下字样：
+
+```python
+class Solution:
+    def sortList(self, head: ListNode) -> ListNode:
+```
+
+这就是类型提示(type hint)，下面来个简单的例子，
+
+```python
+def greeting(name: str) -> str:
+    return 'Hello ' + name
+```
+
+如上，其中name是传入的参数，而:右边的str则是name期望的类型即str，而->则指向期望函数的返回类型。
+如果不期望有返回值可以直接指向None，如下：
+
+```python
+def feeder(get_next_item: Callable[[], str]) -> None:
+
+```
+
+
+
+#### 86.关于 from . import 问题
+
+一个点表示当前路径，二个点表示上一层路径。
+
+```python
+from . import echo
+
+from .. import formats
+```
+
+
+
+#### 87.关于 from XXX import * ,import,from XXX import问题
+
+1. from XXX import* 会导入XXX模块的所有函数, 不建议用这个. 
+2. import  XXX (here the XXX can't be folder)
+3. **import 模块**：导入一个模块；注：相当于导入的是一个文件夹，是个相对路径。
+4. **from…import**：导入了一个模块中的一个函数；注：相当于导入的是一个文件夹中的文件，是个绝对路径。
+
+
+
+#### 88.关于sys模块
+
+Python sys模块通过sys.argv提供对任何命令行参数的访问。这有两个常用指令：
+
+sys.argv 返回的是包含命令行参数的一个 list
+
+len(sys.argv) 返回的是命令行参数的个数
+
+```python
+import sys
+
+print('Number of arguments:'+ len(sys.argv) + ' arguments.')
+print('Argument List:', str(sys.argv)
+```
+
+cmd 直接以下命令：
+
+```powershell
+ python test.py arg1 arg2 arg3
+
+```
+
+可返回如下结果：
+
+```powershell
+Number of arguments: 4 arguments.
+Argument List: ['test.py', 'arg1', 'arg2', 'arg3']
+```
+
+返回的第一个参数永远是文件名，且会被计入参数个数中。
+
+
+
+#### 89. for i in range()
+
+Create a sequence of numbers from 0 to 5, and print each item in the sequence:
+
+```python
+for i in range(10,15):
+
+​    print(i)
+```
+
+```powershell
+10 11 12 13 14
+```
+
+another example:
+
+```python
+x = range(3, 20, 2)
+
+for n in x:
+  print(n)
+```
+
+output:
+
+```
+3
+5
+7
+9
+11
+13
+15
+17
+19
+```
+
+
+
+#### 90. split() function
+
+##### 描述
+
+split() 通过指定分隔符对字符串进行**切片**，如果第二个参数 num 有指定值，则分割为 num+1 个子字符串。
+
+##### 语法
+
+split() 方法语法：
+
+```python
+str.split(str="", num=string.count(str))
+```
+
+##### 参数
+
+- str -- 分隔符，默认为所有的空字符，包括空格、换行(\n)、制表符(\t)等。
+- num -- 分割次数。默认为 -1, 即分隔所有。
+
+##### 返回值
+
+返回分割后的字符串列表。
+
+##### 实例
+
+以下实例展示了 split() 函数的使用方法：
+
+##### Example
+
+```python
+#!/usr/bin/python3  
+
+
+
+str = "this is string example....wow!!!" 
+
+print (str.split( ))       # 以空格为分隔符 
+
+print (str.split('i',1))   # 以 i 为分隔符 
+
+print (str.split('w'))     # 以 w 为分隔符
+```
+
+以上实例输出结果如下：
+
+```python
+['this', 'is', 'string', 'example....wow!!!']
+['th', 's is string example....wow!!!']
+['this is string example....', 'o', '!!!']
+```
+
+以下实例以 # 号为分隔符，指定第二个参数为 1，返回两个参数列表。
+
+##### Example
+
+```python
+#!/usr/bin/python3  
+
+txt = "Google#Runoob#Taobao#Facebook"   
+
+x = txt.split("#", 1)  
+
+print(x)
+```
+
+以上实例输出结果如下：
+
+```powershell
+['Google', 'Runoob#Taobao#Facebook']
+```
+
+
+
+#### 91. add_argument函数的metavar参数
+
+add_argument函数的metavar参数，用来控制部分命令行参数的显示，注意：它只是影响部分参数的显示信息，不影响代码内部获取命令行参数的对象。
+
+```python
+>>> parser = argparse.ArgumentParser()
+>>> parser.add_argument('--foo', metavar='YYY')
+>>> parser.add_argument('bar', metavar='XXX')
+>>> parser.parse_args('X --foo Y'.split())
+Namespace(bar='X', foo='Y')
+>>> parser.print_help()
+usage:  [-h] [--foo YYY] XXX
+
+positional arguments:
+ XXX
+
+optional arguments:
+ -h, --help  show this help message and exit
+ --foo YYY
+```
+
+
+
+metavar参数可以让命令的帮助信息更好看一些！
+
+初次之外，还有个功能可以关注，对于有nargs参数的命令行参数，可以用metavar来设置每一个具体的参数的名称：
+
+```python
+>>> parser = argparse.ArgumentParser(prog='PROG')
+>>> parser.add_argument('-x', nargs=2)
+>>> parser.add_argument('--foo', nargs=2, metavar=('bar', 'baz'))
+>>> parser.print_help()
+usage: PROG [-h] [-x X X] [--foo bar baz]
+
+optional arguments:
+ -h, --help     show this help message and exit
+ -x X X
+ --foo bar baz
+```
+
+-x参数没有使用metavar，显示出来的帮助信息就是两个X，而--foo参数也可以接收两个参数，这两个参数的名称就用metavar进行了具体的定义，看起来好多了。本文代码示例都是python官方文档中的。
+
+
+
+Q1：*请问博主，第一个位置参数假如说是--max_episode_len,然后也有人写是--max-episode-len,但是他在调用的时候仍然用的是args.max_episode_len，也没报错，请问这个下划线_和-的区别在哪里呢？*
+
+A1：没啥区别，在这里表示同一个意思，-对应_，代码里写的不一样或者都改成一样的都可以
+
+
+
+For anyone who doesn't know what is nargs:
+
+nargs stands for Number Of Arguments
+
+3: 3 values, can be any number you want
+?: a single value, which can be optional
+*: a flexible number of values, which will be gathered into a list
++: like *, but requiring at least one value
+argparse.REMAINDER: all the values that are remaining in the command line
+
+#### 92. add_argument函数的prefix_chars
+
+许多命令行会使用 `-` 当作前缀，比如 `-f/--foo`。如果解析器需要支持不同的或者额外的字符，比如像 `+f` 或者 `/foo` 的选项，可以在参数解析构建器中使用 `prefix_chars=` 参数。
+
+```python
+>>> parser = argparse.ArgumentParser(prog='PROG', prefix_chars='-+')
+>>> parser.add_argument('+f')
+>>> parser.add_argument('++bar')
+>>> parser.parse_args('+f X ++bar Y'.split())
+Namespace(bar='Y', f='X')
+```
+
+`prefix_chars=` 参数默认使用 `'-'`。 提供一组不包括 `-` 的字符将导致 `-f/--foo` 选项不被允许。
+
+
+
+#### 93. python var函数
+
+```python
+class My():
+
+​    'Test'
+​    def __init__(self,name):
+​        self.name=name
+
+​    def test(self):
+​        print (self.name)
+
+​    def abc(self):
+​        print("roll out")
+
+
+vars(My)#返回一个字典对象，他的功能其实和  My.__dict__  很像
+
+for key,value in vars(My).items():
+
+​    print (key,':',value)
+```
+
+output:
+
+```powershell
+__module__ : __main__ 
+__doc__ : Test 
+__init__ : <function My.__init__ at 0x7f21202c0170> 
+test : <function My.test at 0x7f21202c0ef0> 
+abc : <function My.abc at 0x7f21202c05f0> 
+__dict__ : <attribute '__dict__' of 'My' objects> 
+__weakref__ : <attribute '__weakref__' of 'My' objects>
+```
+
+
+
+#### 94. types.SimpleNamespace()
+
+`SimpleNamespace` is a lightweight class that provides a simple way to create namespaces without defining a custom class. It takes keyword arguments during instantiation and creates an object with attributes corresponding to those arguments. Here's an example:
+
+```python
+import types
+
+# Creating a SimpleNamespace object
+person = types.SimpleNamespace(name="John", age=30, city="New York")
+
+# Accessing attributes
+print(person.name)  # Output: John
+print(person.age)   # Output: 30
+print(person.city)  # Output: New York
+
+```
+
+In the above example, `person` is an instance of `SimpleNamespace` with attributes `name`, `age`, and `city`. These attributes are set to the values provided during instantiation. This approach is useful for creating simple objects to hold data without needing to define a custom class.
+
+
+
+#### 95. `if-else`  ternary / ˈtɜːrnəri / operator
+
+In Python, you can write an `if-else` statement in one line using the ternary operator. Here’s the syntax:
+
+```python
+value_if_true if condition else value_if_false
+```
+
+For example, let’s say we want to assign the value `"even"` to a variable `result` if a number `num` is even, and `"odd"` otherwise. Here’s how you can do it in one line:
+
+```python
+num = 10
+result = "even" if num % 2 == 0 else "odd"
+print(result)  # Output: "even"
+```
+
+In this code, `"even"` is assigned to `result` if `num % 2 == 0` (i.e., `num` is even), else `"odd"` is assigned. The `print(result)` statement will output `"even"` because `10` is an even number. If `num` was an odd number, it would output `"odd"`. This is a concise way to write an `if-else` statement in Python. It’s especially useful when you want to assign a value to a variable based on a condition. However, for more complex conditions or actions, it’s usually clearer to write a full `if-else` statement over multiple lines.
+
+**Hint: the ternary operator is always used with an `if-else` structure.**
+
+​              
+
+#### 96. kwargs.update()
+
+In Python, `kwargs` is a convention used for keyword arguments in a function. It allows you to pass a variable-length list of keyword arguments (i.e., arguments preceded by identifiers). It’s represented as a dictionary.
+
+The `update()` method is a built-in method for dictionaries in Python. It’s used to add or update the keys-value pairs from other dictionary or iterable to the existing dictionary.
+
+So, `kwargs.update()` is used to add or update the keys-value pairs in the `kwargs` dictionary. Here’s an example:
+
+```python
+def my_function(**kwargs):
+    print("Before update:", kwargs)
+    kwargs.update({"key1": "value1", "key2": "value2"})
+    print("After update:", kwargs)
+
+my_function(key3="value3", key4="value4")
+```
+
+output:
+
+```
+Before update: {'key3': 'value3', 'key4': 'value4'}
+After update: {'key3': 'value3', 'key4': 'value4', 'key1': 'value1', 'key2': 'value2'}
+```
+
+
+
+In this example, `kwargs` initially contains `{"key3": "value3", "key4": "value4"}`. After the `update()` method is called, `kwargs` is updated to `{"key3": "value3", "key4": "value4", "key1": "value1", "key2": "value2"}`.
+
+I hope this helps! Let me know if you have any other questions. 😊
+
+​              
+
+#### 97. function for i in range()
+
+This is a powerful feature of Python that allows you to create complex lists in a very concise way. 
+
+Here are 2 examples.
+
+example 1
+
+```python
+def square(x):
+    return x ** 2
+
+squares = [square(i) for i in range(10)]
+print(squares)
+```
+
+output:
+
+```
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+example 2
+
+```python
+def square(x):
+    return x ** 2
+
+k = 5
+squares = [square(k) for i in range(10)]
+print(squares)
+```
+
+output；
+
+```
+[25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+```
 
 
 
@@ -10489,9 +12015,7 @@ dod
 
 
 
-#### PyTorch view和reshape的区别
-
-
+##### PyTorch view和reshape的区别
 
 ##### 相同之处
 
@@ -12350,7 +13874,7 @@ model/PROGRESS_{1}.pickle
 
 ## About sys
 
-#### 1. sys.path[0]
+#### 01. sys.path[0]
 
 存放需要运行代码所在的路径
 
@@ -12365,7 +13889,7 @@ output:
 /media/jiang/Vdataset/ast-master/src/utilities
 ```
 
-#### 2. sys.path.append(os.pardir)
+#### 02. sys.path.append(os.pardir)
 
 ```python
 #该函数文件为mnist_show.py
@@ -12379,13 +13903,30 @@ from dataset.mnist import load_mnist
 mnist_show.py文件的当前工作目录为ch03，但是load_mnist（）函数的mnist.py文件在dataset目录下。因此，mnist_show.py文件不可以跨文件直接导入mnist.py文件。sys.path.append(os.pardir)语句实际上是把父目录deep-learning-from-scatch加入到sys.path（Python 的搜索目录模块的路径集中），从而可以导入deep-learning-from-scatch下的任何目录(包括dataset目录)中的任何文件。
 ![sys.path.append](./pictures source/sys.path.append.png)
 
-#### 3. how to import file from parent folder
+#### 03. how to import file from parent folder
 
 ```python
 import sys
 sys.path.append("../..")
 from src import models, dataloader
 ```
+
+
+
+#### 04. sys.exit()
+
+`sys.exit()` is a Python function that you can call to exit your program. It raises the `SystemExit` exception behind the scenes. Once this exception is raised, Python will stop the current program. If you’re writing a script and you want it to exit at any point, you can use `sys.exit()`. Here’s an example:
+
+```python
+import sys
+
+print("Hello, world!")
+sys.exit()
+print("This line will not be printed.")
+
+```
+
+
 
 
 
@@ -12723,7 +14264,9 @@ Finds the global minimum of a multivariate function.
 
 ## About torchvision
 
-#### 01.torchvision.transforms.compose()
+#### 01.torchvision.transforms
+
+
 
 torchvision是pytorch的一个图形库，它服务于PyTorch深度学习框架的，主要用来构建计算机视觉模型。torchvision.transforms主要是用于常见的一些图形变换。以下是torchvision的构成：
 
@@ -12732,7 +14275,7 @@ torchvision.models: 包含常用的模型结构（含预训练模型），例如
 torchvision.transforms: 常用的图片变换，例如裁剪、旋转等；
 torchvision.utils: 其他的一些有用的方法。
 
-##### 1.transforms.Compose()
+##### 01.transforms.Compose()
 
 本文的主题是其中的`torchvision.transforms.Compose()`类。这个类的主要作用是串联多个图片变换的操作。这个类的构造很简单:
 
@@ -12769,9 +14312,7 @@ def __call__(self, img):
 
 ```
 
-
-
-##### 2.transforms.ToTensor()
+##### 02.transforms.ToTensor()
 
 Convert a `PIL Image` or `numpy.ndarray` to tensor
 转换一个PIL库的图片或者numpy的数组为tensor张量类型；
@@ -12821,6 +14362,48 @@ transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))解释：
 (0-0.5)/0.5=-1
 (1-0.5)/0.5=1
 其他数值同理操作，即映射到[-1,1]
+
+
+
+##### 03.transforms.RandomCrop()
+
+`torchvision.transforms.RandomCrop()` is a function from the PyTorch library's `torchvision.transforms` module, specifically designed for image transformations. This function performs a random crop of the input image. Random cropping is a common data augmentation technique used in computer vision tasks to enhance the model's ability to generalize by exposing it to different parts of the input images during training.
+
+Here's a brief overview of its functionality:
+
+```python
+import torchvision.transforms as transforms
+from torchvision.datasets import CIFAR10
+from torch.utils.data import DataLoader
+
+# Define transformations
+transform = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),  # Random crop with padding of 4 pixels
+    transforms.RandomHorizontalFlip(),     # Random horizontal flip
+    transforms.ToTensor(),                 # Convert image to PyTorch tensor
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize image
+])
+
+# Load CIFAR-10 dataset with defined transformations
+train_dataset = CIFAR10(root='./data', train=True, download=True, transform=transform)
+
+# Create a DataLoader to iterate over the dataset in batches
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+
+# Now, you can iterate over train_loader to access batches of randomly cropped and augmented images
+for batch in train_loader:
+    images, labels = batch
+    # Your training code goes here
+
+```
+
+**Note**:
+
+- `RandomCrop()` is typically used in conjunction with other transformations in a pipeline, such as resizing, normalization, and horizontal flipping, as part of data preprocessing for training deep learning models on image datasets.
+
+
+
+
 
 #### 02.torchvision.datasets.MNIST()
 
@@ -12913,6 +14496,45 @@ resnext50_32x4d = models.resnext50_32x4d(pretrained=True)
 wide_resnet50_2 = models.wide_resnet50_2(pretrained=True)
 mnasnet = models.mnasnet1_0(pretrained=True)
 ```
+
+
+
+#### 04. torchvision.datasets.ImageFolder()
+
+This class is particularly useful for loading datasets of images when the images are arranged in a specific folder structure.
+
+A generic data loader where the images are arranged in this way by default:
+
+root/dog/xxx.png
+root/dog/xxy.png
+root/dog/[...]/xxz.png
+
+root/cat/123.png
+root/cat/nsdf3.png
+root/cat/[...]/asd932_.png
+
+```python
+from torchvision import datasets
+
+root= "../../ImageNet_1K/ImageNet_extrated"
+dataset = datasets.ImageFolder(root)
+image, label=dataset[0]
+print(len(dataset))
+print(len(dataset.imgs), dataset.imgs[0])
+print("This is the image:",image)
+print("This is the label:", label)
+```
+
+output:
+
+```
+1281167
+1281167 ('../../ImageNet_1K/ImageNet_extrated/n01440764/n01440764_10026.JPEG', 0)
+This is the image: <PIL.Image.Image image mode=RGB size=250x250 at 0x749DE215C580>
+This is the label: 0
+```
+
+
 
 
 
@@ -14188,6 +15810,25 @@ True
 
 
 
+#### 03. math.isfinite()
+
+The `math.isfinite(x)` function in Python is used to check whether `x` is neither an infinity nor a NaN (Not a Number). The function returns `True` if `x` is a finite number, and `False` otherwise.
+
+Here’s an example:
+
+```python
+import math
+
+print(math.isfinite(10))  # True
+print(math.isfinite(float('inf')))  # False
+print(math.isfinite(float('nan')))  # False
+
+```
+
+In this example, `10` is a finite number, so `math.isfinite(10)` returns `True`. However, `float('inf')` represents infinity, and `float('nan')` represents a NaN value, so `math.isfinite()` returns `False` for both of these values.
+
+
+
 ## About Pathlib
 
 ### why do we use Pathlib
@@ -14776,10 +16417,6 @@ parser = argparse.ArgumentParser('DeiT training and evaluation script', parents=
 
 
 
-
-
-
-
 #### 2. easy way to add arguments
 
 Here we can use 'args.abc' to add arguments.
@@ -14813,11 +16450,64 @@ This is the interger: 2
 [action](http://docs.python.org/dev/library/argparse.html#action) defines how to handle command-line arguments: store it as a constant, append into a list, store a boolean value etc. There are several built-in actions available, plus it's easy to write a custom one.
 
 1. `store`: Save the value, after optionally converting it to a different type. This is the default action taken if none is specified explicitly.
-2. `store_true`/`store_false`: Save the appropriate boolean value.
-3. `store_const`: Save a value defined as part of the argument specification, rather than a value that comes from the arguments being parsed. This is typically used to implement command line flags that aren’t booleans.
-4. `append`: Save the value to a list. Multiple values are saved if the argument is repeated.
-5. `append_const`: Save a value defined in the argument specification to a list.
+
+2. `store_true`/`store_false`: `"store_true"` and `"store_false"`: Special cases of `"store_const"`. These are used when an argument represents a boolean flag. `"store_true"` stores `True` if the argument is present, while `"store_false"` stores `False` if the argument is present.
+
+   
+
+3. `append`: Save the value to a list. Multiple values are saved if the argument is repeated.
+
+4. `append_const`: Save a value defined in the argument specification to a list.
+
 6. `version`: Prints version details about the program and then exits.
+
+
+
+#### 4. parser.set_defaults()
+
+`argparse.ArgumentParser().set_defaults()` is a method in Python's `argparse` module that allows you to set default values for arguments in your command-line interface. This method sets default values for attributes of the argument parser.
+
+Here's how you would typically use it:
+
+```python
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--foo', help='foo help')
+parser.add_argument('--bar', help='bar help')
+
+# Set default values for arguments
+parser.set_defaults(foo='default foo value', bar='default bar value')
+
+args = parser.parse_args()
+
+print(args.foo)
+print(args.bar)
+
+```
+
+output:
+
+```
+default foo value
+default bar value
+```
+
+
+
+#### 5. the `dest`' from the `parser.add_argument('--foo', help='foo help')`
+
+```python
+argparse.ArgumentParser.add_argument('--foo', help='foo help', dest='bar')
+print(args.foo) # AttributeError: 'Namespace' object has no attribute 'foo'. Did you mean: 'bar'?
+
+```
+
+The value of the `'--foo'` argument will be stored in the namespace under the name `'bar'`. So you would access it using `args.bar`. The name `'foo'` is still used as the option string when invoking the script, but internally(内部地), the value is stored with the name `'bar'`. Therefore, **`args.foo` won't contain any value**, but `args.bar` will contain the value of the `'--foo'` argument.
+
+
+
+invoke the script(调用脚本)
 
 
 
@@ -15241,3 +16931,118 @@ Year: 2024, Month: 03, Day: 01
 In this example, the pattern `r"(\d+)-(\d+)-(\d+)"` captures three groups representing the year, month, and day in a date-like pattern. **The `match.groups()` method is then used to access the captured values.**
 
 Keep in mind that regular expressions can be quite powerful and have a wide range of features. The patterns you use can be as simple or as complex as needed for your specific use case.
+
+
+
+## functools
+
+#### 01.functools.partial()
+
+`functools.partial` is a function in Python's `functools` module that allows you to "freeze" some portion of a function's arguments and/or keywords resulting in a new callable with the partially applied arguments. It's particularly useful in situations where you need to create a new function based on an existing function but with some arguments pre-set.
+
+Here's a basic example of how `functools.partial` works:
+
+```python
+from functools import partial
+
+# Original function
+def power(base, exponent):
+    return base ** exponent
+
+# Create a new function with the exponent preset to 2
+square = partial(power, exponent=2)
+
+# Now square is a new function that takes only one argument (base)
+print(square(3))  # Output: 9 (equivalent to power(3, 2))
+
+```
+
+In this example, `partial(power, exponent=2)` creates a new function called `square` where the `exponent` argument is preset to `2`. When you call `square(3)`, it is equivalent to calling `power(3, 2)`.
+
+You can also use `partial` to fix any positional arguments:
+
+```python
+from functools import partial
+
+# Original function
+def greeting(greeting, name):
+    return f"{greeting}, {name}!"
+
+# Create a new function with the greeting preset to "Hello"
+hello_greeting = partial(greeting, "Hello")
+
+print(hello_greeting("Alice"))  # Output: "Hello, Alice!"
+print(hello_greeting("Bob"))    # Output: "Hello, Bob!"
+
+```
+
+In this example, `partial(greeting, "Hello")` creates a new function called `hello_greeting` where the `greeting` argument is preset to `"Hello"`. When you call `hello_greeting("Alice")`, it is equivalent to calling `greeting("Hello", "Alice")`.
+
+`functools.partial` is particularly handy when you have a function that you need to pass to another function or method that requires a different signature. It allows you to adapt functions with different signatures to fit each other's requirements without having to define new functions explicitly.
+
+
+
+## mlflow
+
+Sure, `mlflow` is a Python library that provides a platform to streamline machine learning development. [It includes tracking experiments, packaging code into reproducible runs, and sharing and deploying models](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/). Here are the main components of `mlflow`:
+
+1. [**MLflow Tracking**: An API to log parameters, code, and results in machine learning experiments and compare them using an interactive UI](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/).
+2. [**MLflow Projects**: A code packaging format for reproducible runs using Conda and Docker, so you can share your ML code with others](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/).
+3. [**MLflow Models**: A model packaging format and tools that let you easily deploy the same model (from any ML library) to batch and real-time scoring on platforms such as Docker, Apache Spark, Azure ML, and AWS SageMaker](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/).
+4. [**MLflow Model Registry**: A centralized model store, set of APIs, and UI, to collaboratively manage the full lifecycle of MLflow Models](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/).
+
+[`mlflow` offers a set of lightweight APIs that can be used with any existing machine learning application or library (TensorFlow, PyTorch, XGBoost, etc), wherever you currently run ML code (e.g., in notebooks, standalone applications, or the cloud)](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/).
+
+[You can install `mlflow` from PyPI via `pip install mlflow`](https://pypi.org/project/mlflow/)[1](https://pypi.org/project/mlflow/). For more detailed information, you can refer to the [official documentation](https://mlflow.org/docs/latest/index.html).
+
+
+
+Sure, here’s a basic example of how to use the `mlflow` library in Python. This example demonstrates how to train a simple model and log parameters, metrics, and the model itself using `mlflow`.
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Load iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Start a new MLflow run 
+with mlflow.start_run():
+
+    # Train a model
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
+
+    # Evaluate the model
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+
+    # Log parameters and metrics using MLflow
+    mlflow.log_param("model", "RandomForestClassifier")
+    mlflow.log_param("test_size", 0.3)
+    mlflow.log_metric("accuracy", accuracy)
+
+    # Log the sklearn model
+    mlflow.sklearn.log_model(model, "model")
+```
+
+In this example, we first import the necessary libraries and load the iris dataset. We then split the dataset into training and testing sets. We start a new MLflow run and train a `RandomForestClassifier` model. We evaluate the model and log the model type, test size, and accuracy as parameters and metrics using MLflow’s `log_param` and `log_metric` functions. Finally, we log the trained model using MLflow’s `log_model` function.
+
+[You can view the logged runs using MLflow’s UI by running `mlflow ui` in your terminal and navigating to `http://localhost:5000` in your web browser](https://mlflow.org/docs/latest/tutorials-and-examples/index.html)[1](https://mlflow.org/docs/latest/tutorials-and-examples/index.html).
+
+For more detailed examples, you can refer to the [official MLflow examples](https://mlflow.org/docs/latest/tutorials-and-examples/index.html) and [other MLflow examples on GitHub](https://github.com/amesar/mlflow-examples).
+
+​                 
+
+​                       
+
+​              
