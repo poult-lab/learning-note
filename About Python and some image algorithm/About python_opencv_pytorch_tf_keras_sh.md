@@ -57,7 +57,7 @@ This command will delete the specified Conda virtual environment and all package
 #### 6. Deactivate your virtual environment.
 
 ```bash
-source deactivate
+conda deactivate
 ```
 
 
@@ -223,6 +223,35 @@ refer from:https://www.murhabazi.com/install-nvidia-driver
 
 ```
 apt search nvidia-driver
+```
+
+
+
+#### 21. how to edit  .bashrc file
+
+```
+gedit ~/.bashrc
+```
+
+
+
+#### 22. Refresh .bashrc file
+
+Sourcing your `.bashrc` file using the `source` command will execute the commands within it, making any changes to your shell environment immediately available. This is particularly useful if you've made changes to your `.bashrc` file and want them to take effect without having to close and reopen your terminal session. It's a handy way to reload your Bash settings.
+
+```
+source ~/.bashrc
+```
+
+
+
+#### 23. how to add the cuda's path to root
+
+first open the .bashrc file and then put below code.
+
+```
+export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 ```
 
 
@@ -464,6 +493,8 @@ cd ..
 watch nvidia-smi
 ```
 
+
+
 #### 9. Copy multiple files with specific suffixes to the previous directory 
 
 For the below example: 
@@ -477,6 +508,12 @@ cp g1/*.hea g1/*.mat g2/*.hea g2/*.mat ../test_data
 ```
 
 
+
+#### 10. 'Ctrl + c' and 'Ctrl + z'
+
+So, if you're running a Python script with `python` and you want to exit the program but keep the process running in the background, you can use `Ctrl + Z`. 
+
+If you want to terminate the process entirely, use `Ctrl + C`.
 
 
 
@@ -6483,9 +6520,7 @@ Using top-1 accuracy, you count this output as wrong, because it predicted a tig
 
 [In a classification problem with `k` possible classes, every classifier has 100% top-`k` accuracy](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5). [The “normal” accuracy is top-1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
 
-I hope this helps! Let me know if you have any other questions.
-
- 
+Hint: The `accuracy()` function in the `timm` library is typically used for single-label classification tasks. This is because it compares the model’s top `k` predictions with the actual target to compute accuracy.
 
 
 
