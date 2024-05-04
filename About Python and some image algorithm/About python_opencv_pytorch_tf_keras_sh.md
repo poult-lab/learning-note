@@ -111,10 +111,16 @@ conda env list
 
 
 
-#### 12. pip install a specific version, type the package name followed by the required version:
+#### 12. pip install a specific version and pip update package, type the package name followed by the required version:
 
 ```bash
 pip install 'PackageName==1.4'
+```
+
+The fundamental command to update a Python package using pip is
+
+```
+pip install --upgrade package-name
 ```
 
 
@@ -252,6 +258,22 @@ first open the .bashrc file and then put below code.
 ```
 export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+```
+
+
+
+#### 24. how to use the `watch` command to continuously monitor the temperature:
+
+1.**Install lm-sensors**: Open a terminal and type the following command to install lm-sensors:
+
+```
+sudo apt-get install lm-sensors 
+```
+
+2.using the `watch` command to continuously monitor the temperature:
+
+```
+watch -n 2 sensors
 ```
 
 
@@ -2303,7 +2325,7 @@ Remember, the `torch.linspace()` function is particularly useful in scenarios wh
 
 [Sure, `timm.models.layers.DropPath()` is a function from the `timm` library, which stands for **PyTorch Image Models**](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py). [This library is a collection of image models, layers, utilities, and scripts for PyTorch](https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055)[2](https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055).
 
-[The `DropPath()` function is a regularization layer that implements a technique known as **DropPath** or **Stochastic Depth**](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/). [The idea behind DropPath is to randomly drop some individual samples within a batch during training](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/). This is different from Dropout, which randomly sets a fraction of input units to 0 at each update during training time. [DropPath, on the other hand, drops entire samples (i.e., all features for a given sample) rather than individual features](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[4](https://stackoverflow.com/questions/69175642/droppath-in-timm-seems-like-a-dropout).
+[The `DropPath()` function is a regularization layer that implements a technique known as **DropPath** or **Stochastic Depth**](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[1](https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/). [The idea behind DropPath is to randomly drop **some individual samples within a batch during training].** This is different from Dropout, which randomly sets a fraction of input units to 0 at each update during training time. [DropPath, on the other hand, drops entire samples (i.e., all features for a given sample) rather than individual features](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[4](https://stackoverflow.com/questions/69175642/droppath-in-timm-seems-like-a-dropout).
 
 This technique is used to prevent overfitting and improve the generalization of deep neural networks. [It introduces randomness in the training process that helps the model to learn more robust features](https://keras.io/api/keras_cv/layers/regularization/drop_path/)[3](https://keras.io/api/keras_cv/layers/regularization/drop_path/).
 
@@ -2438,6 +2460,77 @@ output = layer_norm(input_tensor)
 ```
 
 In this example, `input_tensor` is normalized along the channels dimension (second dimension) because `normalized_shape` is set to `[64, 10, 10]`. The mean and standard deviation are calculated separately for each of the 64 channels in the input tensor.
+
+
+
+In `torch.nn.LayerNorm`, the `eps` parameter stands for epsilon. It’s a small value added to the denominator for numerical stability. [The default value of `eps` is `1e-5`](https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html). This is used when normalizing the layer inputs, specifically in the calculation of the standard deviation. The formula for Layer Normalization is:
+
+y = \frac{x - E[x]}{\sqrt{Var[x] + \epsilon}} * \gamma + \betay=Var[x]+ϵx−E[x]∗γ+β
+
+[Here, `x` is the input, `E[x\]` is the mean of `x`, `Var[x]` is the variance of `x`, `γ` (gamma) and `β` (beta) are learnable parameters, and `ε` (epsilon) is the `eps` parameter you asked about](https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html). The `eps` value ensures that the denominator does not become zero when the variance of `x` is very small. This is important because division by zero would result in `NaN` values. By adding this small `eps` value, we can avoid this issue and ensure numerical stability in the calculations[1]. This is a common technique used in many normalization methods.
+
+​              
+
+
+
+#### 34. torch.nn.GroupNorm
+
+[Sure, `torch.nn.GroupNorm` is a class in PyTorch that applies Group Normalization over a mini-batch of inputs](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html). [This operation is described in the paper "Group Normalization"](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+Here’s how it works:
+
+- [The input channels are separated into `num_groups` groups, each containing `num_channels / num_groups` channels](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+- [The mean and standard-deviation are calculated separately over each group](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+- The normalization formula is given by: 
+
+  y = \frac {x - E[x]} { \sqrt {Var[x] + \epsilon}} * \gamma + \betay=Var[x]+ϵx−E[x]∗γ+β
+
+   where `E[x]` is the mean, `Var[x]` is the variance, `γ` (gamma) and `β` (beta) are learnable per-channel affine transform parameter vectors of size `num_channels` if `affine` is set to `True`
+
+  1
+
+  .
+
+- [The standard-deviation is calculated via the biased estimator, equivalent to `torch.var(input, unbiased=False)`](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+- [This layer uses statistics computed from input data in both training and evaluation modes](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+The parameters are:
+
+- [`num_groups (int)`: number of groups to separate the channels into](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+- [`num_channels (int)`: number of channels expected in input](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+- `eps (float)`: a value added to the denominator for numerical stability. [Default: 1e-5](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+- `affine (bool)`: a boolean value that when set to `True`, this module has learnable per-channel affine parameters initialized to ones (for weights) and zeros (for biases). [Default: `True`](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+[The shape of the input and output is `(N, C, *)` where `C = num_channels`](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html). [The output has the same shape as the input](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+Here’s an example of how to use it:
+
+```python
+import torch
+import torch.nn as nn
+
+# Create a random tensor
+input = torch.randn(20, 6, 10, 10)
+
+# Separate 6 channels into 3 groups
+m = nn.GroupNorm(3, 6)
+
+# Activate the module
+output = m(input)
+```
+
+[In this example, the 6 channels of the input tensor are separated into 3 groups](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html). [The `GroupNorm` module is then applied to the input](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.GroupNorm.html).
+
+​                 
+
+​              
+
+#### 35. torch.nn.BatchNorm2d()
+
+
 
 
 
@@ -2625,6 +2718,8 @@ DataLoader是PyTorch中的一种数据类型。
 9、drop_last：（数据类型 bool）
 
 丢弃最后数据，默认为False。设置了 batch_size 的数目后，最后一批数据未必是设置的数目，有可能会小些。这时你是否需要丢弃这批数据。
+
+Setting `drop_last=True` means that this incomplete batch will be dropped, ensuring that all batches fed to the model during training have **the same size.**
 
 10、timeout：（数据类型 numeric）
 
@@ -4185,7 +4280,7 @@ output:
 import torch
 
 # 保存模型步骤
-torch.save(model, 'net.pth')  # 保存整个神经网络的模型结构以及参数
+torch.save(model, './xxx/xxx/net.pth')  # 保存整个神经网络的模型结构以及参数
 torch.save(model, 'net.pkl')  # 同上
 torch.save(model.state_dict(), 'net_params.pth')  # 只保存模型参数
 torch.save(model.state_dict(), 'net_params.pkl')  # 同上
@@ -5943,6 +6038,260 @@ normal time taken calculation: 0.00010776519775390625
 
 
 
+#### 112. torch.tensor.expand()
+
+Sure, I’d be happy to explain `torch.expand()` to you.
+
+[`torch.expand()` is a function in PyTorch that returns a new view of the input tensor with singleton dimensions expanded to a larger size](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html)[1](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html). Here’s a more detailed explanation:
+
+- **Singleton dimensions**: These are dimensions of the tensor that have a size of 1. For example, a tensor of size (3, 1) has a singleton dimension at the second dimension.
+- **Expanding a tensor**: This means increasing the size of the singleton dimensions of the tensor to a specified larger size. The expanded tensor will have the same values as the original tensor along the expanded dimensions.
+- [**New view of the tensor**: This means that the expanded tensor does not allocate new memory, but only creates a new way to access the data of the existing tensor](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html)[1](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html). This is efficient in terms of memory usage.
+
+Here’s an example:
+
+```python
+import torch
+
+# Create a tensor of size (3, 1)
+x = torch.tensor([[1], [2], [3]])
+
+# Expand the tensor to size (3, 4)
+y = x.expand(3, 4)
+
+print(y)
+```
+
+This will output:
+
+```
+tensor([[1, 1, 1, 1],
+        [2, 2, 2, 2],
+        [3, 3, 3, 3]])
+```
+
+In this example, the second dimension of the tensor `x` is a singleton dimension. The `expand()` function increases the size of this dimension from 1 to 4. The values along this dimension in the expanded tensor `y` are the same as the values in the original tensor `x`.
+
+One important thing to note is that more than one element of an expanded tensor may refer to a single memory location. As a result, in-place operations (especially ones that are vectorized) may result in incorrect behavior. [If you need to write to the tensors, please clone them first](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html)[1](https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html).
+
+
+
+anther example:
+
+```python
+import torch
+
+# Create a tensor of size (3, 1)
+x = torch.tensor([[1], [2], [3]])
+
+# Expand the tensor to size (3, 4)
+y = x.expand(-1, 4) 
+ # -1 means not changing the size of that dimension
+
+print(y)
+```
+
+output:
+
+```
+tensor([[1, 1, 1, 1],
+        [2, 2, 2, 2],
+        [3, 3, 3, 3]])
+```
+
+
+
+
+
+#### 113. torch.nn.init.zeros_()
+
+Sure, I’d be happy to explain!
+
+[The function `torch.nn.init.zeros_()` is a part of PyTorch’s neural network initialization module](https://pytorch.org/docs/stable/nn.init.html)[1](https://pytorch.org/docs/stable/nn.init.html). This function is used to initialize the parameters of a neural network.
+
+Here’s what it does:
+
+- [`torch.nn.init.zeros_(tensor)` fills the input tensor with the scalar value 0].
+
+This is particularly useful when you want to initialize all the weights or biases of a particular layer in a neural network to zero. [It’s important to note that no gradient will be recorded for this operation](https://pytorch.org/docs/stable/nn.init.html)[2](https://pytorch.org/cppdocs/api/function_namespacetorch_1_1nn_1_1init_1af7e7736ba2d050adc0523d84285564e8.html).
+
+Here’s an example of how you might use it:
+
+```python
+import torch
+
+# Create an empty tensor
+w = torch.empty(3, 5)
+
+# Initialize the tensor with zeros
+torch.nn.init.zeros_(w)
+```
+
+In this example, `w` is a tensor with shape (3, 5). After the `torch.nn.init.zeros_(w)` call, all elements in `w` will be 0.
+
+[Remember, while initializing all weights to zero might be useful in certain cases, it’s not always the best approach because it can lead to symmetry during training and might prevent the network from learning effectively](https://stackoverflow.com/questions/49433936/how-do-i-initialize-weights-in-pytorch)[3](https://stackoverflow.com/questions/49433936/how-do-i-initialize-weights-in-pytorch). Therefore, other initialization methods are often used in practice.
+
+I hope this helps! Let me know if you have any other questions. 😊
+
+​              
+
+
+
+#### 114. torch.nn.init.ones_()
+
+The function `torch.nn.init.ones_()` is a part of PyTorch’s neural network initialization module. [This function is used to fill the input tensor with the scalar value 1](https://pytorch.org/docs/stable/nn.init.html)[1](https://pytorch.org/docs/stable/nn.init.html).
+
+Here’s a basic usage example:
+
+```python
+import torch
+import torch.nn.init as init
+
+# Create an empty tensor
+w = torch.empty(3, 5)
+
+# Fill the tensor with ones
+init.ones_(w)
+```
+
+After running this code, the tensor `w` will be filled with ones. The resulting tensor will look like this:
+
+```
+tensor([[1., 1., 1., 1., 1.],
+        [1., 1., 1., 1., 1.],
+        [1., 1., 1., 1., 1.]])
+```
+
+[Please note that the function operates in-place, meaning it modifies the input tensor directly and does not return a new tensor](https://pytorch.org/docs/stable/nn.init.html)[1](https://pytorch.org/docs/stable/nn.init.html). [Also, no gradient will be recorded for this operation](https://pytorch.org/cppdocs/api/function_namespacetorch_1_1nn_1_1init_1a9dcc2051aadbe8ddb37d58bbd2b7943a.html)[2](https://pytorch.org/cppdocs/api/function_namespacetorch_1_1nn_1_1init_1a9dcc2051aadbe8ddb37d58bbd2b7943a.html).
+
+​                 
+
+​             
+
+#### 115. torch.empty() vs torch.rand()
+
+ Sure, let’s clarify the difference between `torch.empty` and `torch.rand` (I assume you meant `torch.rand` as there is no `torch.random` in PyTorch).
+
+- `torch.empty(size)`: This function returns a tensor filled with uninitialized data[1](https://pytorch.org/docs/stable/generated/torch.empty.html)[1](https://pytorch.org/docs/stable/generated/torch.empty.html). The shape of the tensor is defined by the variable argument `size`. The values that are present in the tensor after the call to `torch.empty` are whatever values were already in memory at that location. It’s faster because it doesn’t have to write any values to the memory[2](https://discuss.pytorch.org/t/difference-between-torch-tensor-and-torch-empty/32831)[3](https://discuss.pytorch.org/t/difference-between-torch-tensor-and-torch-empty/32831).
+
+Here’s an example of how you might use it:
+
+```python
+import torch
+
+# Create an empty tensor
+x = torch.empty(5, 3)
+print(x)
+```
+
+- `torch.rand(size)`: This function returns a tensor filled with random numbers from a uniform distribution on the interval [0, 1). The shape of the tensor is defined by the variable argument `size`.
+
+Here’s an example of how you might use it:
+
+```python
+import torch
+
+# Create a random tensor
+x = torch.rand(5, 3)
+print(x)
+```
+
+In summary, `torch.empty` gives you a tensor with uninitialized values, and `torch.rand` gives you a tensor with random values. I hope this helps! Let me know if you have any other questions. 😊
+
+​                 
+
+#### 116. torch.nn.SiLU()
+
+​            
+
+[`torch.nn.SiLU()` is a method in PyTorch that applies the **Sigmoid Linear Unit (SiLU)** function, also known as the **Swish** function, element-wise to the input](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html).
+
+The SiLU function is defined as:
+
+silu(x)=x∗σ(x)
+
+where 
+
+σ(x)
+
+[  is the logistic sigmoid function](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html) 
+
+```python
+import torch
+import torch.nn as nn
+
+m = nn.SiLU()
+input = torch.randn(2)
+print("This is the input:", input)
+output = m(input)
+print("This is the output:", output)
+
+```
+
+output:
+
+```
+This is the input: tensor([1.4487, 0.3081])
+This is the output: tensor([1.1732, 0.1776])
+```
+
+
+
+The Sigmoid Linear Unit (SiLU) function, also known as the Swish function, has several advantages that make it special compared to other activation functions:
+
+1. **Non-Monotonicity**: Unlike the ReLU (and other commonly used activation units such as sigmoid and tanh units), the activation of the SiLU is not monotonically increasing. Instead, it has a global minimum value of approximately −0.28 for 
+
+   z_k ≈ −1.28zk≈−1.28
+
+2. **Self-Stabilizing Property**: An attractive feature of the SiLU is that it has a self-stabilizing property. [The global minimum, where the derivative is zero, functions as a ‘‘soft floor’’ on the weights that serves as an implicit regularizer that inhibits the learning of weights of large magnitudes](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
+
+3. **Improved Accuracy**: One of the key benefits of using SiLU over other activation functions is its improved accuracy in deep neural networks. [It benefits from a gradual rise and fall, making it less likely to overfit and more likely to produce accurate results](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[2](https://serp.ai/sigmoid-linear-unit/).
+
+4. [**Usage in Various Fields**: SiLU is later used by many papers from other fields such as object detection](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
+
+These properties make SiLU a valuable tool in the toolbox of activation functions for neural networks. However, the choice of activation function can depend on the specific task and the nature of the data. It’s always a good idea to experiment with different activation functions and see which one works best for your specific use case.
+
+​                 
+
+#### 117. torch.nn.utils.clip_grad_norm_() vs torch.nn.utils.clip_grad_norm()
+
+Pytorch uses the **trailing underscore convention** for **in-place** operations. So the difference is that the one with an underscore modifies the tensor in place and the other one leaves the original tensor unmodified and returns a new tensor.  
+
+​            
+
+ `torch.nn.utils.clip_grad_norm_()` is a function in PyTorch used to implement **gradient clipping**. Gradient clipping is a technique used to prevent exploding gradients in very deep networks, usually in the context of Recurrent Neural Networks (RNNs).
+
+Here’s how you can use it:
+
+```python
+# Assuming 'model' is your neural network model and 'loss' is the loss function
+# 'optimizer' is the optimization algorithm used
+# 'data', 'hidden', and 'targets' are your input data, hidden states, and targets respectively
+# 'args.clip' is the maximum allowed norm for the gradients (clipping threshold)
+
+optimizer.zero_grad()         # Zero the gradients
+loss, hidden = model(data, hidden, targets)  # Forward pass through the network
+loss.backward()               # Compute the gradients
+
+torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)  # Clip the gradients if they explode
+
+optimizer.step()              # Update the weights
+```
+
+[In the above code, `torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)` is inserted between `loss.backward()` and `optimizer.step()`](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[1](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch). [The function `clip_grad_norm_` takes two arguments: the parameters of your model and the maximum allowed norm for the gradients](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[2](https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html). [It computes the norm over all gradients together, as if they were concatenated into a single vector](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[2](https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html). [If the norm of the gradient vector exceeds the maximum allowed norm, it will rescale the gradients to ensure that their norm is at most equal to the maximum norm](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[3](https://ai.stackexchange.com/questions/31991/what-exactly-happens-in-gradient-clipping-by-norm).
+
+[Please replace `args.clip` with the maximum norm value you want to allow for the gradients](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[1](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch). This value is problem-specific and is usually chosen based on empirical results.
+
+[Remember, this function modifies the gradients in-place, meaning the gradients of the model parameters are changed without needing to create a new variable](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[2](https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html).
+
+I hope this helps! Let me know if you have any other questions. 😊
+
+​                 
+
+​              
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -6521,6 +6870,49 @@ Using top-1 accuracy, you count this output as wrong, because it predicted a tig
 [In a classification problem with `k` possible classes, every classifier has 100% top-`k` accuracy](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5). [The “normal” accuracy is top-1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5)[1](https://stackoverflow.com/questions/37668902/evaluation-calculate-top-n-accuracy-top-1-and-top-5).
 
 Hint: The `accuracy()` function in the `timm` library is typically used for single-label classification tasks. This is because it compares the model’s top `k` predictions with the actual target to compute accuracy.
+
+
+
+#### 14. timm.models.layers.trunc_normal_()
+
+[The `trunc_normal_()` function is an initializer that generates a **truncated normal distribution**](https://zhuanlan.zhihu.com/p/521318833)[2](https://zhuanlan.zhihu.com/p/521318833). In the context of neural networks, initializers are used to set the initial random weights of network layers.
+
+[A truncated normal distribution is similar to a standard normal distribution, but values that are more than two standard deviations from the mean are discarded and re-drawn](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html)[3](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html). This is particularly useful in neural networks as it helps to avoid large weights, which can lead to unstable training results. [It’s a recommended initializer for neural network weights and filters](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html)[3](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html).
+
+Here’s a simple usage example:
+
+```python
+from timm.models.layers import trunc_normal_
+
+# Initialize a tensor with the truncated normal distribution
+weights = torch.empty(3, 5)
+trunc_normal_(weights)
+```
+
+In this example, a tensor of size 3x5 is created and then initialized with the truncated normal distribution using the `trunc_normal_()` function. The resulting `weights` tensor now holds the initial weights for a layer in a neural network, ready to be trained.
+
+
+
+#### 15. timm.models.layers.lecun_normal_()
+
+In the context of neural networks, initializers are used to set the initial random weights of network layers. [The LeCun normal initializer draws samples from a truncated normal distribution centered on 0 with `stddev = sqrt(1 / fan_in)` where `fan_in` is the number of input units in the weight tensor](https://discuss.pytorch.org/t/default-weight-initialisation-for-conv-layers-including-selu/87012)[2](https://discuss.pytorch.org/t/default-weight-initialisation-for-conv-layers-including-selu/87012).
+
+Here’s a simple usage example:
+
+```python
+from timm.models.layers import lecun_normal_
+
+# Initialize a tensor with the LeCun normal distribution
+weights = torch.empty(3, 5)
+lecun_normal_(weights)
+```
+
+AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
+
+In this example, a tensor of size 3x5 is created and then initialized with the LeCun normal distribution using the `lecun_normal_()` function. The resulting `weights` tensor now holds the initial weights for a layer in a neural network, ready to be trained.
+
+​              
+
 
 
 
@@ -8795,9 +9187,7 @@ Overall, performing operations in-place can be a useful technique in programming
 
 
 
-#### 45. clip_grad_norm_() vs clip_grad_norm()
 
-Pytorch uses the **trailing underscore convention** for in-place operations. So the difference is that the one with an underscore modifies the tensor in place and the other one leaves the original tensor unmodified and returns a new tensor.
 
 
 
@@ -11186,6 +11576,21 @@ output；
 
 
 
+#### 98. '//' in python
+
+In Python, the double forward slash `//` is the floor division operator. It performs division where the result is rounded down to the nearest whole number (integer). For example:
+
+```python
+result = 11 // 3
+print(result)  # Output will be 3
+```
+
+This is useful when you want to get the quotient of a division operation without any remainder. It's particularly handy when you're dealing with indices or situations where you need integer division.
+
+
+
+
+
 ## About opencv4
 
 #### Regular Contour detection
@@ -13089,6 +13494,37 @@ a.shape
 
 
 
+#### 33. numpy.ravel()
+
+`numpy.ravel()` is a function provided by the NumPy library in Python. It's used to flatten multi-dimensional arrays into a one-dimensional array.
+
+Here's how it works:
+
+```python
+import numpy as np
+
+# Create a multi-dimensional array
+arr = np.array([[1, 2, 3], [4, 5, 6]])
+
+# Flatten the array using ravel()
+flattened_arr = np.ravel(arr)
+
+print(flattened_arr)
+
+```
+
+output:
+
+```
+[1 2 3 4 5 6]
+```
+
+As you can see, the original 2D array `arr` is flattened into a one-dimensional array `[1 2 3 4 5 6]`. This is particularly useful when you want to perform operations that require a one-dimensional array or when you want to simplify the manipulation of multi-dimensional data.
+
+
+
+
+
 ## About sklearn
 
 #### 1. about sklearn.preprocessing.MinMaxScaler()
@@ -13650,6 +14086,84 @@ Classification Report:
    macro avg       0.60      0.59      0.59       200
 weighted avg       0.60      0.58      0.59       200
 ```
+
+
+
+#### 12. sklearn.metrics.f1_score()
+
+The general F-1 score
+
+```python
+from sklearn.metrics import f1_score
+
+# Example true labels and predicted labels
+true_labels = [0, 1, 1, 0, 1]
+predicted_labels = [0, 1, 0, 0, 1]
+
+# Calculate F1-score
+f1 = f1_score(true_labels, predicted_labels)
+
+print("F1-score:", f1)
+
+```
+
+Replace `true_labels` and `predicted_labels` with your actual true labels and predicted labels respectively. The `f1_score` function computes the F1-score for each class independently and then averages them, unless specified otherwise through the `average` parameter.
+
+
+
+##### Balanced dataset:
+
+Certainly! The macro F1-score is a way to compute the F1-score for each class individually and then simply average them without considering class imbalance. 
+
+Here's how you can compute the macro F1-score in Python:
+
+```python
+from sklearn.metrics import f1_score
+
+# Example true labels and predicted labels
+true_labels = [0, 1, 1, 0, 1]
+predicted_labels = [0, 1, 0, 0, 1]
+
+# Calculate macro F1-score
+macro_f1 = f1_score(true_labels, predicted_labels, average='macro')
+
+print("Macro F1-score:", macro_f1)
+```
+
+In the example above, `average='macro'` is used to compute the macro F1-score. This means that the F1-score for each class will be computed independently, and then these individual F1-scores will be averaged to get the final macro F1-score. This averaging process gives equal weight to each class, regardless of its size in the dataset.
+
+
+
+##### imbalanced dataset:
+
+When dealing with imbalanced datasets, where some classes have significantly more instances than others, using the macro F1-score might not be the best choice. This is because macro averaging treats all classes equally, which can lead to misleading results, especially when the dataset is imbalanced.
+
+In such cases, you might want to consider using the micro or weighted F1-score:
+
+1. **Micro F1-score**: Computes the F1-score globally by counting the total true positives, false negatives, and false positives across all classes. It gives each sample-class pair equal weight, which is useful for imbalanced datasets.
+
+2. **Weighted F1-score**: Computes the F1-score for each class individually and then takes the weighted average based on the number of true instances for each class. This gives more weight to classes with more instances, which can be helpful for imbalanced datasets.
+
+Here's how you can compute the micro and weighted F1-scores in Python:
+
+```python
+from sklearn.metrics import f1_score
+
+# Example true labels and predicted labels for an imbalanced dataset
+true_labels = [0, 1, 1, 0, 1, 1, 1, 1, 1, 1]  # Imbalanced: Class 0 (2 instances), Class 1 (8 instances)
+predicted_labels = [0, 1, 0, 0, 1, 1, 1, 1, 0, 1]
+
+# Calculate micro F1-score
+micro_f1 = f1_score(true_labels, predicted_labels, average='micro')
+
+# Calculate weighted F1-score
+weighted_f1 = f1_score(true_labels, predicted_labels, average='weighted')
+
+print("Micro F1-score:", micro_f1)
+print("Weighted F1-score:", weighted_f1)
+```
+
+Using micro or weighted averaging is often more appropriate for imbalanced datasets because they take into account the class distribution when computing the final F1-score.
 
 
 
@@ -17080,4 +17594,29 @@ For more detailed examples, you can refer to the [official MLflow examples](http
 
 ​                       
 
-​              
+## typing
+
+#### 01. typing.Optional
+
+In Python, `Optional` is a type hint introduced in the `typing` module, which was added in Python 3.5. `Optional` is used to indicate that a variable can either contain a value of a certain type or be `None`. It's particularly useful for documenting function signatures, making it clear whether a function may return `None` or a value of a specific type.
+
+Here's a basic example:
+
+```python
+from typing import Optional
+
+def greet(name: Optional[str]) -> str:
+    if name is not None:
+        return f"Hello, {name}!"
+    else:
+        return "Hello, stranger!"
+```
+
+In this example, the `name` parameter of the `greet` function is annotated as `Optional[str]`, indicating that it can either be a string or `None`. This makes it clear to users of the function that passing `None` as the `name` argument is acceptable.
+
+Using `Optional` can improve code readability and help catch potential `None`-related bugs early in development.
+
+
+
+
+
