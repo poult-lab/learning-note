@@ -278,6 +278,59 @@ watch -n 2 sensors
 
 
 
+#### 25. conda install or uninstall pytorch torchvision torchaudio
+
+install
+
+```
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
+uninstall
+
+```
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
+
+
+## Colab server
+
+#### 01. download dataset via wget from hugging face
+
+```
+!wget https://huggingface.co/datasets/poult/CinC_challenge_2021/resolve/main/collection_of_all_datasets.zip
+```
+
+
+
+#### 02. unzip file 
+
+```
+!unzip collection_of_all_datasets.zip
+```
+
+
+
+#### 03. pip install package
+
+```
+# third step: pip install required package
+!pip install -r /content/drive/MyDrive/the\ mamba\ materials/mamba_ECG_code/vim_requirements_edited.txt
+!pip install mamba-ssm
+!pip install causal-conv1d
+```
+
+
+
+#### 04. how to cd
+
+```
+%cd drive/MyDrive/the_mamba_materials/mamba_ECG_code/scripts
+```
+
+
+
 ## Visual Studio Code
 
 #### 1.debugging
@@ -293,24 +346,31 @@ Debugging a Python file in Visual Studio Code with arguments involves setting up
 4. **Edit the `launch.json` file:** In the `launch.json` file, you can set up your debugging configuration. Here's an example with arguments:
 
    ```python
-   jsonCopy code{
+   {
+       // Use IntelliSense to learn about possible attributes.
+       // Hover to view descriptions of existing attributes.
+       // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
        "version": "0.2.0",
        "configurations": [
+   
            {
-               "name": "Python: Debug with Arguments",
-               "type": "python",
+               "name": "Python Debugger: Current File with Arguments",
+               "type": "debugpy",
                "request": "launch",
-               "program": "your_file.py",
-               "args": ["arg1", "arg2", "arg3"],
+               "program": "benchmarks/benchmark_generation_mamba_simple.py",
                "console": "integratedTerminal",
-               "cwd": "${workspaceFolder}",
-               "env": {},
-               "stopOnEntry": false,
-               "pythonPath": "${config:python.pythonPath}",
-               "debugOptions": [],
-               "externalConsole": false,
-               "preLaunchTask": null,
-               "postDebugTask": null
+               "args": [
+                   "--model-name",
+               "state-spaces/mamba-2.8b",
+               "--prompt",
+               "My cat wrote all this CUDA code for a new language model and",
+               "--topp",
+               "0.9",
+               "--temperature",
+               "0.7",
+               "--repetition-penalty",
+               "1.2"
+           ]
            }
        ]
    }
@@ -2532,6 +2592,33 @@ output = m(input)
 
 
 
+#### 36. torch.bmm()
+
+`torch.bmm()` is a function in PyTorch (a popular deep learning library) that stands for "batch matrix multiplication". It's specifically designed to perform matrix multiplication between batches of matrices efficiently.
+
+Here's how it works:
+
+```python
+import torch
+
+# Define two batches of matrices
+batch1 = torch.randn(10, 3, 4)  # Shape: [batch_size, num_rows, num_cols]
+batch2 = torch.randn(10, 4, 5)  # Shape: [batch_size, num_cols, num_cols]
+
+# Perform batch matrix multiplication
+result_batch = torch.bmm(batch1, batch2)
+
+# Result will have shape [batch_size, num_rows, num_cols]
+print(result_batch.shape)
+```
+
+In this example:
+- `batch1` has a shape of `[10, 3, 4]`, meaning it contains 10 matrices, each with 3 rows and 4 columns.
+- `batch2` has a shape of `[10, 4, 5]`, meaning it contains 10 matrices, each with 4 rows and 5 columns.
+- `torch.bmm(batch1, batch2)` multiplies each matrix in `batch1` with the corresponding matrix in `batch2` for each batch, resulting in a new batch of matrices with shape `[10, 3, 5]`.
+
+The key point here is that `torch.bmm()` handles batches of matrices efficiently, which is important in deep learning when you often work with batches of data. It performs the matrix multiplication for each pair of matrices within the batches and returns the resulting batch of matrices.
+
 
 
 #### 37. nn.Module.named_parameters()和parameters()
@@ -4481,149 +4568,60 @@ tensor([-3.3491e+38,  3.0929e-41, -3.0275e+38])
 
 
 
+#### 71. torch.nn.DataParallel() 
 
+`torch.nn.DataParallel()` is a utility class provided by the PyTorch library that facilitates parallel execution of neural network computations across multiple GPUs. **It's commonly used to distribute the workload of training a neural network model across multiple graphics processing units** (GPUs) for faster training.
 
-#### 71. torch.nn.CrossEntropyLoss
+`DataParallel` works by replicating the model onto each of the available GPUs and splitting the input data into smaller batches, sending each batch to a different GPU for processing. **After the computations are complete, the gradients are collected from each GPU and averaged to update the model's parameters.**
 
-The base is e.
+Here's a simplified example of how you might use `DataParallel` in your PyTorch code:
 
 ```python
-import torch.nn as nn
-
-
-\# Example of target with class indices
-m = nn.Softmax(dim=1)
-
-# 使用这个函数之前一定要实例化
-loss = nn.CrossEntropyLoss()
-
-input = torch.randn(3, 5, requires_grad=True)
-print(f"This is the input: {input}")
-softmax_input=m(input)
-print(f"This is the softmax_input: {softmax_input}")
-target = torch.empty(3, dtype=torch.long).random_(5)
-print(f"This is the target: {target}")
-output = loss(input, target)
-print(f"This is the output: {output}")
-```
-
-output:
-
-```
-This is the input: tensor([
-[ 0.5131,  0.0736,  0.9282, -0.7914,  0.9528],        
-[ 1.5885,  0.1021,  0.0685,  0.2574,  3.1932],        
-[ 0.0475, -0.6753, -0.6322,  0.5781, -0.2402]], requires_grad=True) 
-
-This is the softmax_input: tensor([
-[0.2007, 0.1293, 0.3040, 0.0545, 0.3115],        
-[0.1496, 0.0338, 0.0327, 0.0395, 0.7443],        
-[0.2251, 0.1093, 0.1141, 0.3827, 0.1688]], grad_fn=<SoftmaxBackward0>) 
-
-This is the target: tensor([1, 4, 3]) 
-
-This is the output: 1.1003996133804321
-```
-
-本文主要讲述CrossEntropyLoss函数内部的计算逻辑，我觉得摆一大堆公式都不如直接上代码来的实在。
-
-首先，我们先设置好两个变量，input与y_target。
-
-```python3
 import torch
 import torch.nn as nn
-import numpy as np
+from torch.nn import DataParallel
 
-a = np.arange(1,13).reshape(3,4)
-b = torch.from_numpy(a)
-input = b.float()
-print('input:\n',input)
+# Define your neural network model
+class MyModel(nn.Module):
+    # ... Define layers and forward method ...
+
+# Create an instance of your model
+model = MyModel()
+
+# Wrap the model with DataParallel
+model = DataParallel(model)
+
+# Move the model to GPUs if available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
+# Define your loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+# Training loop
+for epoch in range(num_epochs):
+    for inputs, labels in dataloader:
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        # Forward pass
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+
+        # Backpropagation and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
 ```
 
-可以看到input矩阵如下：
+Keep in mind that while `DataParallel` can simplify parallelism across GPUs, PyTorch also provides the `torch.nn.parallel.DistributedDataParallel` class for more advanced distributed training scenarios, particularly in multi-node setups. Always refer to the official PyTorch documentation for the most up-to-date and detailed information on using parallelism and distributed training features.
 
-```python3
- tensor([[ 1.,  2.,  3.,  4.],
-        [ 5.,  6.,  7.,  8.],
-        [ 9., 10., 11., 12.]])
-```
+Hint:If you are working with only **one GPU**, **you don't need to use** `torch.nn.DataParallel()` because there's only one GPU available for computations. The purpose of `DataParallel` is to distribute computations across multiple GPUs to speed up training, so if you have only one GPU, it won't provide any additional benefits and might even introduce **unnecessary overhead**.
 
-然后设置y_target：
 
-```python3
-y_target = torch.tensor([1,2,3])
-print('y_target:\n',y_target)
-```
 
-这个不用打印大家也应该知道是什么样了。
 
-input是一个【3 4】的矩阵，y-target是一个【1 3】的矩阵。input是预测值，代表有三个样本，四个类别。y-target代表三个样本的真实标签。
-
-```python3
-crossentropyloss=nn.CrossEntropyLoss(reduction='none')
-crossentropyloss_output=crossentropyloss(x_input,y_target)
-print('crossentropyloss_output:\n',crossentropyloss_output)
-```
-
-经过CrossEntropyLoss后，最终结果为：
-
-```python3
-crossentropyloss_output:
- tensor([2.4402, 1.4402, 0.4402])
-```
-
-下面我们来剖析它的计算过程。**其实CrossEntropyLoss相当于softmax + log + nllloss**。
-
-不信可以计算一遍：
-
-```python3
-softmax_func=nn.Softmax(dim=1)
-soft_output=softmax_func(input)
-print('soft_output:\n',soft_output)
-
-log_output=torch.log(soft_output)
-print('log_output:\n',log_output)
-
-nllloss_func=nn.NLLLoss(reduction='none')
-nllloss_output=nllloss_func(log_output, y_target)
-print('nllloss_output:\n',nlloss_output)
-```
-
-最终结果是一样的：
-
-```python3
-nllloss_output:
- tensor([2.4402, 1.4402, 0.4402])
-```
-
-softmax、log这两个函数应该都比较好理解。
-
-下面主要讲解一下nllloss这个损失函数。
-
-有了经过softmax与log的矩阵，我们叫它矩阵A。
-
-```python3
- tensor([[-3.4402, -2.4402, -1.4402, -0.4402],
-        [-3.4402, -2.4402, -1.4402, -0.4402],
-        [-3.4402, -2.4402, -1.4402, -0.4402]])
-```
-
-还有真实标签：
-
-```text
-tensor([1, 2, 3])
-```
-
-y-target中第一个数字，代表第一个样本的真实标签，第一个数字是1，代表第一个样本的真实标签为1。所以取出矩阵A的第一行第二个数字-2.4402，并加上一个负号。之后也是这样，依次取出-1.4402、-0.4402。
-
-所以有了最终结果：
-
-```text
-crossentropyloss_output:
- tensor([2.4402, 1.4402, 0.4402])
-```
-
-reduction这个参数着重提一下，它一般有none、sum、mean等几个选项，none就是没有别的附加操作，sum就是把这个几个损失加和，mean就是把这几个损失求平均。
 
 
 
@@ -5241,60 +5239,147 @@ tensor([[-0.0271,  0.9370,  0.0759, -0.2608, -0.5547,  0.6845,  0.4430, -0.7851,
 
 
 
-91.
+#### 91. torch.nn.CrossEntropyLoss
 
-
-
-#### 92. torch.nn.DataParallel() 
-
-`torch.nn.DataParallel()` is a utility class provided by the PyTorch library that facilitates parallel execution of neural network computations across multiple GPUs. **It's commonly used to distribute the workload of training a neural network model across multiple graphics processing units** (GPUs) for faster training.
-
-`DataParallel` works by replicating the model onto each of the available GPUs and splitting the input data into smaller batches, sending each batch to a different GPU for processing. **After the computations are complete, the gradients are collected from each GPU and averaged to update the model's parameters.**
-
-Here's a simplified example of how you might use `DataParallel` in your PyTorch code:
+The base is e.
 
 ```python
-import torch
 import torch.nn as nn
-from torch.nn import DataParallel
 
-# Define your neural network model
-class MyModel(nn.Module):
-    # ... Define layers and forward method ...
 
-# Create an instance of your model
-model = MyModel()
+# Example of target with class indices
+m = nn.Softmax(dim=1)
 
-# Wrap the model with DataParallel
-model = DataParallel(model)
+# 使用这个函数之前一定要实例化
+loss = nn.CrossEntropyLoss()
 
-# Move the model to GPUs if available
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model.to(device)
-
-# Define your loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-
-# Training loop
-for epoch in range(num_epochs):
-    for inputs, labels in dataloader:
-        inputs, labels = inputs.to(device), labels.to(device)
-
-        # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-
-        # Backpropagation and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
+input = torch.randn(3, 5, requires_grad=True)
+print(f"This is the input: {input}")
+softmax_input=m(input)
+print(f"This is the softmax_input: {softmax_input}")
+target = torch.empty(3, dtype=torch.long).random_(5)
+print(f"This is the target: {target}")
+output = loss(input, target)
+print(f"This is the output: {output}")
 ```
 
-Keep in mind that while `DataParallel` can simplify parallelism across GPUs, PyTorch also provides the `torch.nn.parallel.DistributedDataParallel` class for more advanced distributed training scenarios, particularly in multi-node setups. Always refer to the official PyTorch documentation for the most up-to-date and detailed information on using parallelism and distributed training features.
+output:
 
-Hint:If you are working with only **one GPU**, **you don't need to use** `torch.nn.DataParallel()` because there's only one GPU available for computations. The purpose of `DataParallel` is to distribute computations across multiple GPUs to speed up training, so if you have only one GPU, it won't provide any additional benefits and might even introduce **unnecessary overhead**.
+```
+This is the input: tensor([
+[ 0.5131,  0.0736,  0.9282, -0.7914,  0.9528],        
+[ 1.5885,  0.1021,  0.0685,  0.2574,  3.1932],        
+[ 0.0475, -0.6753, -0.6322,  0.5781, -0.2402]], requires_grad=True) 
+
+This is the softmax_input: tensor([
+[0.2007, 0.1293, 0.3040, 0.0545, 0.3115],        
+[0.1496, 0.0338, 0.0327, 0.0395, 0.7443],        
+[0.2251, 0.1093, 0.1141, 0.3827, 0.1688]], grad_fn=<SoftmaxBackward0>) 
+
+This is the target: tensor([1, 4, 3]) 
+
+This is the output: 1.1003996133804321
+```
+
+本文主要讲述CrossEntropyLoss函数内部的计算逻辑，我觉得摆一大堆公式都不如直接上代码来的实在。
+
+首先，我们先设置好两个变量，input与y_target。
+
+```python3
+import torch
+import torch.nn as nn
+import numpy as np
+
+a = np.arange(1,13).reshape(3,4)
+b = torch.from_numpy(a)
+input = b.float()
+print('input:\n',input)
+```
+
+可以看到input矩阵如下：
+
+```python3
+ tensor([[ 1.,  2.,  3.,  4.],
+        [ 5.,  6.,  7.,  8.],
+        [ 9., 10., 11., 12.]])
+```
+
+然后设置y_target：
+
+```python3
+y_target = torch.tensor([1,2,3])
+print('y_target:\n',y_target)
+```
+
+这个不用打印大家也应该知道是什么样了。
+
+input是一个【3 4】的矩阵，y-target是一个【1 3】的矩阵。input是预测值，代表有三个样本，四个类别。y-target代表三个样本的真实标签。
+
+```python3
+crossentropyloss=nn.CrossEntropyLoss(reduction='none')
+crossentropyloss_output=crossentropyloss(x_input,y_target)
+print('crossentropyloss_output:\n',crossentropyloss_output)
+```
+
+经过CrossEntropyLoss后，最终结果为：
+
+```python3
+crossentropyloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+下面我们来剖析它的计算过程。**其实CrossEntropyLoss相当于softmax + log + nllloss**。
+
+不信可以计算一遍：
+
+```python3
+softmax_func=nn.Softmax(dim=1)
+soft_output=softmax_func(input)
+print('soft_output:\n',soft_output)
+
+log_output=torch.log(soft_output)
+print('log_output:\n',log_output)
+
+nllloss_func=nn.NLLLoss(reduction='none')
+nllloss_output=nllloss_func(log_output, y_target)
+print('nllloss_output:\n',nlloss_output)
+```
+
+最终结果是一样的：
+
+```python3
+nllloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+softmax、log这两个函数应该都比较好理解。
+
+下面主要讲解一下nllloss这个损失函数。
+
+有了经过softmax与log的矩阵，我们叫它矩阵A。
+
+```python3
+ tensor([[-3.4402, -2.4402, -1.4402, -0.4402],
+        [-3.4402, -2.4402, -1.4402, -0.4402],
+        [-3.4402, -2.4402, -1.4402, -0.4402]])
+```
+
+还有真实标签：
+
+```text
+tensor([1, 2, 3])
+```
+
+y-target中第一个数字，代表第一个样本的真实标签，第一个数字是1，代表第一个样本的真实标签为1。所以取出矩阵A的第一行第二个数字-2.4402，并加上一个负号。之后也是这样，依次取出-1.4402、-0.4402。
+
+所以有了最终结果：
+
+```text
+crossentropyloss_output:
+ tensor([2.4402, 1.4402, 0.4402])
+```
+
+reduction这个参数着重提一下，它一般有none、sum、mean等几个选项，none就是没有别的附加操作，sum就是把这个几个损失加和，mean就是把这几个损失求平均。
 
 
 
@@ -5383,7 +5468,7 @@ Please note that the exact values will depend on the specific values of the logi
 
   
 
-#### 94. torch.nn.BCELoss() and torch.nn.BCEWithLogitsLoss()
+#### 94. torch.nn.BCELoss()
 
 Creates a criterion that measures the **Binary Cross Entropy** between the target and the input probabilities.
 
@@ -5423,6 +5508,17 @@ import numpy as np
 
 print(np.log(10)) # 这里面底数为常数e
 ```
+
+output:
+
+```
+This is pred:tensor([0.9526, 0.8808, 0.7311])
+tensor(0.4963)
+tensor(0.4963)
+2.302585092994046
+```
+
+
 
 `torch.nn.BCELoss()` requires probabilities
 
@@ -7429,6 +7525,127 @@ Leave E
 
 在super机制里可以保证公共父类仅被**执行一次**，至于执行的顺序，是按照MRO（Method Resolution Order）：方法解析顺序 进行的。后续会详细介绍一下这个MRO机制。
 
+##### simple explanation regarding the super().__init__():
+
+`super().__init__()` in Python is a way to call the constructor of the parent class within a child class. 
+
+In object-oriented programming, when you create a subclass (a class that inherits from another class), you often need to invoke the initialization method (`__init__`) of the parent class explicitly to ensure that any initialization logic defined in the parent class is executed. 
+
+`super()` returns a proxy object that allows you to invoke methods of the parent class. When you call `super().__init__()`, you're essentially calling the `__init__()` method of the parent class from within the child class, ensuring that both the parent's and child's initialization code is executed.
+
+Here's a simple example:
+
+```python
+class Parent:
+    def __init__(self):
+        print("Parent class initialized")
+
+class Child(Parent):
+    def __init__(self):
+        super().__init__()  # Calling the parent class' constructor
+        print("Child class initialized")
+
+child = Child()
+```
+
+Output:
+```
+Parent class initialized
+Child class initialized
+```
+
+In this example, when you create an instance of the `Child` class, both the `__init__` methods of the `Parent` and `Child` classes are called, thanks to `super().__init__()`.
+
+**another example:**
+
+```python
+class Parent:
+    def __init__(self):
+        print("Parent class initialized")
+
+class Child(Parent):
+    def __init__(self):
+        print("Child class initialized")
+        # super().__init__()  # Calling the parent class' constructor
+
+child = Child()
+```
+
+output:
+
+```
+Child class initialized
+```
+
+**another example 2:**
+
+```python
+class Parent:
+    def __init__(self):
+        print("2. Parent class initialized")
+
+class Child(Parent):
+    def __init__(self):
+        print("1. Child class initialized")
+        super().__init__()  # Calling the parent class' constructor
+
+child = Child()
+```
+
+output:
+
+```
+1. Child class initialized
+2. Parent class initialized
+```
+
+##### another way to write the super().__init__()
+
+In the `super()` function, the `name` parameter refers to the class name from which you want to start searching for the next method in the method resolution order (MRO). By specifying `name`, you explicitly indicate the class from which you want to invoke the method.
+
+However, it's important to note that specifying `name` is not commonly needed unless you're dealing with multiple inheritance and want to control the method resolution order explicitly. In most cases, `super().__init__()` suffices.
+
+##### Using the attributes and methods of parent class when we use super().__init__()
+
+Yes, when you use `super().__init__()` to call the parent class's constructor, the child class inherits all attributes and methods from the parent class, and you can use them within the child class.
+
+Here's an example to illustrate this:
+
+```python
+class Parent:
+    def __init__(self, name):
+        self.name = name
+        self.name2 = "Bob"
+
+    def greet(self):
+        print(f"Hello, I am {self.name}.")
+
+class Child(Parent):
+    def __init__(self, name, age):
+        super().__init__(name)
+        self.age = age
+
+    def introduce(self):
+        print(f"My name is {self.name} and {self.name2} and I am {self.age} years old.")
+
+child = Child("Alice", 10)
+child.introduce()  # Output: My name is Alice and I am 10 years old.
+child.greet()      # Output: Hello, I am Alice.
+```
+
+output:
+
+```
+My name is Alice and Bob and I am 10 years old.
+Hello, I am Alice.
+```
+
+In this example, `Child` inherits from `Parent`, and `Child`'s constructor initializes both `name` (inherited from `Parent`) and `age`. The `Child` class also defines its own method `introduce()`, which utilizes both the inherited `name` attribute and the `age` attribute.
+
+When you call `child.greet()`, it invokes the `greet()` method of the parent class `Parent`, using the `name` attribute inherited from `Parent`.
+
+So, yes, you can use both attributes and methods of the parent class within the child class when you call `super().__init__()` to initialize the parent class in the child class's constructor.
+
 
 
 #### 05. class-level initialization or defining class-level attributes
@@ -8197,145 +8414,28 @@ This is functionally equivalent to the previous example where we manually applie
 
 
 
+#### 22. @classmethod
 
+`@classmethod` is a decorator in Python used to define a method that operates on the class itself rather than on instances of the class. When you decorate a method with `@classmethod`, the method receives the class itself as the first argument, traditionally named `cls`, instead of an instance of the class. This allows you to access or modify class-level variables and methods within the method.
 
-#### 22. isinstance() 函数
-
-  isinstance() 函数来判断一个对象是否是一个已知的类型，类似 type()。
-
-**1.1 使用方法**
-语法：
-isinstance(object, classinfo)
-参数含义：
-object – 实例对象。
-classinfo – 可以是直接或间接类名、基本类型或者由它们组成的元组。
-返回值：
-如果对象的类型与参数二的类型（classinfo）相同则返回 True，否则返回 False.
-
-
-
-**1.2 案例分析**
-
-  需要注意的是第三个小例子，a的类型只要是元组中的一个就会返回True。
+Here's a basic example:
 
 ```python
-a = 9
-isinstance (a,int)
-isinstance (a,str)
-isinstance (a,(str,int,list))   # 是元组中的一个返回 True
-"""--------------------------------------输出-------------------------------------------"""
-True
-False
-True
+class MyClass:
+    class_variable = 10
 
+    @classmethod
+    def class_method(cls):
+        print(cls.class_variable)
+
+MyClass.class_method()  # Output: 10
 ```
 
-- type() 与 isinstance()区别，通过下面代码片段可得出以下要点：
+In this example, `class_method` can access the `class_variable` directly via the `cls` argument, which refers to the `MyClass` class itself. This makes `@classmethod` useful for creating alternative constructors, accessing class-level variables, or modifying class state.
 
-  - type() 不会认为子类是一种父类类型，不考虑继承关系。
-
-  - 譬如sinstance() 会认为子类是一种父类类型，**考虑继承关系**。
-
-  - 如果要判断两个类型是否相同推荐使用 isinstance()。
-
-    
-
-```python
-class A:
-    pass
-
-class B(A):
-    pass
-isinstance(A(), A)    # returns True
-type(A()) == A        # returns True
-isinstance(B(), A)    # returns True
-type(B()) == A        # returns False
-```
+`@classmethod` can indeed be called directly on the class **without instantiation**. This is because a class method receives the class itself as its first argument (`cls` by convention), allowing you to work with class-level variables and methods.
 
 
-
-#### 23. Python代码中函数名称前后下划线的作用
-
-**1.函数名前单下划线**
-
-```bash
-_function
-```
-
-该类函数不是API的一部分，所以该函数只有类和子类能够访问调用，无法通过Import引入。
-
-**2.函数名前双下划线**
-
-```bash
-__function
-```
-
-该类函数不想让任何人重写它，只能从定义它的类内部访问，即此函数只有类对象本身能够访问。
-
-**3.函数名前后双下划线**
-
-```bash
-__function__
-```
-
-此类函数为系统定义函数名，命名函数时尽量避免此类命名方式，比如__init__()
-
-below is the specific procedure:
-
-
-
-```python
-class Compute:
-​    def __init__(self, a, b):
-​        self.a = a
-​        self.b = b
-
-​    def add(self):
-​        print("******** add ********")
-​        print(f"{self.a} + {self.b} = {self.a + self.b}")
-
-​    \# 单下划线，提示程序员该函数只能在类内部使用
-​    def _mul(self):
-​        print("******** _mul ********")
-​        print(f"{self.a} x {self.b} = {self.a * self.b}")
-
-​    \# 双下划线，私有函数
-​    def __div(self):
-​        print("******** __div ********")
-​        print(f"{self.a} / {self.b} = {self.a / self.b}")
-
-​    def test(self):
-​        print("******** test ********")
-​        self.add()
-​        self._mul()
-​        self.__div()
-
-
-if __name__ == '__main__':
-​    com = Compute(10, 5)
-​    com.add()
-​    com._mul()
-​    com.test()
-​    com.__div()# 这里程序会报错，因为带有双下划线的私有函数不能被调用。
-```
-
-output:
-
-```
-****** add ******** 
-10 + 5 = 15 
-******** _mul ******** 
-10 x 5 = 50 
-******** test ******** 
-******** add ******** 
-10 + 5 = 15 
-******** _mul ******** 
-10 x 5 = 50 
-******** __div ******** 
-10 [/] 5 = 2.0
-
--------------------------------------------------------------------------- AttributeError: 'Compute' object has no attribute '__div'
-```
 
 
 
@@ -8901,6 +9001,93 @@ output:
 -----------------------------------
 ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
 ```
+
+
+
+#### 39. Python代码中函数名称前后下划线的作用
+
+**1.函数名前单下划线**
+
+```bash
+_function
+```
+
+该类函数不是API的一部分，所以该函数只有类和子类能够访问调用，无法通过Import引入。
+
+**2.函数名前双下划线**
+
+```bash
+__function
+```
+
+该类函数不想让任何人重写它，只能从定义它的类内部访问，即此函数只有类对象本身能够访问。
+
+**3.函数名前后双下划线**
+
+```bash
+__function__
+```
+
+此类函数为系统定义函数名，命名函数时尽量避免此类命名方式，比如__init__()
+
+below is the specific procedure:
+
+
+
+```python
+class Compute:
+​    def __init__(self, a, b):
+​        self.a = a
+​        self.b = b
+
+​    def add(self):
+​        print("******** add ********")
+​        print(f"{self.a} + {self.b} = {self.a + self.b}")
+
+​    \# 单下划线，提示程序员该函数只能在类内部使用
+​    def _mul(self):
+​        print("******** _mul ********")
+​        print(f"{self.a} x {self.b} = {self.a * self.b}")
+
+​    \# 双下划线，私有函数
+​    def __div(self):
+​        print("******** __div ********")
+​        print(f"{self.a} / {self.b} = {self.a / self.b}")
+
+​    def test(self):
+​        print("******** test ********")
+​        self.add()
+​        self._mul()
+​        self.__div()
+
+
+if __name__ == '__main__':
+​    com = Compute(10, 5)
+​    com.add()
+​    com._mul()
+​    com.test()
+​    com.__div()# 这里程序会报错，因为带有双下划线的私有函数不能被调用。
+```
+
+output:
+
+```
+****** add ******** 
+10 + 5 = 15 
+******** _mul ******** 
+10 x 5 = 50 
+******** test ******** 
+******** add ******** 
+10 + 5 = 15 
+******** _mul ******** 
+10 x 5 = 50 
+******** __div ******** 
+10 [/] 5 = 2.0
+
+-------------------------------------------------------------------------- AttributeError: 'Compute' object has no attribute '__div'
+```
+
+
 
 
 
@@ -10797,6 +10984,21 @@ If the substring is not found, the method returns -1, and the corresponding mess
 
 
 
+#### 78. the order of execution is top to bottom and if __name__ == "__main__":
+
+```python
+def main():
+    print("This is the main function.")
+
+if __name__ == "__main__":
+    main()
+
+```
+
+In this example, the `main()` function will only be called if the script is executed directly (i.e., as the main program). **If the script is imported as a module into another script, the `main()` function won't be automatically executed**, allowing the importing script to use the functions/classes defined within it without any unintended side effects.
+
+
+
 #### 79. string.strip()
 
 The `string.strip()` method is a built-in string method in many programming languages, including Python. It is used to remove leading and trailing whitespaces (spaces, tabs, and newline characters) from a string. The method does not modify the original string; instead, it returns a new string with the leading and trailing whitespaces removed.
@@ -11033,67 +11235,6 @@ x = [1,2,3,4,5,6,7]
 
 ```python
 [判断为True的i的操作 for i in 列表 if i的判断 ]
-```
-
-##### 3 匿名函数lambda
-
-匿名函数的使用方法是：
-
-lambda 参数: 表达式
-举个例子：
-
-```python
-x = 3
-(lambda k: k+3)(x)
-```
-
-输出 6
-
-这是一个比较简单的匿名函数表达式，一般匿名函数会结合很多其他函数，作为传递参数的作用。
-
-举一个有点儿hard的例子:
-
-```python
-      self._flat_weights = [(lambda wn: getattr(self, wn) if hasattr(self, wn) else None)(wn) for wn in self._flat_weights_names]
-```
-
-
-
-```python
-print("*******if...else语句*********")
-#if 条件为真的时候返回if前面内容，否则返回0 
-exp1= lambda x:x+1 if  2==1 else 0 
-print(exp1(2))
-exp2 = lambda x:x+1 if  1==1 else 0 
-print(exp2(2))
-```
-
-output:
-
-```powershell
-****\**\*if…else语句\*\**\******
-0
-3
-[Finished in 0.2s]
-```
-
-
-
-```python
-print("*******if not...else语句*********")  
-#if not 为假返回if not前面内容，否则返回0  
-exp3 = lambda x:x+1 if not 2==1 else 0  
-print(exp3(2))  
-
-exp4 = lambda x:x+1 if not 1==1 else 0  
-print(exp4(2))  
-```
-
-```powershell
-结果
-3
-0
-[Finished in 0.3s]
 ```
 
 
@@ -11588,6 +11729,178 @@ print(result)  # Output will be 3
 This is useful when you want to get the quotient of a division operation without any remainder. It's particularly handy when you're dealing with indices or situations where you need integer division.
 
 
+
+#### 99. lambda
+
+Sure! In Python, a lambda function is a small anonymous function defined using the `lambda` keyword. It allows you to create a function on-the-fly without needing to formally define it using the `def` keyword. Lambda functions can take any number of arguments, but they can only have one expression.
+
+Here's a basic syntax of a lambda function:
+
+```python
+lambda arguments: expression
+```
+
+For example, suppose you want to create a simple function that squares a number using a lambda function:
+
+```python
+square = lambda x: x * x
+```
+
+In this example, `lambda x: x * x` creates an anonymous function that takes one argument `x` and returns its square. You can then use this `square` function like any other function:
+
+```python
+result = square(5)
+print(result)  # Output will be 25
+```
+
+Lambda functions are often used in conjunction with functions like `map()`, `filter()`, and `reduce()` for functional programming paradigms. They are also commonly used in situations where a small, throwaway function is needed, such as when passing a function as an argument to another function. However, lambda functions are limited in that they can only contain a single expression, which can make them less suitable for complex logic compared to named functions defined with `def`.
+
+#### 100. isinstance() 函数
+
+  isinstance() 函数来判断一个对象是否是一个已知的类型，类似 type()。
+
+**1.1 使用方法**
+语法：
+isinstance(object, classinfo)
+参数含义：
+object – 实例对象。
+classinfo – 可以是直接或间接类名、基本类型或者由它们组成的元组。
+返回值：
+如果对象的类型与参数二的类型（classinfo）相同则返回 True，否则返回 False.
+
+
+
+**1.2 案例分析**
+
+  需要注意的是第三个小例子，a的类型只要是元组中的一个就会返回True。
+
+```python
+a = 9
+isinstance (a,int)
+isinstance (a,str)
+isinstance (a,(str,int,list))   # 是元组中的一个返回 True
+"""--------------------------------------输出-------------------------------------------"""
+True
+False
+True
+
+```
+
+- type() 与 isinstance()区别，通过下面代码片段可得出以下要点：
+
+  - type() 不会认为子类是一种父类类型，不考虑继承关系。
+
+  - 譬如sinstance() 会认为子类是一种父类类型，**考虑继承关系**。
+
+  - 如果要判断两个类型是否相同推荐使用 isinstance()。
+
+    
+
+```python
+class A:
+    pass
+
+class B(A):
+    pass
+isinstance(A(), A)    # returns True
+type(A()) == A        # returns True
+isinstance(B(), A)    # returns True
+type(B()) == A        # returns False
+```
+
+
+
+## About dataclasses
+
+#### 01. @dataclass
+
+Certainly! The `@dataclass` decorator simplifies the process of creating classes to store data by automatically generating special methods like `__init__()`, `__repr__()`, `__eq__()`, and others. This can save you from writing **boilerplate** code, making your code more **concise** and **readable**.
+
+Here's a more elaborate example:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Car:
+    make: str
+    model: str
+    year: int
+    color: str
+    mileage: float = 0.0
+
+    def drive(self, distance):
+        self.mileage += distance
+
+car1 = Car("Toyota", "Camry", 2020, "Red")
+car2 = Car("Honda", "Accord", 2019, "Blue", 15000)
+
+print(car1)  # Output: Car(make='Toyota', model='Camry', year=2020, color='Red', mileage=0.0)
+print(car2)  # Output: Car(make='Honda', model='Accord', year=2019, color='Blue', mileage=15000.0)
+
+car1.drive(100)
+print(car1)  # Output: Car(make='Toyota', model='Camry', year=2020, color='Red', mileage=100.0)
+print(car1.make, car1.model, car1.year, car1.color)
+```
+
+In this example, `Car` is a data class with attributes `make`, `model`, `year`, `color`, and an optional attribute `mileage` with a default value. The `drive()` method allows you to simulate driving the car and incrementing its mileage. The `__repr__()` method generated by `@dataclass` provides a string representation of the `Car` object.
+
+output:
+
+```
+Car(make='Toyota', model='Camry', year=2020, color='Red', mileage=0.0)
+Car(make='Honda', model='Accord', year=2019, color='Blue', mileage=15000)
+Car(make='Toyota', model='Camry', year=2020, color='Red', mileage=100.0)
+Toyota Camry 2020 Red
+```
+
+
+
+The significance of `@dataclass` is that it simplifies the process of creating such classes by automatically generating common methods based on the class attributes, reducing the amount of boilerplate code you need to write. It enhances code readability and maintainability by making your intentions clear and concise.
+
+
+
+#### 02. dataclasses.field()
+
+Certainly! In Python, the `dataclasses.field()` function is used **within** the `dataclasses` module, which provides a convenient way to create classes that are primarily used to store data. The `field()` function is used as a decorator to specify fields within such classes.
+
+Here's a breakdown of how it works:
+
+1. **Usage**: `dataclasses.field()` is typically used as a decorator within a data class definition.
+
+2. **Purpose**: It's used to define default values, metadata, and other attributes for fields within a data class.
+
+3. **Parameters**: The `field()` function can take several parameters, including `default`, `default_factory`, `init`, `repr`, `compare`, `hash`, and `metadata`, among others. These parameters allow you to customize various aspects of how the field behaves.
+
+    - `default`: Specifies a default value for the field.
+    - `default_factory`: Specifies a function that will be called with no arguments to produce the default value for the field. This is useful when you want to create a new default object each time.
+    - `init`: If set to `True`, the field will be included as a parameter to the automatically generated `__init__` method of the data class. If set to `False`, it will not be included.
+    - `repr`: If set to `True`, the field will be included in the string representation (`__repr__`) of the data class.
+    - `compare`: If set to `True`, the field will be included in comparisons between instances of the data class.
+    - `hash`: If set to `True`, the field will be included in the hash value of the data class.
+    - `metadata`: A dictionary containing additional metadata about the field.
+
+4. **Example**:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class MyClass:
+    name: str
+    value: int = field(default=0)
+
+# Here, we're defining a data class 'MyClass' with two fields: 'name' and 'value'.
+# 'name' is a required field, while 'value' has a default value of 0.
+
+obj1 = MyClass("Object 1")
+print(obj1)  # Output: MyClass(name='Object 1', value=0)
+
+obj2 = MyClass("Object 2", value=10)
+print(obj2)  # Output: MyClass(name='Object 2', value=10)
+```
+
+In this example, `field(default=0)` is used to specify a default value of 0 for the `value` field. When creating an instance of `MyClass`, if the `value` argument is not provided, it will default to 0.
 
 
 
@@ -16378,6 +16691,34 @@ In this example, `10` is a finite number, so `math.isfinite(10)` returns `True`.
 
 
 
+#### 04. math.ceil()
+
+Round a number **upward** to its nearest integer:
+
+```python
+# Import math library
+import math
+
+# Round a number upward to its nearest integer
+print(math.ceil(1.4))
+print(math.ceil(5.3))
+print(math.ceil(-5.3))
+print(math.ceil(22.6))
+print(math.ceil(10.0))
+```
+
+output:
+
+```
+2
+6
+-5
+23
+10
+```
+
+
+
 ## About Pathlib
 
 ### why do we use Pathlib
@@ -17592,7 +17933,18 @@ For more detailed examples, you can refer to the [official MLflow examples](http
 
 ​                 
 
-​                       
+## wandb
+
+`wandb` stands for "Weights & Biases", and it's a Python library commonly used for experiment tracking, model visualization, and collaboration in machine learning projects.
+
+1. **Experiment Tracking**: You can log various metrics like training loss, accuracy, learning rate, etc., during the training process of your machine learning models. This helps you keep track of how different experiments are performing and compare them easily.
+2. **Visualization**: `wandb` provides tools for visualizing your logged data, such as charts and graphs, to better understand your model's performance.
+3. **Hyperparameter Tuning**: You can log hyperparameters used in your experiments, allowing you to easily compare the performance of different configurations and tune your models more effectively.
+4. **Project Collaboration**: `wandb` allows teams to share and collaborate on machine learning projects by logging and sharing experiment results and visualizations.
+
+
+
+
 
 ## typing
 
@@ -17618,5 +17970,134 @@ Using `Optional` can improve code readability and help catch potential `None`-re
 
 
 
+## einops
+
+The `einops.rearrange` function is a part of the Einops library in Python. [It’s a reader-friendly smart element reordering function for multidimensional tensors](https://einops.rocks/api/rearrange/)[1](https://einops.rocks/api/rearrange/). This operation includes functionality of several tensor operations such as:
+
+#### 01. several functions
+
+- **Transpose**: This is the permutation of axes.
+- **Reshape (view)**: This changes the shape of the tensor without changing its data.
+- **Squeeze**: This removes the dimensions or axes that have a length of one.
+- **Unsqueeze**: This adds an extra dimension or axis at a specific position in the tensor.
+- **Stack**: This joins a sequence of tensors along a new axis.
+- **Concatenate**: This joins a sequence of tensors along an existing axis.
+
+Here are some examples of how `einops.rearrange` can be used:
+
+1. **Stacking images along the first (batch) axis**:
+
+```python
+images = [np.random.randn(30, 40, 3) for _ in range(32)]
+rearrange(images, 'b h w c -> b h w c').shape  # Output: (32, 30, 40, 3)
+```
+
+1. **Concatenating images along height (vertical axis)**:
+
+```python
+rearrange(images, 'b h w c -> (b h) w c').shape  # Output: (960, 40, 3)
+```
+
+1. **Concatenating images along horizontal axis**:
+
+```python
+rearrange(images, 'b h w c -> h (b w) c').shape  # Output: (30, 1280, 3)
+```
+
+1. **Reordering axes to “b c h w” format for deep learning**:
+
+```python
+rearrange(images, 'b h w c -> b c h w').shape  # Output: (32, 3, 30, 40)
+```
+
+1. **Flattening each image into a vector**:
+
+```python
+rearrange(images, 'b h w c -> b (c h w)').shape  # Output: (32, 3600)
+```
+
+1. **Splitting each image into 4 smaller images (top-left, top-right, bottom-left, bottom-right)**:
+
+```python
+rearrange(images, 'b (h1 h) (w1 w) c -> (b h1 w1) h w c', h1=2, w1=2).shape  # Output: (128, 15, 20, 3)
+```
+
+1. **Space-to-depth operation**:
+
+```python
+rearrange(images, 'b (h h1) (w w1) c -> b h w (c h1 w1)', h1=2, w1=2).shape  # Output: (32, 15, 20, 12)
+```
+
+[In the rearrangement pattern, ‘b’, ‘h’, ‘w’, and ‘c’ represent batch, height, width, and channel dimensions respectively](https://einops.rocks/api/rearrange/)[1](https://einops.rocks/api/rearrange/).
 
 
+
+#### 02. torch.permute() vs einops.rearrange
+
+> Hint:                 
+>
+> While both `torch.permute()` and `einops.rearrange()` are used for manipulating the dimensions of tensors, they are not the same.
+>
+> **torch.permute()** is a function in PyTorch that allows you to **reorder the dimensions** of your tensor. It does not change the shape of the tensor, but it does change the order of the elements.
+>
+> On the other hand, **einops.rearrange()** is a more flexible function that allows you to **reorder, reshape, and even combine dimensions**. It provides a more expressive way to manipulate tensor dimensions.
+>
+> Here’s an example to illustrate the difference:
+>
+> Suppose you have a 4D tensor `x` of shape (10, 3, 480, 640) representing 10 images, each with 3 color channels and of size 480x640 pixels. If you want to swap the color channels with the batch dimension, you can do:
+>
+> ```python
+> x_permuted = x.permute(1, 0, 2, 3)  # Now x_permuted is of shape (3, 10, 480, 640)
+> ```
+>
+> But if you want to flatten the height and width dimensions into a single dimension, you would need `einops.rearrange()`:
+>
+> ```python
+> from einops import rearrange
+> x_rearranged = rearrange(x, 'b c h w -> b c (h w)')  # Now x_rearranged is of shape (10, 3, 307200)
+> ```
+>
+> As you can see, `einops.rearrange()` allows for more **complex manipulations** of tensor dimensions. So, while they have some overlap in functionality, they are not the same. The choice between the two will depend on your specific needs and which syntax you find more readable and intuitive.
+
+​              
+
+## About transformers
+
+​              
+
+#### 01. transformers.AutoTokenizer()
+
+`AutoTokenizer` is a class provided by the `transformers` library that enables automatic selection of the appropriate tokenizer for a given pre-trained model. Tokenizers are a crucial component in natural language processing pipelines as they convert raw text into a format suitable for input to neural network models.
+
+Here's an overview of `AutoTokenizer`:
+
+1. **Automatic Model Selection**: The `AutoTokenizer` class allows you to specify the name or identifier of a pre-trained model, and it automatically selects the corresponding tokenizer for that model. This is useful because different models may require different tokenization strategies, and using the wrong tokenizer can lead to errors or degraded performance.
+
+2. **Pre-trained Tokenizers**: The `transformers` library provides tokenizers for a wide range of pre-trained models, including models like BERT, GPT, RoBERTa, and many others. These tokenizers are trained on large corpora of text data and are optimized for specific model architectures and tasks.
+
+3. **Unified Interface**: `AutoTokenizer` provides a unified interface for accessing different tokenizers, regardless of the underlying model architecture. This makes it easy to switch between different models without having to change your code significantly.
+
+4. **Tokenization Methods**: Tokenizers provided by `AutoTokenizer` typically include methods for tokenizing text, converting tokens to IDs, padding sequences to a fixed length, and performing other common preprocessing tasks required for feeding text data into neural networks.
+
+5. **Integration with Model Classes**: `AutoTokenizer` is often used in conjunction with model classes like `AutoModel` or `AutoModelForSequenceClassification`, which provide automatic model selection similar to `AutoTokenizer`. This allows you to easily combine the correct tokenizer and model for your task without having to manage them separately.
+
+Here's a simplified example demonstrating how you might use `AutoTokenizer`:
+
+```python
+from transformers import AutoTokenizer
+
+# Specify the name or identifier of the pre-trained model
+model_name = "bert-base-uncased"
+
+# Initialize AutoTokenizer with the model name
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Tokenize input text
+input_text = "Hello, how are you?"
+tokens = tokenizer(input_text)
+
+# Print the tokens
+print(tokens)
+```
+
+In this example, `AutoTokenizer.from_pretrained(model_name)` automatically selects the tokenizer for the specified pre-trained model (`"bert-base-uncased"`) and initializes it. Then, we tokenize an input text string using this tokenizer, and print the resulting tokens.
