@@ -1107,6 +1107,31 @@ Tensor.squeeze_(*dim=None*) → [Tensor](https://pytorch.org/docs/stable/tensors
 
 In-place version of [`squeeze()`](https://pytorch.org/docs/stable/generated/torch.Tensor.squeeze.html#torch.Tensor.squeeze)
 
+
+
+##### Use tensor.squeeze(0) to remove the first dimension
+
+```python
+import torch
+
+# Create a tensor of shape (1, 3, 4)
+tensor = torch.randn(1, 3, 4)
+print("Original shape:", tensor.shape)
+
+# Use tensor.squeeze(0) to remove the first dimension
+squeezed_tensor = tensor.squeeze(0)
+print("Squeezed shape:", squeezed_tensor.shape)
+```
+
+output:
+
+```
+Original shape: torch.Size([1, 3, 4])
+Squeezed shape: torch.Size([3, 4])
+```
+
+
+
 #### 4. About h5py
 
 
@@ -1255,26 +1280,31 @@ This is:  [2 3 1]
 
 
 
-#### 8.1 about softmax(Tensor,dim) function
+#### 8.1 about torch.nn.functional.softmax(Tensor,dim) 
+
+The softmax function takes as input a vector of values and converts it into a probability distribution. The output values are in the range (0, 1) and sum to 1. This is useful when you want to interpret the output of a model as probabilities over different classes.
+
+![\sigma(\vec{z})_{i}=\frac{e^{z_{i}}}{\sum_{j=1}^{K} e^{z_{j}}}](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function.svg)
+
+| ![\sigma](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_1.svg) | =    | softmax                                         |
+| ------------------------------------------------------------ | ---- | ----------------------------------------------- |
+| ![\vec{z}](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_2.svg) | =    | input vector                                    |
+| ![e^{z_{i}}](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_3.svg) | =    | standard exponential function for input vector  |
+| ![K](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_4.svg) | =    | number of classes in the multi-class classifier |
+| ![e^{z_{j}}](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_5.svg) | =    | standard exponential function for output vector |
+| ![e^{z_{j}}](https://www.gstatic.com/education/formulas2/553212783/en/softmax_function_softmax_function_var_7.svg) | =    | standard exponential function for output vector |
 
 ```python
 import torch
-
-
 import torch.nn.functional as F
 
-
 x = torch.Tensor([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-
 
 y1 = F.softmax(x, dim=0) # 对每一列进行softmax
 
 print(y1)
-
 print("This is y1[0]:", y1[0])
-
 print("This is y1[1]:", y1[1])
-
 
 
 y2 = F.softmax(x, dim=1) # 对每一行进行softmax
@@ -1307,39 +1337,67 @@ This is y2[1]: tensor([0.0321, 0.0871, 0.2369, 0.6439])
 
 ![[公式]](https://www.zhihu.com/equation?tex=softmax%28z_%7Bi%7D%29%3D%5Cfrac%7Be%5E%7Bz_%7Bi%7D+-+D%7D%7D%7B%5Csum_%7Bc+%3D+1%7D%5E%7BC%7D%7Be%5E%7Bz_%7Bc%7D-D%7D%7D%7D)
 
-#### 8.2 about 高纬度下torch.nn.functional.softmax() 函数
+another explanation
 
-```python
-import torch
+`torch.nn.functional.softmax` applies the softmax function to an input tensor along a specified dimension. The softmax function normalizes the input tensor's elements along the given dimension so that they sum to 1, making the output tensor a valid probability distribution.
 
-import torch.nn.functional as F
+The difference between specifying `dim=0`, `dim=1`, and `dim=-1` is in the dimension along which the softmax normalization is applied:
 
-input = np.random.randint(0, 10, size=(2,3,4,5))
+1. **`dim=0`**: Applies the softmax function along the first dimension (rows if the tensor is 2D). Each column will be normalized independently.
 
-input = input.astype(float) # 这里因为softmax不允许int型输入，所以需要转换一下.
+    ```python
+    import torch.nn.functional as F
+    import torch
 
-input = torch.from_numpy(input) # softmax只接受tensor，所以还需要转换一下
+    x = torch.tensor([[1.0, 2.0],
+                      [3.0, 4.0]])
+    
+    # Apply softmax along dimension 0
+    result = F.softmax(x, dim=0)
+    print(result)
+    ```
 
-print(input)
+    The output will normalize each column separately:
+    ```
+    tensor([[0.1192, 0.1192],
+            [0.8808, 0.8808]])
+    ```
 
+2. **`dim=1`**: Applies the softmax function along the second dimension (columns if the tensor is 2D). Each row will be normalized independently.
 
+    ```python
+    # Apply softmax along dimension 1
+    result = F.softmax(x, dim=1)
+    print(result)
+    ```
 
-a = F.softmax(input,dim=0) #计算第1维度的sofrmax(从左边数)
+    The output will normalize each row separately:
+    ```
+    tensor([[0.2689, 0.7311],
+            [0.2689, 0.7311]])
+    ```
 
-b = F.softmax(input,dim=1) #计算第2维度的sofrmax
+3. **`dim=-1`**: Applies the softmax function along the last dimension, which is often used for multi-dimensional tensors when you want to normalize along the innermost dimension.
 
-c = F.softmax(input,dim=2) #计算第3维度的softmax
+    ```python
+    # Apply softmax along the last dimension (same as dim=1 in this case)
+    result = F.softmax(x, dim=-1)
+    print(result)
+    ```
 
-d = F.softmax(input,dim=-1) #计算最后一个维度的softmax 
+    Since `dim=-1` refers to the last dimension and in a 2D tensor it is equivalent to `dim=1`, the result will be the same as `dim=1`:
+    ```
+    tensor([[0.2689, 0.7311],
+            [0.2689, 0.7311]])
+    ```
 
-print("when dim is 0 :",a)
+To summarize:
 
-print("when dim is 1 :",b)
+- `dim=0`: Normalizes along the rows.
+- `dim=1`: Normalizes along the columns.
+- `dim=-1`: Normalizes along the last dimension, which, for 2D tensors, is the same as `dim=1`.
 
-print("when dim is 2 :",c)
-
-print("when dim is -1 :",d)
-```
+The choice of dimension depends on how you want to normalize your tensor, ensuring that the resulting probabilities sum to 1 along the specified dimension.
 
 
 
@@ -1758,7 +1816,7 @@ tensor([[0., 1., 0., 0., 0., 0.],
 
 
 
-#### 16. torch.nn.ReLU
+#### 16. torch.nn.ReLU()
 
 ```tex
 参数inplace=True:
@@ -1807,52 +1865,81 @@ inplace=True:
  tensor([0.0000, 0.0000, 0.0000, 0.0000, 0.1552]) torch.Size([5])
 ```
 
+![](./pictures source/ReLU.png)
 
+#### 17. torch.nn.GELU()
 
-#### 17. pytorch 中retain_graph==True的作用
+The `torch.nn.GELU()` function in PyTorch is used to create a Gaussian Error Linear Unit (GELU) activation function. Activation functions are a critical component in neural networks as they introduce non-linearity, allowing the network to learn complex patterns.
 
-总的来说进行一次backward之后，各个节点的值会清除，这样进行第二次backward会报错，如果加上retain_graph==True后,可以再来一次backward。
+Here's a detailed explanation:
 
-官方定义:
+##### GELU Activation Function
 
-retain_graph (bool, optional) – If False, the graph used to compute the grad will be freed. Note that in nearly all cases setting this option to True is not needed and often can be worked around in a much more efficient way. Defaults to the value of create_graph.
+1. **Definition**:
+   GELU stands for Gaussian Error Linear Unit. It is defined mathematically as:
+   \[
+   \text{GELU}(x) = x \cdot \Phi(x)
+   \]
+   where \(\Phi(x)\) is the cumulative distribution function (CDF) of the standard normal distribution. This can also be approximated as:
+   \[
+   \text{GELU}(x) \approx 0.5x \left(1 + \tanh\left(\sqrt{\frac{2}{\pi}} (x + 0.044715x^3)\right)\right)
+   \]
+   This approximation is what is typically used in practice for efficiency.
 
-大意是如果设置为False，计算图中的中间变量在计算完后就会被释放。但是在平时的使用中这个参数默认都为False从而提高效率，和creat_graph的值一样。
+2. **Behavior**:
+   The GELU function smoothly blends between zero and the identity function. For small negative values of \(x\), the output is near zero, and for large positive values of \(x\), the output is close to \(x\). This smooth transition can help with training stability and performance.
 
-具体看一个例子理解：
+3. **Usage**:
+   It is used as an activation function in neural networks, similar to ReLU, Sigmoid, or Tanh. GELU has gained popularity due to its effective performance in several state-of-the-art neural network architectures, including the Transformer models used in natural language processing.
 
-假设一个我们有一个输入x，y = x **2, z = y*4，然后我们有两个输出，一个output_1 = z.mean()，另一个output_2 = z.sum()。然后我们对两个output执行backward。
+##### Code Example
+
+Here's how you use `torch.nn.GELU()` in PyTorch:
 
 ```python
 import torch
-x = torch.randn((1,4),dtype=torch.float32,requires_grad=True)
-y = x ** 2
-z = y * 4
-print("This is s:\n", x)
-print("This is y:\n", y)
-print("This is z:\n", z)
-loss1 = z.mean()
-loss2 = z.sum()
-print(loss1,loss2)
-loss1.backward()    # 这个代码执行正常，但是执行完中间变量都free了，所以下一个出现了问题
-print(loss1,loss2)
-loss2.backward()    # 这时会引发错误
+import torch.nn as nn
+
+# Create a GELU activation function instance
+gelu = nn.GELU()
+
+# Example input tensor
+input_tensor = torch.tensor([[-1.0, 0.0, 1.0], [2.0, -2.0, 0.5]])
+
+# Apply the GELU activation function
+output_tensor = gelu(input_tensor)
+
+print(output_tensor)
 ```
 
-程序正常执行到第12行，所有的变量正常保存。但是在第13行报错：
+##### Explanation of the Code
 
-RuntimeError: Trying to backward through the graph a second time, but the buffers have already been freed. Specify retain_graph=True when calling backward the first time.
+1. **Importing**:
+   - `torch`: The main PyTorch library.
+   - `torch.nn`: A sub-library in PyTorch containing neural network components.
 
-分析：计算节点数值保存了，但是计算图x-y-z结构被释放了，而计算loss2的backward仍然试图利用x-y-z的结构，因此会报错。
+2. **Creating GELU instance**:
+   - `gelu = nn.GELU()`: This creates an instance of the GELU activation function.
 
-因此需要retain_graph参数为True去保留中间参数从而两个loss的backward()不会相互影响。正确的代码应当把第11行以及之后改成
+3. **Input tensor**:
+   - `input_tensor`: An example tensor with some sample values.
 
-```python
-1 # 假如你需要执行两次backward,先执行第一个的backward，再执行第二个backward
-2 loss1.backward(retain_graph=True)# 这里参数表明保留backward后的中间参数。
-3 loss2.backward() # 执行完这个后，所有中间变量都会被释放，以便下一次的循环
-4  #如果是在训练网络optimizer.step() # 更新参数
-```
+4. **Applying the GELU function**:
+   - `output_tensor = gelu(input_tensor)`: Applies the GELU activation function to each element of the `input_tensor`.
+
+5. **Output**:
+   - The `output_tensor` will contain the result of applying the GELU function to each element of the `input_tensor`.
+
+##### Why Use GELU?
+
+- **Smooth Activation**: Unlike ReLU which has a sharp change at zero, GELU transitions smoothly, which can lead to better optimization.
+- **Improved Performance**: In practice, GELU has been found to improve performance in many deep learning tasks, particularly in natural language processing.
+
+By understanding and utilizing the `torch.nn.GELU()` function, you can leverage the advantages of this advanced activation function in your neural network models.
+
+
+
+
 
 
 
@@ -2172,7 +2259,7 @@ The `torch.nn.Identity()` module in PyTorch might seem like it doesn’t do much
 
 #### 26. torch.nn.module.apply()
 
-[The `apply()` function is a method of the `torch.nn.Module` class in PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html). [It applies a function recursively to every submodule (as returned by `.children()`) as well as to the module itself](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+The `apply()` function is a method of the `torch.nn.Module` class in PyTorch. [It applies a function recursively to every submodule (as returned by `.children()`) as well as to the module itself.
 
 Here’s how it works:
 
@@ -2184,7 +2271,7 @@ def apply(self, fn):
     return self
 ```
 
-[The typical use of `apply()` includes initializing the parameters of a model](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html). Here’s an example:
+The typical use of `apply()` includes initializing the parameters of a model. Here’s an example:
 
 ```python
 @torch.no_grad()
@@ -2217,27 +2304,55 @@ So, the `apply()` function is essentially a way to apply a specific operation (d
 
 ​              
 
-#### 27. tensor.gt(0.0)
+#### 27. torch.autograd.Function.apply()
 
-`targets.gt(0.0)`: This is applying the `gt` function, which stands for “greater than”. It compares each element in the `targets` tensor to `0.0`, and returns a new tensor of the same shape as `targets` with each element being `True` if the corresponding element in `targets` is greater than `0.0`, and `False` otherwise. This operation does not change the original `targets` tensor.
+[Yes, `torch.autograd.Function.apply()` is a method in PyTorch that is used to apply a custom autograd function](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html).
 
-```
+[In PyTorch, you can define your own custom autograd functions by subclassing `torch.autograd.Function` and implementing the `forward` and `backward` methods](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html). [The `forward` method computes the output Tensors from the input Tensors](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[, while the `backward` method computes the gradient of the loss with respect to the input](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html).
+
+Here’s an example of how you can define a custom autograd function:
+
+```python
 import torch
+import math
 
-# original targets tensor
-targets = torch.tensor([-1.0, 0.0, 1.0, 2.0])
-print("Original targets:", targets)
-print("after the tensor.gt(0.0):", targets.gt(0.0))
+class LegendrePolynomial3(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        ctx.save_for_backward(input)
+        return 0.5 * (5 * input ** 3 - 3 * input)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, = ctx.saved_tensors
+        return grad_output * 1.5 * (5 * input ** 2 - 1)
 ```
 
-output:
+[In this example, `LegendrePolynomial3` is a custom autograd function that computes the third Legendre Polynomial](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html). [The `forward` method computes the output, and the `backward` method computes the gradient](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html).
 
+To use this custom function, you can call the `apply` method:
+
+```python
+P3 = LegendrePolynomial3.apply
 ```
-Original targets: tensor([-1.,  0.,  1.,  2.])
-after the tensor.gt(0.0): tensor([False, False,  True,  True])
-```
 
+[Now, `P3` can be used like a function to perform the forward pass, and PyTorch’s autograd will take care of the backward pass](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html)[1](https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html).
 
+Hint:
+
+That’s a great question! While it’s true that you can define a class that inherits from `torch.nn.Module` and implement a `forward` method for most use cases, `torch.autograd.Function` and its `apply()` method serve a different purpose.
+
+The `torch.nn.Module` class is used for defining a layer or a set of layers in a neural network. It’s designed to encapsulate parameters (weights and biases) and methods for forward propagation.
+
+On the other hand, `torch.autograd.Function` is used to define custom operations. It allows you to specify how an operation is performed in the forward pass and how it should be differentiated in the backward pass. This is useful when you want to implement a mathematical operation that is not included in the PyTorch library.
+
+The `apply()` method is used to invoke the `forward` method of a `Function`. It also keeps track of the operation in the computation graph, so that gradients can be computed during the backward pass.
+
+In summary, while both `torch.nn.Module` and `torch.autograd.Function` allow you to define custom behavior, they serve different purposes. The former is for defining layers in a neural network, while the latter is for defining custom operations for autograd. So, depending on what you want to achieve, you might need to use one or the other.
+
+​                               
+
+​              
 
 #### 28. `tensor.dtype` and `tensor.type()` and **tensor.type(arg)**
 
@@ -2589,6 +2704,10 @@ output = m(input)
 ​              
 
 #### 35. torch.nn.BatchNorm2d()
+
+
+
+
 
 
 
@@ -3043,6 +3162,10 @@ output:
 
 在不足维度上进行补0操作，那么我们为什么不在建立dataset之前先补好呢？所以，collate_fn这个东西的应用场景还是有限的。不过，明白其原理总是好事。
 
+##### Hint:
+
+When using a custom `collate_fn`, the input `data` (or `batch`) parameter is a list, where the length of this list is equal to the `batch_size` specified in the `DataLoader`. Each element of this list is a tuple containing the variables returned by the `__getitem__()` method of your dataset class.
+
 
 
 #### 42. torch.nn.utils.rnn.pad_sequence
@@ -3218,7 +3341,6 @@ This is the ee: torch.Size([3, 2, 4, 5])
 import torch
 
 a=torch.arange(0,24).view(2, 3, 4)
-
 print("This is input: ",a)
 ```
 
@@ -4700,29 +4822,67 @@ This is the size of weight: torch.Size([8, 5])
 
 
 
-#### 75. torch.nn.ReLU()
+#### 75. torch.nn.functional.linear()
 
-Applies the rectified linear unit function element-wise:
+Yes, I'm familiar with the `torch.nn.functional.linear` function in PyTorch. This function applies a linear transformation to the input data using a weight matrix and an optional bias vector. Essentially, it performs a matrix multiplication followed by an optional addition of the bias.
+
+Here is the general signature of the function:
+
+```python
+torch.nn.functional.linear(input, weight, bias=None)
+```
+
+Parameters:
+
+- **input**: A tensor of shape `(N, *, in_features)` where `*` means any number of additional dimensions.
+- **weight**: A tensor of shape `(out_features, in_features)`. This represents the weights of the linear layer.
+- **bias**: An optional tensor of shape `(out_features)`. This is the bias term to be added to the output. If `None`, no bias is added.
+
+Usage Example:
+
+Here's an example of how to use `torch.nn.functional.linear`:
 
 ```python
 import torch
-from torch import nn
+import torch.nn.functional as F
 
-m = nn.ReLU()
-input = torch.randn(6)
-print(input)
-print("-------------------")
-output = m(input)
+# Define the input tensor
+input = torch.randn(2, 3)  # Example input with shape (batch_size=2, in_features=3)
+
+# Define the weight and bias tensors
+weight = torch.randn(4, 3)  # Weight tensor with shape (out_features=4, in_features=3)
+bias = torch.randn(4)       # Bias tensor with shape (out_features=4)
+
+# Apply the linear transformation
+output = F.linear(input, weight, bias)
 print(output)
 ```
 
-output:
+In this example, `input` is a tensor with shape `(2, 3)`, `weight` is a tensor with shape `(4, 3)`, and `bias` is a tensor with shape `(4)`. The output will have the shape `(2, 4)`.
 
-```
-tensor([ 0.4323, -0.1210, -0.3644,  0.0493,  1.2092,  0.7658]) 
--------------------
-tensor([0.4323, 0.0000, 0.0000, 0.0493, 1.2092, 0.7658])
-```
+Detailed Explanation:
+
+- The `input` tensor represents the features or data points you want to transform.
+- The `weight` tensor is the matrix that contains the learnable weights of the linear transformation.
+- The `bias` tensor is an optional vector that gets added to the result of the matrix multiplication between `input` and `weight`.
+
+The function computes the output as follows:
+\[ \text{output} = \text{input} \times \text{weight}^T + \text{bias} \]
+
+Where:
+- \(\times\) denotes matrix multiplication.
+- \(\text{weight}^T\) is the transpose of the `weight` matrix.
+
+If `bias` is `None`, the function simply performs the matrix multiplication without adding the bias term.
+
+This function is often used in defining custom neural network layers or for performing linear transformations outside of the usual `torch.nn.Linear` module.
+
+##### Hint: the difference between torch.nn.Linear() and torch.nn.functional.linear()
+
+torch.nn.Linear: This is a class that defines a linear layer as part of a neural network model. It maintains its own learnable parameters (weights and biases).
+torch.nn.functional.linear: This is a function that applies a linear transformation to the incoming data. It does not maintain its own parameters; instead, **you must provide the weights and biases as arguments**.
+
+
 
 
 
@@ -5630,6 +5790,10 @@ writer.close()
 
 
 
+The `flush_secs` parameter in `torch.utils.tensorboard.writer.SummaryWriter()` specifies how often, in seconds, the internal events file is flushed to disk. This means that any pending logs are written to the disk every `flush_secs` seconds. This is useful to ensure that logs are written to disk regularly, especially during long-running training processes, and helps to minimize data loss in case of unexpected interruptions.
+
+
+
 #### 97. torch.nn.DataParallel
 
 在多卡的GPU服务器，当我们在上面跑程序的时候，当迭代次数或者epoch足够大的时候，我们通常会使用nn.DataParallel函数来用多个GPU来加速训练。一般我们会在代码中加入以下这些：
@@ -5907,7 +6071,10 @@ print("Output shape:", output.shape)
 #### 106. torch.utils.data.RandomSampler()&torch.utils.data.SequentialSampler()
 
 1. `SequentialSampler`: Samples elements from the dataset sequentially.
-2. `RandomSampler`: Samples elements from the dataset randomly without replacement.
+
+2. `RandomSampler`: Samples elements from the dataset randomly **without replacement**.
+
+   hint: "without replacement" means that once an element is selected from the dataset, it is not put back into the pool of elements to be chosen again. Each element in the dataset can only be selected once until all elements have been sampled.
 
 ##### Use sampler instead of the shuffle
 
@@ -5919,25 +6086,55 @@ It is generally recommended to use a sampler instead of the `shuffle` argument w
 
 
 
-#### 107. torch.distributed.is_available()
+#### 107. torch.utils.data.WeightedRandomSampler()
 
-The `torch.distributed.is_available()` function is a utility provided by PyTorch to check whether the distributed package is available and can be used in the current environment. It returns a boolean value indicating whether distributed training functionality is available.
+PyTorch provides the `torch.utils.data.WeightedRandomSampler` class, which can sample elements from a dataset **with replacement**. This allows you to specify a probability distribution for sampling the elements.
+
+Here's how you can use `WeightedRandomSampler` with replacement:
+
+1. **Initialize Your Dataset**: Prepare your dataset as usual.
+2. **Define Weights**: Specify the weights for each element in your dataset. These weights determine the probability of each element being selected.
+3. **Create the Sampler**: Use `WeightedRandomSampler` with the `replacement=True` parameter.
+
+Here’s an example to illustrate how to use `WeightedRandomSampler` with replacement:
 
 ```python
 import torch
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 
-if torch.distributed.is_available():
-    print("Distributed training is available.")
-else:
-    print("Distributed training is not available.")
+# Define a simple dataset
+class MyDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
 
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+# Create an instance of the dataset
+data = [1, 2, 3, 4, 5]
+dataset = MyDataset(data)
+
+# Define weights for each element in the dataset
+weights = [0.1, 0.2, 0.3, 0.2, 0.2]
+sampler = WeightedRandomSampler(weights, num_samples=10, replacement=True)
+
+# Create a DataLoader with the sampler
+dataloader = DataLoader(dataset, sampler=sampler, batch_size=2)
+
+# Iterate over the DataLoader
+for batch in dataloader:
+    print(batch)
 ```
 
-output:
+In this example:
+- **Weights**: The `weights` list `[0.1, 0.2, 0.3, 0.2, 0.2]` specifies the probability of each element `[1, 2, 3, 4, 5]` being selected.
+- **Sampler**: The `WeightedRandomSampler` is created with `replacement=True`, meaning elements can be selected multiple times in the same sampling process.
+- **num_samples**: The parameter `num_samples=10` specifies the total number of samples to draw.
 
-```
-Distributed training is available.
-```
+When you run this code, you'll get batches of data where elements are sampled according to the specified weights and can be repeated across batches due to sampling with replacement.
 
 
 
@@ -6172,7 +6369,7 @@ One important thing to note is that more than one element of an expanded tensor 
 
 
 
-anther example:
+another example:
 
 ```python
 import torch
@@ -6196,6 +6393,26 @@ tensor([[1, 1, 1, 1],
 ```
 
 
+another example:
+
+```python
+import torch
+
+random_tensor = torch.rand(20, 512)
+print(random_tensor.shape)
+
+if len(random_tensor.shape) == 2:
+    x = random_tensor.expand(1, -1, -1)
+
+print(x.shape)
+```
+
+output:
+
+```
+torch.Size([20, 512])
+torch.Size([1, 20, 512])
+```
 
 
 
@@ -6264,41 +6481,41 @@ tensor([[1., 1., 1., 1., 1.],
 
 ​             
 
-#### 115. torch.empty() vs torch.rand()
 
- Sure, let’s clarify the difference between `torch.empty` and `torch.rand` (I assume you meant `torch.rand` as there is no `torch.random` in PyTorch).
 
-- `torch.empty(size)`: This function returns a tensor filled with uninitialized data[1](https://pytorch.org/docs/stable/generated/torch.empty.html)[1](https://pytorch.org/docs/stable/generated/torch.empty.html). The shape of the tensor is defined by the variable argument `size`. The values that are present in the tensor after the call to `torch.empty` are whatever values were already in memory at that location. It’s faster because it doesn’t have to write any values to the memory[2](https://discuss.pytorch.org/t/difference-between-torch-tensor-and-torch-empty/32831)[3](https://discuss.pytorch.org/t/difference-between-torch-tensor-and-torch-empty/32831).
+​                
 
-Here’s an example of how you might use it:
+#### 115. torch.nn.ReLU()
 
-```python
-import torch
-
-# Create an empty tensor
-x = torch.empty(5, 3)
-print(x)
-```
-
-- `torch.rand(size)`: This function returns a tensor filled with random numbers from a uniform distribution on the interval [0, 1). The shape of the tensor is defined by the variable argument `size`.
-
-Here’s an example of how you might use it:
+Applies the rectified linear unit function element-wise:
 
 ```python
 import torch
+from torch import nn
 
-# Create a random tensor
-x = torch.rand(5, 3)
-print(x)
+m = nn.ReLU()
+input = torch.randn(6)
+print(input)
+print("-------------------")
+output = m(input)
+print(output)
 ```
 
-In summary, `torch.empty` gives you a tensor with uninitialized values, and `torch.rand` gives you a tensor with random values. I hope this helps! Let me know if you have any other questions. 😊
+output:
 
-​                 
+```
+tensor([ 0.4323, -0.1210, -0.3644,  0.0493,  1.2092,  0.7658]) 
+-------------------
+tensor([0.4323, 0.0000, 0.0000, 0.0493, 1.2092, 0.7658])
+```
+
+
+
+
 
 #### 116. torch.nn.SiLU()
 
-​            
+​         
 
 [`torch.nn.SiLU()` is a method in PyTorch that applies the **Sigmoid Linear Unit (SiLU)** function, also known as the **Swish** function, element-wise to the input](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html).
 
@@ -6382,9 +6599,312 @@ optimizer.step()              # Update the weights
 
 I hope this helps! Let me know if you have any other questions. 😊
 
-​                 
-
 ​              
+
+#### 118. pytorch 中retain_graph==True的作用
+
+总的来说进行一次backward之后，各个节点的值会清除，这样进行第二次backward会报错，如果加上retain_graph==True后,可以再来一次backward。
+
+官方定义:
+
+retain_graph (bool, optional) – If False, the graph used to compute the grad will be freed. Note that in nearly all cases setting this option to True is not needed and often can be worked around in a much more efficient way. Defaults to the value of create_graph.
+
+大意是如果设置为False，计算图中的中间变量在计算完后就会被释放。但是在平时的使用中这个参数默认都为False从而提高效率，和creat_graph的值一样。
+
+具体看一个例子理解：
+
+假设一个我们有一个输入x，y = x **2, z = y*4，然后我们有两个输出，一个output_1 = z.mean()，另一个output_2 = z.sum()。然后我们对两个output执行backward。
+
+```python
+import torch
+x = torch.randn((1,4),dtype=torch.float32,requires_grad=True)
+y = x ** 2
+z = y * 4
+print("This is s:\n", x)
+print("This is y:\n", y)
+print("This is z:\n", z)
+loss1 = z.mean()
+loss2 = z.sum()
+print(loss1,loss2)
+loss1.backward()    # 这个代码执行正常，但是执行完中间变量都free了，所以下一个出现了问题
+print(loss1,loss2)
+loss2.backward()    # 这时会引发错误
+```
+
+程序正常执行到第12行，所有的变量正常保存。但是在第13行报错：
+
+RuntimeError: Trying to backward through the graph a second time, but the buffers have already been freed. Specify retain_graph=True when calling backward the first time.
+
+分析：计算节点数值保存了，但是计算图x-y-z结构被释放了，而计算loss2的backward仍然试图利用x-y-z的结构，因此会报错。
+
+因此需要retain_graph参数为True去保留中间参数从而两个loss的backward()不会相互影响。正确的代码应当把第11行以及之后改成
+
+```python
+1 # 假如你需要执行两次backward,先执行第一个的backward，再执行第二个backward
+2 loss1.backward(retain_graph=True)# 这里参数表明保留backward后的中间参数。
+3 loss2.backward() # 执行完这个后，所有中间变量都会被释放，以便下一次的循环
+4  #如果是在训练网络optimizer.step() # 更新参数
+```
+
+   
+
+#### 119. torch.distributed.is_available()
+
+The `torch.distributed.is_available()` function is a utility provided by PyTorch to check whether the distributed package is available and can be used in the current environment. It returns a boolean value indicating whether distributed training functionality is available.
+
+```python
+import torch
+
+if torch.distributed.is_available():
+    print("Distributed training is available.")
+else:
+    print("Distributed training is not available.")
+
+```
+
+output:
+
+```
+Distributed training is available.
+```
+
+
+
+#### 120. torch.nn.Tanh()
+
+Applies the Hyperbolic Tangent (Tanh) function element-wise.
+
+![](https://pytorch.org/docs/stable/_images/Tanh.png)
+
+#### 121. torch.topk()
+
+The `torch.topk()` function in PyTorch is used to find the top `k` elements in a tensor along a specified dimension. It returns a named tuple of two tensors: one containing the top `k` values and the other containing the indices of these top `k` values within the original tensor.
+
+```python
+import torch
+
+# Create a 2D tensor
+tensor = torch.tensor([
+    [1.0, 3.0, 2.0],
+    [4.0, 0.0, 5.0],
+    [6.0, 7.0, 8.0]
+])
+
+# Find the top 2 values along the last dimension (dim=1)
+values, indices = torch.topk(tensor, k=1, dim=1)
+
+print("Top values:\n", values)
+print("Indices of top values:\n", indices)
+
+print("This is the torch.topk(tensor, k=1, dim=1)[1]\n", torch.topk(tensor, k=1, dim=1)[1])
+```
+
+output:
+
+```
+Top values:
+ tensor([[3.],
+        [5.],
+        [8.]])
+Indices of top values:
+ tensor([[1],
+        [2],
+        [2]])
+This is the torch.topk(tensor, k=1, dim=1)[1]
+ tensor([[1],
+        [2],
+        [2]])
+```
+
+
+
+#### 122. torch.exp()
+
+The `torch.exp()` function is a part of the PyTorch library, which is widely used for deep learning and tensor computations. This function calculates the exponential of each element in the input tensor. The exponential function, often denoted as 𝑒𝑥*e**x*, is a mathematical function that raises the base of natural logarithms (approximately equal to 2.71828) to the power of 𝑥*x*.
+
+Here’s a more detailed explanation and example of how `torch.exp()` works:
+
+##### Syntax
+
+```
+torch.exp(input)
+```
+
+- `input`: A tensor of any shape.
+
+##### Example
+
+Let's go through a practical example to see how it works:
+
+```python
+import torch
+
+# Create a tensor
+input_tensor = torch.tensor([1.0, 2.0, 3.0])
+
+# Apply the exponential function
+output_tensor = torch.exp(input_tensor)
+
+print(output_tensor)
+```
+
+##### Explanation
+
+1. **Input Tensor**: The tensor `[1.0, 2.0, 3.0]` is given as input.
+
+2. Exponential Calculation
+
+   : The 
+
+   ```
+   torch.exp()
+   ```
+
+    function computes the exponential of each element:
+
+   - 𝑒1=2.7183
+   - 𝑒2=7.3891
+   - 𝑒3=20.0855
+
+3. **Output Tensor**: The result is a new tensor containing the exponential values: `[2.7183, 7.3891, 20.0855]`.
+
+
+
+#### 123. tensor.gt(0.0)
+
+`targets.gt(0.0)`: This is applying the `gt` function, which stands for “greater than”. It compares each element in the `targets` tensor to `0.0`, and returns a new tensor of the same shape as `targets` with each element being `True` if the corresponding element in `targets` is greater than `0.0`, and `False` otherwise. This operation does not change the original `targets` tensor.
+
+```
+import torch
+
+# original targets tensor
+targets = torch.tensor([-1.0, 0.0, 1.0, 2.0])
+print("Original targets:", targets)
+print("after the tensor.gt(0.0):", targets.gt(0.0))
+```
+
+output:
+
+```
+Original targets: tensor([-1.,  0.,  1.,  2.])
+after the tensor.gt(0.0): tensor([False, False,  True,  True])
+```
+
+
+
+#### 124. torch.cuda.amp.custom_bwd and custom_fwd
+
+The `@custom_fwd` and `@custom_bwd` are decorators provided by PyTorch’s `torch.cuda.amp` module. [They are used to customize the behavior of forward and backward methods in custom autograd functions, especially when using Automatic Mixed Precision (AMP)](https://pytorch.org/docs/stable/notes/amp_examples.html)[1](https://pytorch.org/docs/stable/notes/amp_examples.html)[2](https://pytorch.org/docs/stable/amp.html).
+
+- `@custom_fwd(cast_inputs=torch.float32)`: This decorator is applied to the forward method of a custom autograd function. [If the forward method runs in an autocast-enabled region, this decorator casts floating-point CUDA Tensor inputs to the specified type (in this case, `torch.float32`) and locally disables autocast during the forward pass](https://pytorch.org/docs/stable/notes/amp_examples.html)[1](https://pytorch.org/docs/stable/notes/amp_examples.html).
+- `@custom_bwd`: This decorator is applied to the backward method of a custom autograd function. [It locally disables autocast during the backward pass](https://pytorch.org/docs/stable/notes/amp_examples.html)[1](https://pytorch.org/docs/stable/notes/amp_examples.html). [It’s important to note that backward ops run in the same type that autocast used for corresponding forward ops](https://pytorch.org/docs/stable/amp.html)[2](https://pytorch.org/docs/stable/amp.html).
+
+[Here’s an example of how they might be used in a custom function](https://pytorch.org/docs/stable/notes/amp_examples.html)[3](https://torchsparse.readthedocs.io/en/latest/_modules/torchsparse/nn/functional/voxelize.html):
+
+```python
+from torch.autograd import Function
+from torch.cuda.amp import custom_bwd, custom_fwd
+
+class MyFunction(Function):
+    @staticmethod
+    @custom_fwd(cast_inputs=torch.float32)
+    def forward(ctx, input):
+        # Forward pass implementation
+        ...
+
+    @staticmethod
+    @custom_bwd
+    def backward(ctx, grad_output):
+        # Backward pass implementation
+        ...
+```
+
+[In this example, the forward method of `MyFunction` will always receive inputs as `torch.float32` tensors when running in an autocast-enabled region, and autocast will be locally disabled during the forward and backward passes](https://torchsparse.readthedocs.io/en/latest/_modules/torchsparse/nn/functional/voxelize.html)[3](https://torchsparse.readthedocs.io/en/latest/_modules/torchsparse/nn/functional/voxelize.html). [This can be useful when you have a custom function that requires inputs of a specific data type](https://pytorch.org/docs/stable/notes/amp_examples.html)[1](https://pytorch.org/docs/stable/notes/amp_examples.html).
+
+​                
+
+#### 125. torch.empty() vs torch.rand()
+
+ Sure, let’s clarify the difference between `torch.empty` and `torch.rand` (I assume you meant `torch.rand` as there is no `torch.random` in PyTorch).
+
+- `torch.empty(size)`: This function returns a tensor filled with uninitialized data[1](https://pytorch.org/docs/stable/generated/torch.empty.html)[1](https://pytorch.org/docs/stable/generated/torch.empty.html). The shape of the tensor is defined by the variable argument `size`. The values that are present in the tensor after the call to `torch.empty` are whatever values were already in memory at that location. It’s faster because it **doesn’t have to write any values to the memory**.
+
+Here’s an example of how you might use it:
+
+```python
+import torch
+
+# Create an empty tensor
+x = torch.empty(5, 3)
+print(x)
+```
+
+output:
+
+```
+tensor([[-2.9967e+21,  4.5643e-41, -2.9967e+21],
+        [ 4.5643e-41, -1.3718e+22,  4.5643e-41],
+        [-2.9967e+21,  4.5643e-41, -1.9080e+00],
+        [ 4.5642e-41, -1.9080e+00,  4.5642e-41],
+        [-3.1927e+00,  4.5642e-41, -1.2208e+22]])
+```
+
+
+
+- `torch.rand(size)`: This function returns a tensor filled with random numbers from a uniform distribution on the interval [0, 1). The shape of the tensor is defined by the variable argument `size`.
+
+Here’s an example of how you might use it:
+
+```python
+import torch
+
+# Create a random tensor
+x = torch.rand(5, 3)
+print(x)
+```
+
+output:
+
+```
+tensor([[0.2441, 0.4754, 0.7705],
+        [0.2609, 0.2801, 0.9015],
+        [0.2230, 0.5429, 0.2787],
+        [0.8308, 0.6675, 0.6638],
+        [0.2661, 0.0852, 0.8574]])
+```
+
+In summary, `torch.empty` gives you a tensor with uninitialized values, and `torch.rand` gives you a tensor with random values. I hope this helps! Let me know if you have any other questions. 
+
+
+
+#### 126. torch.flip([-1])
+
+This function is used to reverse the order of elements in a tensor along specified dimensions.
+
+```python
+import torch
+
+x = torch.arange(8).view(2, 2, 2)
+print(x)
+
+y = x.flip([-1])
+print(y)
+```
+
+output:
+
+```
+tensor([[[0, 1],
+         [2, 3]],
+
+        [[4, 5],
+         [6, 7]]])
+tensor([[[1, 0],
+         [3, 2]],
+
+        [[5, 4],
+         [7, 6]]])
+```
 
 
 
@@ -7605,7 +8125,7 @@ In the `super()` function, the `name` parameter refers to the class name from wh
 
 However, it's important to note that specifying `name` is not commonly needed unless you're dealing with multiple inheritance and want to control the method resolution order explicitly. In most cases, `super().__init__()` suffices.
 
-##### Using the attributes and methods of parent class when we use super().__init__()
+##### Using the attributes of parent class when we use super().__init__()
 
 Yes, when you use `super().__init__()` to call the parent class's constructor, the child class inherits all attributes and methods from the parent class, and you can use them within the child class.
 
@@ -7645,6 +8165,102 @@ In this example, `Child` inherits from `Parent`, and `Child`'s constructor initi
 When you call `child.greet()`, it invokes the `greet()` method of the parent class `Parent`, using the `name` attribute inherited from `Parent`.
 
 So, yes, you can use both attributes and methods of the parent class within the child class when you call `super().__init__()` to initialize the parent class in the child class's constructor.
+
+##### without `super().__init__()` ,  the child class is not able to use the attribute of parent, but the parent class can use the attribute of child
+
+below is the example
+
+```python
+class Parent:
+    def __init__(self, name):
+        self.name = name
+        self.name2 = "Bob"
+
+    def greet(self):
+        print(f"Hello, I am {self.name}.")
+
+class Child(Parent):
+    def __init__(self, age):
+        
+        self.age = age
+
+    def introduce(self):
+        print(f"My name is {self.name2} and I am {self.age} years old.")
+
+child = Child(10)
+child.introduce()  
+```
+
+output:
+
+```
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+Cell In[16], line 18
+     15         print(f"My name is {self.name2} and I am {self.age} years old.")
+     17 child = Child(10)
+---> 18 child.introduce()
+
+Cell In[16], line 15
+     14 def introduce(self):
+---> 15     print(f"My name is {self.name2} and I am {self.age} years old.")
+
+AttributeError: 'Child' object has no attribute 'name2'
+```
+
+**below is another example, e.g. parent class can use the child class:**
+
+```python
+class Parent:
+    def show_child_age(self, child):
+        print(f"{child.name} is {child.age} years old.")
+
+class Child(Parent):
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+child = Child("Alice", 10)
+parent = Parent()
+
+parent.show_child_age(child)  # Output: Alice is 10 years old.
+```
+
+output:
+
+```
+Alice is 10 years old.
+```
+
+##### without `super().__init__()` , the children can use the method of parent class.
+
+```python
+class Parent:
+    def __init__(self, name):
+        self.name = name
+
+    def greet(self):
+        print(f"Hello, I am {self.age}.,and this attribute from child not parent")
+
+class Child(Parent):
+    def __init__(self, name, age):
+        self.name1 = name  # Initialize name directly in the child class
+        self.age = age
+
+    def introduce(self):
+        print(f"My name is {self.name1} and I am {self.age} years old.")
+
+child = Child("Alice", 10)
+child.introduce()  # Output: My name is Alice and I am 10 years old.
+child.greet()      # Output: Hello, I am Alice.
+```
+
+output:
+
+```
+My name is Alice and I am 10 years old.
+Hello, I am 10.,and this attribute from child not parent
+```
 
 
 
@@ -9331,6 +9947,23 @@ But be careful because the integer value `0` is represented by many bits. For ex
 **The general formula to calculate the tilde operation `~i` on an integer value `i` is `~i=-i-1`.**
 
 Have a look at the Python code where you convert the integer 42 with binary representation `0010 1010` to the complement `-0010 1011`:
+
+Here’s a table showing the results of various tilde operations on negative integer values.
+
+| Tilde Operation | Bit Transformation     | Integer Result |
+| :-------------- | :--------------------- | :------------- |
+| `~0`            | `~00000000-->11111111` | `-1`           |
+| `~-1`           | `~11111111-->00000000` | `0`            |
+| `~-2`           | `~11111110-->00000001` | `1`            |
+| `~-3`           | `~11111101-->00000010` | `2`            |
+| `~-4`           | `~11111100-->00000011` | `3`            |
+| `~-5`           | `~11111011-->00000100` | `4`            |
+| `~-6`           | `~11111010-->00000101` | `5`            |
+| `~-7`           | `~11111001-->00000110` | `6`            |
+| `~-8`           | `~11111000-->00000111` | `7`            |
+| `~-9`           | `~11110111-->00001000` | `8`            |
+| `~-10`          | `~11110110-->00001001` | `9`            |
+| `~-11`          | `~11110101-->00001010` | `10`           |
 
 
 
@@ -11810,6 +12443,293 @@ type(B()) == A        # returns False
 
 
 
+#### 101. set()
+
+In Python, `set()` is a built-in data type that represents an **unordered** collection of unique elements. Sets are mutable, meaning you can add or remove elements from them, but they are unordered, so they do not record element position or order of insertion. 
+
+You can create a set in Python by enclosing a comma-separated sequence of elements inside curly braces `{}`, or by passing an iterable (like a list or tuple) to the `set()` constructor. 
+
+For example:
+```python
+# Creating a set using curly braces
+my_set = {1, 2, 3, 4, 5}
+
+# Creating a set using the set() constructor
+another_set = set([1, 2, 3, 4, 5])
+```
+
+Sets are commonly used for tasks like removing duplicates from a list, performing mathematical set operations like union, intersection, difference, and symmetric difference, and checking for membership or existence of elements efficiently.
+
+
+
+Sure, here's an example to demonstrate that sets are unordered:
+
+```python
+my_set = {4, 1, 6, 3, 2}
+
+print("Original set:", my_set)
+
+# Adding an element to the set
+my_set.add(5)
+
+print("After adding 5:", my_set)
+
+# Removing an element from the set
+my_set.remove(3)
+
+print("After removing 3:", my_set)
+```
+
+Output:
+```css
+Original set: {1, 2, 3, 4, 6}
+After adding 5: {1, 2, 3, 4, 5, 6}
+After removing 3: {1, 2, 4, 5, 6}
+```
+
+As you can see, the order of elements in the set changes after adding and removing elements. This demonstrates that sets do not preserve the order of elements.
+
+
+
+#### 102. Unpacking with the `*` Operator
+
+The `*` operator in Python is used for unpacking, which essentially means it takes all the elements of a list (or any iterable) and passes them as individual arguments to a function.
+
+Let's consider a simple example with a function that takes multiple arguments:
+
+```python
+def print_args(a, b, c):
+    print(f"a: {a}, b: {b}, c: {c}")
+
+args = [1, 2, 3]
+print_args(*args)
+```
+
+In this example:
+
+1. `args` is a list containing `[1, 2, 3]`.
+2. `print_args(*args)` unpacks the list so that it's equivalent to calling `print_args(1, 2, 3)`.
+3. The function `print_args` then receives three separate arguments: `a=1`, `b=2`, and `c=3`.
+
+**another example:**
+
+```python
+args = [1, 2, 3]
+print(*args)
+print(args)
+```
+
+output:
+
+```
+1 2 3
+[1, 2, 3]
+```
+
+
+
+#### 103. filter()
+
+In Python, the `filter()` function is used to construct an iterator from elements of an iterable (like a list, tuple, etc.) for which a function returns true. Essentially, it filters the elements based on a condition.
+
+Here’s the syntax for `filter()`:
+
+```python
+filter(function, iterable)
+```
+
+- **function**: A function that tests each element of the iterable. It should return a boolean value (`True` or `False`).
+- **iterable**: An iterable like a list, tuple, etc.
+
+The `filter()` function returns an iterator (filter object), which can be converted into a list, tuple, etc.
+
+##### Example Usage
+
+Here's a simple example to demonstrate how `filter()` works:
+
+```python
+# Define a function that returns True for even numbers
+def is_even(num):
+    return num % 2 == 0
+
+# Create a list of numbers
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Use filter to get even numbers
+even_numbers = filter(is_even, numbers)
+
+# Convert the filter object to a list
+even_numbers_list = list(even_numbers)
+
+print(even_numbers_list)  # Output: [2, 4, 6, 8, 10]
+```
+
+##### Using `filter()` with a Lambda Function
+
+Often, it's convenient to use a lambda function with `filter()` to avoid defining a separate function. Here’s an example:
+
+```python
+# Create a list of numbers
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Use filter with a lambda function to get even numbers
+even_numbers = filter(lambda num: num % 2 == 0, numbers)
+
+# Convert the filter object to a list
+even_numbers_list = list(even_numbers)
+
+print(even_numbers_list)  # Output: [2, 4, 6, 8, 10]
+```
+
+##### Key Points
+
+- `filter()` is useful for extracting elements from an iterable based on a condition.
+- The function used in `filter()` should return a boolean value.
+- The result is an iterator, so you may need to convert it to a list or another iterable type if you need it in that form.
+
+##### Practical Example
+
+Here's a practical example where `filter()` is used to remove empty strings from a list:
+
+```python
+# List with some empty strings
+str_list = ["apple", "", "banana", "", "cherry"]
+
+# Use filter to remove empty strings
+non_empty_strings = filter(lambda x: x != "", str_list)
+
+# Convert the filter object to a list
+non_empty_strings_list = list(non_empty_strings)
+
+print(non_empty_strings_list)  # Output: ['apple', 'banana', 'cherry']
+```
+
+This way, `filter()` can be very handy for cleaning and processing data in Python.
+
+
+
+#### 104.@ Matrix Multiplication
+
+The `@` operator in Python is used for matrix multiplication. This is defined by [PEP 465](https://www.python.org/dev/peps/pep-0465/), which introduced the `@` operator specifically for this purpose in Python 3.5 and later.
+
+Here’s how I know this and why it's commonly used in the context of libraries like PyTorch:
+
+##### Matrix Multiplication Operator (`@`)
+
+1. **PEP 465**:
+   - PEP 465 was introduced to add a dedicated infix operator for matrix multiplication. This was aimed at making matrix operations more intuitive and readable, especially for those working in scientific computing and machine learning.
+
+2. **Usage in PyTorch and Other Libraries**:
+   - Libraries like NumPy and PyTorch have adopted the `@` operator for matrix multiplication, making it a standard way to perform such operations.
+   - In PyTorch, the `@` operator can be used with `torch.Tensor` objects to perform matrix multiplication.
+
+##### Example
+
+Consider a simple example using NumPy to illustrate how the `@` operator is used:
+
+```python
+import numpy as np
+
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+
+# Matrix multiplication using @ operator
+C = A @ B
+print(C)
+```
+
+This would output:
+```
+[[19 22]
+ [43 50]]
+```
+
+Here, `A @ B` performs the matrix multiplication of matrices `A` and `B`.
+
+##### Application in PyTorch
+
+In PyTorch, you can similarly use the `@` operator:
+
+```python
+import torch
+
+A = torch.tensor([[1, 2], [3, 4]])
+B = torch.tensor([[5, 6], [7, 8]])
+
+# Matrix multiplication using @ operator
+C = A @ B
+print(C)
+```
+
+This would also output:
+```
+tensor([[19, 22],
+        [43, 50]])
+```
+
+##### Why Use `@` for Matrix Multiplication?
+
+- **Readability**: The `@` operator makes the code more readable, clearly indicating that a matrix multiplication is being performed, which is often more intuitive than using functions like `np.dot()` or `torch.mm()`.
+- **Consistency**: Using a dedicated operator for matrix multiplication helps avoid confusion with element-wise multiplication (`*` operator) and ensures consistency in codebases that deal with linear algebra operations frequently.
+
+##### Conclusion
+
+The use of the `@` operator for matrix multiplication is a standard and recommended practice in Python, especially for those working in fields that involve a lot of matrix computations, such as machine learning, scientific computing, and data analysis.
+
+
+
+#### 105. tensor.contiguous()
+
+In PyTorch, the `tensor.contiguous()` method is used to ensure that a tensor is stored in **contiguous memory**. This is important for certain operations that require the data to be stored in a specific memory layout.
+
+##### Understanding Tensor Contiguity
+
+Tensors in PyTorch can be stored in memory in various ways. Contiguous tensors are those where the elements are stored in a contiguous block of memory without any gaps. When a tensor is created or transformed (e.g., via transposing, slicing, or permuting dimensions), it might no longer be contiguous. This can affect performance and the ability of some operations to work correctly.
+
+##### Why Contiguity Matters
+
+1. **Performance**: Many operations in PyTorch are optimized for contiguous memory access. Non-contiguous tensors can lead to inefficiencies.
+2. **Compatibility**: Some PyTorch functions require the input tensor to be contiguous. If you pass a non-contiguous tensor to such a function, it may result in an error.
+
+##### Usage of `tensor.contiguous()`
+
+The `tensor.contiguous()` method creates a contiguous copy of the tensor if it is not already contiguous. If the tensor is already contiguous, this method has no effect.
+
+Here's an example to illustrate its use:
+
+```python
+import torch
+
+# Create a tensor
+tensor = torch.randn(3, 4)
+
+# Transpose the tensor to make it non-contiguous
+tensor_t = tensor.t()
+
+# Check if the tensor is contiguous
+print(tensor_t.is_contiguous())  # Output: False
+
+# Make the tensor contiguous
+tensor_contiguous = tensor_t.contiguous()
+
+# Check if the new tensor is contiguous
+print(tensor_contiguous.is_contiguous())  # Output: True
+```
+
+In this example:
+- `tensor.t()` transposes the tensor, making it non-contiguous.
+- `tensor_t.contiguous()` creates a contiguous copy of the transposed tensor.
+
+##### Summary
+
+- **`tensor.contiguous()`**: Ensures that the tensor is stored in contiguous memory.
+- **Usage**: Important for performance and required by certain functions.
+- **Effect**: Creates a new contiguous tensor if the original is non-contiguous; otherwise, it does nothing.
+
+
+
+
+
 ## About dataclasses
 
 #### 01. @dataclass
@@ -13836,19 +14756,373 @@ As you can see, the original 2D array `arr` is flattened into a one-dimensional 
 
 
 
+#### 34. numpy.unique()
+
+`numpy.unique()` is a function in the NumPy library in Python, and it's used to find the unique elements of an array.
+
+Here's the basic syntax:
+
+```python
+numpy.unique(ar, return_index=False, return_inverse=False, return_counts=False, axis=None)
+```
+
+- `ar`: This is the input array. It could be a 1D or 2D array.
+- `return_index`: If True, it returns the indices of the unique elements.
+- `return_inverse`: If True, it returns the indices that can be used to reconstruct the original array from the unique array.
+- `return_counts`: If True, it returns the counts of each unique element.
+- `axis`: If not None, the operation is performed on the specified axis.
+
+Here's an example of how you can use it:
+
+```python
+import numpy as np
+
+arr = np.array([1, 2, 3, 4, 4, 5, 6, 6])
+unique_elements = np.unique(arr)
+print(unique_elements)
+```
+
+This will output:
+
+```
+[1 2 3 4 5 6]
+```
+
+
+
+#### 35. numpy.where()
+
+The `numpy.where()` function in NumPy is a versatile function used to create arrays based on conditions. Here’s how you can use it:
+
+Basic Syntax
+
+```python
+numpy.where(condition, [x, y])
+```
+
+- `condition`: An array-like boolean expression.
+- `x`: Values from this array are selected if the condition is `True`.
+- `y`: Values from this array are selected if the condition is `False`.
+
+Examples
+
+1. **Using `numpy.where()` with one argument (condition only)**
+
+When `numpy.where()` is used with only the condition, it returns the indices of the elements that are `True`.
+
+```python
+import numpy as np
+
+arr = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+condition = arr > 5
+result = np.where(condition)
+
+print(result)  # (array([6, 7, 8, 9]),)
+```
+
+**2. Using `numpy.where()` with three arguments (condition, x, y)**
+
+When `numpy.where()` is used with three arguments, it returns an array where elements are taken from `x` if the condition is `True`, and from `y` if the condition is `False`.
+
+```python
+import numpy as np
+
+arr = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+condition = arr > 5
+result = np.where(condition, arr, -1)
+
+print(result)  # [-1 -1 -1 -1 -1 -1  6  7  8  9]
+```
+
+
+
+#### 36. numpy.random.beta()
+
+Yes, the `numpy.random.beta` function is part of the NumPy library, which is widely used for numerical computing in Python. This function is used to draw samples from a Beta distribution.
+
+**Beta Distribution**
+
+The Beta distribution is a continuous probability distribution defined on the interval \([0, 1]\). It is parameterized by two positive shape parameters, \(\alpha\) (often referred to as \(a\)) and \(\beta\) (often referred to as \(b\)).
+
+**Usage**
+
+The syntax for `numpy.random.beta` is:
+
+```python
+numpy.random.beta(a, b, size=None)
+```
+
+- `a` (float or array_like of floats): The \(\alpha\) parameter of the Beta distribution. Must be greater than 0.
+- `b` (float or array_like of floats): The \(\beta\) parameter of the Beta distribution. Must be greater than 0.
+- `size` (int or tuple of ints, optional): Output shape. If the given shape is, for example, `(m, n, k)`, then `m * n * k` samples are drawn. If `size` is `None` (default), a single value is returned if `a` and `b` are both scalars. Otherwise, `np.broadcast(a, b).size` samples are drawn.
+
+**Example**
+
+Here is an example of how to use `numpy.random.beta`:
+
+```python
+import numpy as np
+
+# Draw a single sample from a Beta distribution with parameters a=2.0, b=5.0
+sample = np.random.beta(2.0, 5.0)
+print("Single sample:", sample)
+
+# Draw 10 samples from a Beta distribution with parameters a=2.0, b=5.0
+samples = np.random.beta(2.0, 5.0, size=10)
+print("10 samples:", samples)
+```
+
+**Properties**
+
+The Beta distribution is often used in Bayesian statistics, random proportion models, and scenarios where the outcome is constrained to the interval \([0, 1]\). The distribution is flexible and can take on various shapes depending on the values of \(a\) and \(b\).
+
+- If \(a = b = 1\), the Beta distribution is uniform on \([0, 1]\).
+- If \(a > 1\) and \(b > 1\), the distribution is bell-shaped.
+- If \(a < 1\) and \(b < 1\), the distribution is U-shaped.
+
+Feel free to ask if you need more details or specific examples!
+
+
+
+NumPy provides a variety of functions to generate random samples from different probability distributions. Here are some of the most commonly used random distribution functions in NumPy:
+
+##### Uniform Distribution
+
+- **Function**: `numpy.random.uniform(low=0.0, high=1.0, size=None)`
+- **Description**: Draws samples from a uniform distribution over the interval `[low, high)`.
+- **Example**:
+    ```python
+    samples = np.random.uniform(low=0.0, high=10.0, size=5)
+    print(samples)
+    ```
+
+##### Normal (Gaussian) Distribution
+- **Function**: `numpy.random.normal(loc=0.0, scale=1.0, size=None)`
+- **Description**: Draws samples from a normal (Gaussian) distribution.
+- **Parameters**: 
+  - `loc`: Mean of the distribution.
+  - `scale`: Standard deviation of the distribution.
+- **Example**:
+    ```python
+    samples = np.random.normal(loc=0.0, scale=1.0, size=5)
+    print(samples)
+    ```
+
+##### Binomial Distribution
+- **Function**: `numpy.random.binomial(n, p, size=None)`
+- **Description**: Draws samples from a binomial distribution.
+- **Parameters**:
+  - `n`: Number of trials.
+  - `p`: Probability of success in each trial.
+- **Example**:
+    ```python
+    samples = np.random.binomial(n=10, p=0.5, size=5)
+    print(samples)
+    ```
+
+##### Poisson Distribution
+- **Function**: `numpy.random.poisson(lam=1.0, size=None)`
+- **Description**: Draws samples from a Poisson distribution.
+- **Parameters**:
+  
+  - `lam`: Expected number of events (λ).
+- **Example**:
+    ```python
+    samples = np.random.poisson(lam=5.0, size=5)
+    print(samples)
+    ```
+
+##### Exponential Distribution
+- **Function**: `numpy.random.exponential(scale=1.0, size=None)`
+- **Description**: Draws samples from an exponential distribution.
+- **Parameters**:
+  - `scale`: Inverse of the rate parameter (β = 1/λ).
+- **Example**:
+    ```python
+    samples = np.random.exponential(scale=2.0, size=5)
+    print(samples)
+    ```
+
+##### Gamma Distribution
+- **Function**: `numpy.random.gamma(shape, scale=1.0, size=None)`
+- **Description**: Draws samples from a Gamma distribution.
+- **Parameters**:
+  - `shape`: Shape parameter (k).
+  - `scale`: Scale parameter (θ).
+- **Example**:
+    ```python
+    samples = np.random.gamma(shape=2.0, scale=1.0, size=5)
+    print(samples)
+    ```
+
+##### Beta Distribution
+- **Function**: `numpy.random.beta(a, b, size=None)`
+- **Description**: Draws samples from a Beta distribution.
+- **Parameters**:
+  - `a`: Alpha parameter.
+  - `b`: Beta parameter.
+- **Example**:
+    ```python
+    samples = np.random.beta(a=2.0, b=5.0, size=5)
+    print(samples)
+    ```
+
+##### Chi-Square Distribution
+- **Function**: `numpy.random.chisquare(df, size=None)`
+- **Description**: Draws samples from a chi-square distribution.
+- **Parameters**:
+  - `df`: Degrees of freedom.
+- **Example**:
+    ```python
+    samples = np.random.chisquare(df=2.0, size=5)
+    print(samples)
+    ```
+
+##### Multinomial Distribution
+- **Function**: `numpy.random.multinomial(n, pvals, size=None)`
+- **Description**: Draws samples from a multinomial distribution.
+- **Parameters**:
+  - `n`: Number of trials.
+  - `pvals`: Probabilities of each of the possible outcomes.
+- **Example**:
+    ```python
+    samples = np.random.multinomial(n=10, pvals=[0.2, 0.3, 0.5], size=5)
+    print(samples)
+    ```
+
+##### Example Code for Multiple Distributions
+Here is a combined example demonstrating the usage of some of these distributions:
+
+```python
+import numpy as np
+
+# Uniform distribution
+uniform_samples = np.random.uniform(low=0.0, high=10.0, size=5)
+print("Uniform samples:", uniform_samples)
+
+# Normal distribution
+normal_samples = np.random.normal(loc=0.0, scale=1.0, size=5)
+print("Normal samples:", normal_samples)
+
+# Binomial distribution
+binomial_samples = np.random.binomial(n=10, p=0.5, size=5)
+print("Binomial samples:", binomial_samples)
+
+# Poisson distribution
+poisson_samples = np.random.poisson(lam=5.0, size=5)
+print("Poisson samples:", poisson_samples)
+
+# Exponential distribution
+exponential_samples = np.random.exponential(scale=2.0, size=5)
+print("Exponential samples:", exponential_samples)
+```
+
+These are just a few of the random sampling functions available in NumPy. Each function can be tailored to different needs and scenarios depending on the nature of the data and the required statistical properties.
+
+
+
+#### 37. numpy.random.permutation()
+
+Yes, `numpy.random.permutation()` is a function in the NumPy library used for randomly permuting a sequence or returning a permuted range. Here's a brief overview of its functionality:
+
+1. **Permuting a sequence**: When given an array, it returns a new array with the elements randomly permuted.
+
+2. **Permuting a range**: When given an integer \( n \), it returns a randomly permuted range of integers from 0 to \( n-1 \).
+
+Syntax
+
+```python
+numpy.random.permutation(x)
+```
+
+Parameters
+
+- **x**: An integer or an array-like object.
+  - If `x` is an integer, it will create a permutation of `numpy.arange(x)`.
+  - If `x` is an array-like object, it will create a permutation of its elements.
+
+Returns
+
+- A new array with the elements permuted.
+
+Examples
+
+Here are a few examples to illustrate how it works:
+
+1. **Permuting a range of integers**:
+    ```python
+    import numpy as np
+    
+    permuted_range = np.random.permutation(10)
+    print(permuted_range)
+    # Output might be: [3 0 4 1 7 5 2 8 6 9]
+    ```
+
+2. **Permuting an array**:
+    ```python
+    import numpy as np
+    
+    array = np.array([1, 2, 3, 4, 5])
+    permuted_array = np.random.permutation(array)
+    print(permuted_array)
+    # Output might be: [4 1 3 5 2]
+    ```
+
+Use Cases
+
+- **Shuffling elements of an array**: Useful in scenarios like shuffling data for machine learning purposes.
+- **Generating random permutations of a set of numbers**: Useful in combinatorial problems and simulations.
+
+Would you like more details or examples on how to use `numpy.random.permutation()`?
+
+
+
+#### 38. how to obtain the top n column data
+
+To extract the top 5 columns from a matrix, you can use array slicing in NumPy. Here's how you can modify your code to get the top 5 columns from a `2x10` matrix filled with ones:
+
+```python
+import numpy as np
+
+# Generate a 2x10 matrix filled with ones
+ones_matrix = np.ones((2, 10))
+
+# Extract the top 5 columns
+top_5_columns = ones_matrix[:, :5]
+
+print("Original Matrix:")
+print(ones_matrix)
+
+print("\nTop 5 Columns:")
+print(top_5_columns)
+```
+
+In this code:
+- `ones_matrix[:, :5]` uses slicing to select all rows (`:`) and the first 5 columns (`:5`).
+
+When you run this code, it will print the original matrix and the extracted top 5 columns. Here’s what the output will look like:
+
+```
+Original Matrix:
+[[1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]]
+
+Top 5 Columns:
+[[1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1.]]
+```
+
+
+
 
 
 ## About sklearn
 
 #### 1. about sklearn.preprocessing.MinMaxScaler()
 
-
-
 ```python
 from sklearn import preprocessing
-
 import numpy as np
-
 import matplotlib.pyplot as plt
 
 X_train = np.array([[1., -1., 2.],
@@ -14788,7 +16062,35 @@ print("This line will not be printed.")
 
 ```
 
+Hint:
 
+**`sys.exit()`**:
+
+- When called without an argument, `sys.exit()` defaults to using an exit status of `0`.
+
+- An exit status of `0` generally indicates that the program terminated successfully without any errors.
+
+- Example usage:
+
+  ```python
+  import sys
+  sys.exit()  # Equivalent to sys.exit(0)
+  
+  ```
+
+**`sys.exit(1)`**:
+
+- When called with an argument, `sys.exit(1)`, it uses the provided integer as the exit status.
+
+- An exit status of `1` (or any non-zero value) usually indicates that the program terminated with an error or an exceptional condition.
+
+- Example usage:
+
+  ```python
+  import sys
+  sys.exit(1)
+  
+  ```
 
 
 
@@ -15661,6 +16963,8 @@ random.randint(0,99)#返回0~99之间的整数
 #randrange函数，randrange(0,101,2)可以用来选曲0~100之间的偶数
 ```
 
+
+
 #### 02. random.seed(int)
 
 给随机数对象一个种子值，用于产生随机序列。
@@ -15682,11 +16986,15 @@ random.seed()
 print random.random()
 ```
 
+
+
 #### 03. 随机正态浮点数random.uniform(u,sigma)
 
 ```python
 print random.uniform(1,5)
 ```
+
+
 
 #### 04. 按步长随机在上下限范围内取一个随机数
 
@@ -15761,6 +17069,8 @@ print item2
 
 ```
 
+
+
 #### 08. numpy模块中的randn和rand函数
 
 numpy.random.randn(d0,d1,…,dn),正太随机
@@ -15776,6 +17086,33 @@ array([[ 1.62434536, -0.61175641, -0.52817175],
 numpy.random.rand(2,3)
 array([[0.41919451, 0.6852195 , 0.20445225],
        [0.87811744, 0.02738759, 0.67046751]])
+```
+
+
+
+#### 09. random.random()
+
+`random.random()` generates a random floating-point number between 0.0 and 1.0.
+
+**Range**: The number returned will be in the range [0.0,1.0)[0.0, 1.0)[0.0,1.0). This means it includes 0.0 but excludes 1.0.
+
+**Uniform Distribution**: The numbers are uniformly distributed, meaning each number within the range has an equal probability of being generated.
+
+```python
+import random
+
+# Generate a random floating-point number between 0.0 and 1.0
+random_number = random.random()
+
+# Print the random number
+print(random_number)
+
+```
+
+output:
+
+```
+0.23837441221640987
 ```
 
 
@@ -16020,6 +17357,18 @@ df = pd.read_csv(file_path, header=None)
 
 # Display the DataFrame
 print(df)
+
+```
+
+##### dtype
+
+If you want to set all columns to a single data type, you can pass a data type directly. For example:
+
+```python
+import pandas as pd
+
+# Set all columns to type 'str'
+df = pd.read_csv('yourfile.csv', dtype=str)
 
 ```
 
@@ -16554,6 +17903,135 @@ dtype: object
 ```
 
 Hint: be careful here, the values of index will be ignored.
+
+
+
+#### 15. pandas.at[]
+
+It's a method provided by the Pandas library in Python for fast label-based scalar access to a DataFrame. 
+
+Here's a brief overview:
+
+- **Purpose**: The `at[]` function is used to access a single value in a DataFrame using a row and column label.
+- **Usage**: `DataFrame.at[row_label, column_label]`
+- **Performance**: It provides faster access compared to `DataFrame.loc[]` when dealing with a single scalar value because it bypasses some of the overhead associated with `loc[]`.
+- **Note**: While `at[]` is faster for accessing single values, it's limited to accessing individual elements and cannot be used to access slices of data like `loc[]`.
+
+For example:
+
+```python
+import pandas as pd
+
+# Create a sample DataFrame
+data = {'A': [1, 2, 3], 'B': [4, 5, 6]}
+df = pd.DataFrame(data, index=['X', 'Y', 'Z'])
+print(df)
+
+# Accessing a single value
+value = df.at['X', 'A']  # Accesses the value at row 'X' and column 'A'
+print("This is the  df.at['X', 'A']:",value)  # Output: 1
+```
+
+output:
+
+```
+   A  B
+X  1  4
+Y  2  5
+Z  3  6
+This is the  df.at['X', 'A']: 1
+```
+
+Remember, `at[]` is designed for fast scalar access, so it's useful when you need to access only a single value from the DataFrame.
+
+
+
+#### 16. pandas.Series.dropna()
+
+Certainly! The `pandas.Series.dropna()` method in Python is used to remove missing values (NaNs) from a pandas Series. A pandas Series is a one-dimensional array-like object that can hold any data type. Missing values are often represented by `NaN` (Not a Number) in pandas.
+
+Here's a detailed explanation of how `pandas.Series.dropna()` works:
+
+##### Syntax
+```python
+Series.dropna(axis=0, inplace=False, **kwargs)
+```
+
+##### Parameters
+- **axis**: This parameter is not really applicable to a Series, as a Series is one-dimensional. It's more relevant to DataFrames where you can drop rows or columns. For Series, it defaults to 0.
+- **inplace**: A boolean value (default is `False`). If `True`, the operation will be performed in place, meaning the original Series will be modified and no new Series will be returned. If `False`, the method will return a new Series with the missing values removed, leaving the original Series unchanged.
+- **\*\*kwargs**: Additional arguments for compatibility, but usually not needed for basic usage.
+
+##### Returns
+- A Series with missing values removed if `inplace` is `False` (the default).
+- `None` if `inplace` is `True`.
+
+##### Example Usage
+Here are a few examples to illustrate how `pandas.Series.dropna()` works:
+
+```python
+import pandas as pd
+import numpy as np
+
+# Create a Series with some NaN values
+data = pd.Series([1, 2, np.nan, 4, np.nan, 6])
+
+print("Original Series:")
+print(data)
+
+# Remove missing values
+cleaned_data = data.dropna()
+
+print("\nSeries after dropping NaN values:")
+print(cleaned_data)
+
+# Drop NaN values in place
+data.dropna(inplace=True)
+
+print("\nOriginal Series after dropping NaN values in place:")
+print(data)
+```
+
+##### Output
+```
+Original Series:
+0    1.0
+1    2.0
+2    NaN
+3    4.0
+4    NaN
+5    6.0
+dtype: float64
+
+Series after dropping NaN values:
+0    1.0
+1    2.0
+3    4.0
+5    6.0
+dtype: float64
+
+Original Series after dropping NaN values in place:
+0    1.0
+1    2.0
+3    4.0
+5    6.0
+dtype: float64
+```
+
+##### Explanation
+1. **Original Series**: We start with a Series that includes `NaN` values.
+2. **Series after dropping NaN values**: The `dropna()` method is called without the `inplace` parameter, so it returns a new Series with the `NaN` values removed. The original Series remains unchanged.
+3. **Original Series after dropping NaN values in place**: The `dropna(inplace=True)` call removes the `NaN` values directly from the original Series.
+
+##### Use Cases
+- **Data Cleaning**: Commonly used in data preprocessing to clean up datasets by removing missing values.
+- **Analysis**: Ensures that subsequent analysis or operations are performed on complete data, avoiding errors or inaccuracies due to `NaN` values.
+
+##### Additional Considerations
+- If you need to handle missing data differently (e.g., filling missing values instead of dropping them), pandas provides other methods like `fillna()`.
+- Be cautious with `inplace=True`, as it modifies the original Series and cannot be undone.
+
+This method is essential for ensuring data integrity when working with real-world datasets that often contain missing values.
 
 
 
@@ -18061,6 +19539,124 @@ rearrange(images, 'b (h h1) (w w1) c -> b h w (c h1 w1)', h1=2, w1=2).shape  # O
 
 ​              
 
+#### 03. einops.repeat()
+
+Certainly! The `einops.repeat()` function is part of the `einops` library in Python, which provides a set of operations to manipulate multi-dimensional arrays (like NumPy arrays, PyTorch tensors, etc.) in a concise and readable way. The `repeat` function allows you to repeat elements of an array along specified axes.
+
+Here's an explanation of how `einops.repeat()` works and some examples to illustrate its usage:
+
+Basic Syntax
+
+```python
+einops.repeat(array, pattern, **axes_lengths)
+```
+
+- `array`: The input array you want to manipulate.
+- `pattern`: A string describing the desired pattern of the output array.
+- `axes_lengths`: Named arguments specifying the length of new axes or the repetition count.
+
+Pattern Description
+
+The pattern string describes how the dimensions of the input array should be transformed. It uses axis labels to refer to dimensions and defines how these dimensions should be repeated or expanded.
+
+Examples
+
+Example 1: Simple Repetition
+
+Let's start with a basic example of repeating elements along a new axis.
+
+```python
+import numpy as np
+from einops import repeat
+
+# Original array
+array = np.array([1, 2, 3])
+
+# Repeat each element twice
+repeated = repeat(array, 'i -> i j', j=2)
+print(repeated)
+```
+
+**Explanation:**
+
+- `array` is a 1D array `[1, 2, 3]`.
+- Pattern `'i -> i j'` means we keep the original dimension `i` and introduce a new dimension `j`.
+- `j=2` indicates that each element along the `i` axis should be repeated twice.
+
+**Output:**
+```
+[[1, 1],
+ [2, 2],
+ [3, 3]]
+```
+
+Example 2: Expanding and Repeating
+
+Now, let's expand an array and repeat it along multiple axes.
+
+```python
+# Original array
+array = np.array([[1, 2], [3, 4]])
+
+# Repeat along new axes
+repeated = repeat(array, 'h w -> h w i j', i=2, j=3)
+print(repeated)
+```
+
+**Explanation:**
+- `array` is a 2D array with shape `(2, 2)`.
+- Pattern `'h w -> h w i j'` keeps the original `h` and `w` dimensions and adds new dimensions `i` and `j`.
+- `i=2` and `j=3` mean each element in the `h` and `w` dimensions is repeated to form a new 4D array.
+
+**Output:**
+```
+[[[[1, 1, 1],
+   [1, 1, 1]],
+  [[2, 2, 2],
+   [2, 2, 2]]],
+
+ [[[3, 3, 3],
+   [3, 3, 3]],
+  [[4, 4, 4],
+   [4, 4, 4]]]]
+```
+
+Example 3: Repeating with Reduction
+
+You can also use `einops.repeat()` to repeat and then reduce dimensions.
+
+```python
+# Original array
+array = np.array([1, 2, 3])
+
+# Repeat and reduce dimensions
+repeated = repeat(array, 'i -> i i')
+summed = repeated.sum(axis=1)
+print(summed)
+```
+
+**Explanation:**
+- `array` is a 1D array `[1, 2, 3]`.
+- Pattern `'i -> i i'` repeats each element along a new axis.
+- `.sum(axis=1)` sums the repeated elements along the new axis.
+
+**Output:**
+```
+[1 2 3]
+```
+
+Summary
+
+- `einops.repeat()` is used to repeat elements of an array along specified axes.
+- The `pattern` string describes the transformation of dimensions.
+- Named arguments specify the lengths of new axes or repetition counts.
+
+This function is powerful for reshaping, repeating, and manipulating multi-dimensional arrays in a readable and concise way.
+
+
+
+
+
 ## About transformers
 
 ​              
@@ -18101,3 +19697,110 @@ print(tokens)
 ```
 
 In this example, `AutoTokenizer.from_pretrained(model_name)` automatically selects the tokenizer for the specified pre-trained model (`"bert-base-uncased"`) and initializes it. Then, we tokenize an input text string using this tokenizer, and print the resulting tokens.
+
+
+
+## contextlib
+
+#### 01.contextlib.suppress
+
+The `contextlib.suppress` function in Python is a context manager that can be used to suppress specified exceptions. It allows you to execute a block of code while ignoring certain exceptions that may occur within that block.
+
+Here's how it works:
+
+1. **Importing**: First, you need to import it from the `contextlib` module.
+2. **Usage**: You use it in a `with` statement, passing the exceptions you want to suppress as arguments.
+3. **Behavior**: Any exceptions specified in the `suppress` will be caught and suppressed, meaning the program will not crash or stop executing; it will continue to the next statement after the `with` block.
+
+Syntax
+
+```python
+from contextlib import suppress
+
+with suppress(ExceptionType1, ExceptionType2, ...):
+    # Code that might raise the exceptions you want to suppress
+    ...
+```
+
+Example
+
+Here's a practical example to illustrate its usage:
+
+```python
+from contextlib import suppress
+
+# Suppose we want to try to delete a file, but it's okay if the file doesn't exist
+import os
+
+file_path = 'somefile.txt'
+
+# Using suppress to ignore FileNotFoundError if the file doesn't exist
+with suppress(FileNotFoundError):
+    os.remove(file_path)
+
+print("Continuing execution...")
+```
+
+In this example:
+- The code attempts to remove a file named 'somefile.txt'.
+- If the file doesn't exist, a `FileNotFoundError` would normally be raised.
+- By using `suppress(FileNotFoundError)`, this exception is ignored, and the program continues execution without interruption.
+
+Use Cases
+
+- **File Operations**: Suppressing errors when trying to remove a file or directory that may not exist.
+- **Type Casting**: Ignoring exceptions when trying to cast values that might fail.
+- **Optional Dependencies**: Suppressing import errors for optional dependencies in a script or module.
+
+Benefits
+
+- **Cleaner Code**: Reduces the need for try-except blocks, making the code cleaner and easier to read.
+- **Focus**: Keeps the focus on the main logic of the code rather than on exception handling.
+- **Conciseness**: Particularly useful for one-liners where exception handling would otherwise add unnecessary verbosity.
+
+Caveats
+
+- **Overuse**: Overusing `suppress` can lead to bugs being silently ignored. Use it judiciously and only when you are sure that the suppressed exceptions are truly ignorable.
+- **Debugging**: Suppressing too many exceptions might make debugging difficult, as it can obscure the root cause of an issue.
+
+Overall, `contextlib.suppress` is a powerful tool for managing exceptions in a clean and concise manner when you are certain that some exceptions can be safely ignored.
+
+
+
+## PIL
+
+#### 01. PIL.Image.open()
+
+The `PIL.Image.open()` function is part of the Python Imaging Library (PIL), specifically in the `PIL.Image` module. PIL has been succeeded by the `Pillow` library, which is a more modern and actively maintained fork of PIL. Here’s a detailed explanation of what `PIL.Image.open()` does:
+
+purpose:
+
+`PIL.Image.open()` is used to open and identify an image file. It loads the image into a PIL image object, which can then be manipulated, transformed, and saved using various methods provided by the library.
+
+```python
+from PIL import Image
+
+# Open an image file
+img = Image.open("path_to_your_image.jpg")
+
+# Display the image
+img.show()
+
+# Get basic information about the image
+print(f"Format: {img.format}")  # Output: JPEG, PNG, etc.
+print(f"Size: {img.size}")      # Output: (width, height)
+print(f"Mode: {img.mode}")      # Output: "RGB", "L" (grayscale), etc.
+
+# Save the image in a different format
+img.save("path_to_save_image.png")
+
+# Resize the image
+img_resized = img.resize((100, 100))
+img_resized.show()
+
+# Convert the image to grayscale
+img_gray = img.convert("L")
+img_gray.show()
+
+```
+
