@@ -289,7 +289,16 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvi
 uninstall
 
 ```
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+conda uninstall pytorch torchvision torchaudio 
+```
+
+
+
+#### 26. Install GCC Compiler from Ubuntu Repositories
+
+```
+sudo apt update
+sudo apt install build-essential
 ```
 
 
@@ -1602,7 +1611,7 @@ tensor(26)
 
 
 
-#### 12. about hook
+#### 12. about hook, register_forward_hook and register_full_backward_hook
 
 hook种类分为两种:
 
@@ -1614,6 +1623,84 @@ nn.Module对象 register_forward_hook(hook)和register_backward_hook(hook)两种
 hook作用：
 
 获取某些变量的中间结果的。**Pytorch会自动舍弃图计算的中间结果**，所以想要获取这些数值就需要使用hook函数。hook函数在使用后应及时删除，以避免每次都运行钩子增加运行负载。
+
+Hooks in PyTorch provide a way to register functions that will be called during the forward or backward pass of a module. Here's an explanation of `register_forward_hook()` and `register_full_backward_hook()`:
+
+##### `nn.Module.register_forward_hook()`
+
+This method allows you to register a forward hook on a module. A forward hook is a function that will be called every time the module performs a forward pass.
+
+```python
+hook_handle = module.register_forward_hook(hook_fn)
+```
+
+`hook_fn`: A function that takes three arguments:
+
+1. `module`: the module to which the forward hook is registered.
+2. `input`: the input to the module. This can be a single tensor or a tuple of tensors.
+3. `output`: the output from the module. This can be a single tensor or a tuple of tensors.
+
+```python
+import torch
+import torch.nn as nn
+
+def forward_hook(module, input, output):
+    print(f"Forward hook: {module}")
+    print(f"Input: {input}")
+    print(f"Output: {output}")
+
+model = nn.Linear(3, 5)
+hook_handle = model.register_forward_hook(forward_hook)
+
+# Print the weight parameter
+print("Weight parameter:\n", model.weight)
+
+# Print the bias parameter
+print("Bias parameter:\n", model.bias)
+
+# Dummy input
+x = torch.ones(1, 3)
+output = model(x)
+
+# Removing the hook
+hook_handle.remove()
+```
+
+output:
+
+```
+Weight parameter:
+ Parameter containing:
+tensor([[ 0.1752, -0.3124, -0.3581],
+        [-0.4440, -0.0342,  0.0012],
+        [ 0.4524,  0.1182,  0.0021],
+        [ 0.0601,  0.2809, -0.3237],
+        [ 0.1943,  0.3910,  0.0086]], requires_grad=True)
+Bias parameter:
+ Parameter containing:
+tensor([-0.1624, -0.0718, -0.3281,  0.5136, -0.1481], requires_grad=True)
+Forward hook: Linear(in_features=3, out_features=5, bias=True)
+Input: (tensor([[1., 1., 1.]]),)
+Output: tensor([[-0.6577, -0.5488,  0.2447,  0.5308,  0.4458]],
+       grad_fn=<AddmmBackward0>)
+```
+
+##### `nn.Module.register_full_backward_hook()`
+
+This method allows you to register a backward hook on a module. A full backward hook is a function that will be called during the backward pass of a module, after gradients have been computed for all parameters.
+
+```python
+hook_handle = module.register_full_backward_hook(hook_fn)
+
+```
+
+`hook_fn`: A function that takes three arguments:
+
+1. `module`: the module to which the backward hook is registered.
+2. `grad_input`: the gradients with respect to the input of the module.
+3. `grad_output`: the gradients with respect to the output of the module.
+
+
 
 
 
@@ -1639,9 +1726,7 @@ print(c)
 b *= 5
 
 print("This is a: ", a)
-
 print("This is b: ", b)
-
 print("This is c: ", c)
 
 
@@ -1649,9 +1734,7 @@ print("This is c: ", c)
 c *= 4
 
 print("This is a: ", a)
-
 print("This is b: ", b)
-
 print("This is c: ", c)
 ```
 
@@ -3445,6 +3528,8 @@ optimizer step() is used for updating the parameter on every mini batch.
 
 
 
+In PyTorch, `zero_grad()` is a method used to clear the gradients of all optimized tensors. However, `zero_grad()` is not a method available for individual tensors like `z`. Instead, it's a method of optimizers or models to reset gradients of all parameters they manage.
+
 
 
 #### 49. about with torch.no_grad()
@@ -3730,6 +3815,8 @@ This is the scheduler.get_lr():  [0.01] <class 'list'> 1
 
 
 
+
+
 #### 54. torch.optim.lr_scheduler.StepLR(*optimizer*, *step_size*, *gamma=0.1*, *last_epoch=-1*, *verbose=False*)
 
 Decays the learning rate of each parameter group by gamma every step_size epochs. Notice that such decay can happen simultaneously with other changes to the learning rate from outside this scheduler. When last_epoch=-1, sets initial lr as lr.
@@ -3753,39 +3840,9 @@ Hint: If we don’t call the operation `scheduler.step()`, the learning rate won
 
 
 
+#### 55. optimizer.step() vs scheduler.step()
 
-
-#### 55. torch.grad()
-
-The wrapper `with torch.no_grad()` temporarily sets all of the `requires_grad` flags to false. 
-
-`Torch.no_grad()` deactivates autograd engine. Eventually it will reduce the memory usage and speed up computations.
-
-Use of `Torch.no_grad()`:
-
-- To perform inference without Gradient Calculation.
-- To make sure there's no leak test data into the model.
-
-It's generally used to perform Validation.
-
-```python
-x = torch.randn(3, requires_grad=True)
-print(x.requires_grad)
-print((x ** 2).requires_grad)
-
-with torch.no_grad():
-    print((x ** 2).requires_grad)
-```
-
-output:
-
-```
-True
-True
-False
-```
-
-
+In summary, `optimizer.step()` is used for parameter updates, while `scheduler.step()` is used for adjusting the learning rate according to a predefined schedule. Both are important for the training process but serve different roles.
 
 
 
@@ -4572,7 +4629,31 @@ This will load the model stored in 'model.pth' and move all tensors to the CPU.
 
 
 
-#### 69. state_dict()
+#### 69. the strict from model.load_state_dict(torch.load(PATH), strict=False)
+
+```python
+modelB = TheModelBClass(*args, **kwargs)
+modelB.load_state_dict(torch.load(PATH), strict=False)
+```
+
+Partially loading a model or loading a partial model are common scenarios when transfer learning or training a new complex model. Leveraging trained parameters, even if only a few are usable, will help to warmstart the training process and hopefully help your model converge much faster than training from scratch.
+
+Whether you are loading from a partial *state_dict*, which is missing some keys, or loading a *state_dict* with more keys than the model that you are loading into, you can set the `strict` argument to **False** in the `load_state_dict()` function to ignore non-matching keys.
+
+If you want to load parameters from one layer to another, but some keys do not match, simply change the name of the parameter keys in the *state_dict* that you are loading to match the keys in the model that you are loading into.
+
+below is an example of warning:
+
+```
+Removing key head.weight from pretrained checkpoint
+Removing key head.bias from pretrained checkpoint
+
+For example, if you load a pre-trained model for ImageNet classification (with 1000 classes) and you want to fine-tune it for a new task with only 10 classes, you would typically replace the final layer (the "head") of the model. When loading the checkpoint, PyTorch recognizes that the head.weight and head.bias in the checkpoint do not match the dimensions of the new final layer you defined, so it removes these keys.
+```
+
+
+
+#### 70. state_dict()
 
 In PyTorch, the learnable parameters (i.e. weights and biases) of a `torch.nn.Module` model are contained in the model’s parameters (accessed with `model.parameters()`). A `state_dict` is simply a Python dictionary object that maps each layer to its parameter tensor.
 
@@ -4649,7 +4730,7 @@ param_groups 	 [{'lr': 0.001, 'momentum': 0.9, 'dampening': 0, 'weight_decay': 0
 
 
 
-#### 70. torch.empty().random_() & torch.empty()
+#### 71. torch.empty().random_() & torch.empty()
 
 Example:
 
@@ -4690,7 +4771,7 @@ tensor([-3.3491e+38,  3.0929e-41, -3.0275e+38])
 
 
 
-#### 71. torch.nn.DataParallel() 
+#### 72. torch.nn.DataParallel() 
 
 `torch.nn.DataParallel()` is a utility class provided by the PyTorch library that facilitates parallel execution of neural network computations across multiple GPUs. **It's commonly used to distribute the workload of training a neural network model across multiple graphics processing units** (GPUs) for faster training.
 
@@ -6908,6 +6989,240 @@ tensor([[[1, 0],
 
 
 
+#### 127. torch.clamp()
+
+ `torch.clamp()` is a function in the PyTorch library used to constrain (or "clamp") the values in a tensor to lie within a specified range. Essentially, it clips the values in the tensor so that they do not fall below a minimum value or exceed a maximum value.
+
+Here is the basic usage of `torch.clamp()`:
+
+```python
+import torch
+
+# Create a tensor
+tensor = torch.tensor([0.5, 1.5, 2.5, 3.5, 4.5])
+
+# Clamp the values in the tensor to be between 1.0 and 3.0
+clamped_tensor = torch.clamp(tensor, min=1.0, max=3.0)
+
+print(clamped_tensor)
+
+```
+
+In this example, any values in the original tensor that are less than 1.0 will be set to 1.0, and any values that are greater than 3.0 will be set to 3.0. The resulting tensor will be:
+
+output:
+
+```
+tensor([1.0, 1.5, 2.5, 3.0, 3.0])
+```
+
+
+
+#### 128. loss.backward()
+
+the `backward()` method is used to perform backpropagation through a tensor's computational graph. This is typically done in the context of training neural networks, where you need to calculate the gradients of a loss function with respect to the model parameters.
+
+Here's a quick overview of how it works:
+
+1. **Compute the Loss:** You first compute the loss value using a loss function.
+2. **Backward Pass:** You call the `backward()` method on the loss tensor. This computes the gradient of the loss with respect to all tensors that have `requires_grad=True`.
+3. **Update Parameters:** You use these gradients to update the model parameters, typically using an optimizer.
+
+Example:
+
+Let's walk through an example of using `tensor.backward()` in a simple neural network training loop.
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Define a simple linear model
+model = nn.Linear(1, 1)
+
+# Define a loss function
+criterion = nn.MSELoss()
+
+# Define an optimizer
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+# Generate some dummy data
+inputs = torch.tensor([[1.0], [2.0], [3.0], [4.0]], requires_grad=True)
+targets = torch.tensor([[2.0], [4.0], [6.0], [8.0]])
+
+# Forward pass: compute predicted outputs by passing inputs to the model
+outputs = model(inputs)
+
+# Compute the loss
+loss = criterion(outputs, targets)
+
+# Print the gradients before backward pass
+print("Gradients before backward pass:", model.weight.grad)
+
+# Backward pass: compute gradient of the loss with respect to model parameters
+loss.backward()
+
+# Print the gradients after backward pass
+print("Gradients after backward pass:", model.weight.grad)
+
+# Update model parameters
+optimizer.step()
+
+```
+
+
+
+#### 129. tensor.backward()
+
+Certainly! In PyTorch, the `backward()` function is used to compute the gradient of a tensor (usually a scalar) with respect to some graph of tensors. This is commonly used in the context of training neural networks, where you need to compute the gradients of the loss function with respect to the model parameters.
+
+Here’s a simple example to illustrate how `backward()` works:
+
+1. **Import PyTorch**
+2. **Create tensors with `requires_grad=True`**
+3. **Perform some operations**
+4. **Call `backward()` to compute gradients**
+5. **Access the gradients**
+
+Here’s a step-by-step example:
+
+```python
+import torch
+
+# Step 1: Create tensors
+x = torch.tensor(2.0, requires_grad=True)
+y = torch.tensor(3.0, requires_grad=True)
+
+# Step 2: Perform some operations
+z = x * y + y**2
+
+# Step 3: Call backward() to compute gradients
+z.backward()
+
+# Step 4: Access the gradients
+print("Gradient of x:", x.grad)
+print("Gradient of y:", y.grad)
+```
+
+**Explanation**
+
+1. **Create tensors with `requires_grad=True`:** 
+   By setting `requires_grad=True`, we tell PyTorch to keep track of all operations on these tensors so that it can compute gradients later.
+
+2. **Perform some operations:**
+   Here, we compute \( z = x \cdot y + y^2 \). This creates a computation graph with `z` as the result.
+
+3. **Call `backward()`:**
+   When we call `z.backward()`, PyTorch computes the gradients of `z` with respect to all the tensors that have `requires_grad=True` in the computation graph.
+
+4. **Access the gradients:**
+   After calling `backward()`, the gradients are stored in the `.grad` attribute of the original tensors. In this case, `x.grad` and `y.grad` will hold the computed gradients.
+
+**Detailed Calculation**
+
+Given \( z = x \cdot y + y^2 \):
+- The gradient of \( z \) with respect to \( x \) is \( \frac{\partial z}{\partial x} = y \).
+- The gradient of \( z \) with respect to \( y \) is \( \frac{\partial z}{\partial y} = x + 2y \).
+
+So, if \( x = 2 \) and \( y = 3 \):
+- \( \frac{\partial z}{\partial x} = 3 \)
+- \( \frac{\partial z}{\partial y} = 2 + 2 \cdot 3 = 8 \)
+
+This is why `x.grad` will be 3.0 and `y.grad` will be 8.0.
+
+I hope this helps! Let me know if you have any questions or need further clarification.
+
+
+
+
+
+
+
+
+
+#### 130. model.named_modules() 
+
+In PyTorch, `model.named_modules()` is a method that returns an iterator over all modules in the model, yielding both the name and the module itself. This includes all submodules, such as layers, nested layers, and any other modules defined within the model. Each element returned by the iterator is a tuple consisting of the module's name and the module itself.
+
+```python
+import torch
+import torch.nn as nn
+
+class SimpleModel(nn.Module):
+    def __init__(self):
+        super(SimpleModel, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3)
+        self.conv2 = nn.Conv2d(32, 64, 3)
+        self.fc1 = nn.Linear(64*6*6, 128)
+        self.fc2 = nn.Linear(128, 10)
+    
+    def forward(self, x):
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = torch.flatten(x, 1)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+model = SimpleModel()
+for name, module in model.named_modules():
+    print(name, module)
+
+```
+
+output:
+
+```scss
+ SimpleModel(
+  (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1))
+  (conv2): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1))
+  (fc1): Linear(in_features=2304, out_features=128, bias=True)
+  (fc2): Linear(in_features=128, out_features=10, bias=True)
+)
+conv1 Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1))
+conv2 Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1))
+fc1 Linear(in_features=2304, out_features=128, bias=True)
+fc2 Linear(in_features=128, out_features=10, bias=True)
+```
+
+
+
+#### 131. torch.grad()
+
+The wrapper `with torch.no_grad()` temporarily sets all of the `requires_grad` flags to false. 
+
+`Torch.no_grad()` deactivates autograd engine. Eventually it will reduce the memory usage and speed up computations.
+
+Use of `Torch.no_grad()`:
+
+- To perform inference without Gradient Calculation.
+- To make sure there's no leak test data into the model.
+
+It's generally used to perform Validation.
+
+```python
+x = torch.randn(3, requires_grad=True)
+print(x.requires_grad)
+print((x ** 2).requires_grad)
+
+with torch.no_grad():
+    print((x ** 2).requires_grad)
+```
+
+output:
+
+```
+True
+True
+False
+```
+
+
+
+
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -7366,7 +7681,7 @@ model = create_model('resnet34')
 args = SimpleNamespace()
 args.weight_decay = 0
 args.lr = 1e-4
-args.opt = 'adam'  # 'lookahead_adam' to use `lookahead`
+args.opt = 'adamw'  # 'lookahead_adam' to use `lookahead`
 args.momentum = 0.9
 
 optimizer = create_optimizer(args, model)
@@ -10159,64 +10474,6 @@ print("This is x1:", x[1])
 
 
 
-#### 48. os.path.splitext()
-
-```python
-import os
-
-filename = "/path/to/myfile.txt"
-basepath, extension = os.path.splitext(filename)
-
-print("Base path:", basepath)
-print("Extension:", extension)
-```
-
-output:
-
-```javascript
-Base path: /path/to/myfile
-Extension: .txt
-```
-
-In this example, `os.path.splitext` is used to split the file path `/path/to/myfile.txt` into its base path `/path/to/myfile` and extension `.txt`. The function returns a tuple containing the base path and extension, which are then assigned to the variables `basepath` and `extension`, respectively.
-
-Note that `os.path.splitext` does not actually check if the file exists, nor does it guarantee that the extension returned is actually valid. It simply splits the path at the last occurrence of the `.` character.
-
-
-
-#### 49. os.listdir() 方法
-
-##### 语法
-
-**listdir()**方法语法格式如下：
-
-```
-os.listdir(path)
-```
-
-##### 参数
-
-- **path** -- 需要列出的目录路径
-
-##### 返回值
-
-返回指定路径下的文件和文件夹列表。
-
-
-
-```python
-import os
-raw_video_dir = "data/AVE"  # videos in AVE dataset
-lis = os.listdir(raw_video_dir) # 返回指定路径下的文件和文件夹列表。
-print("This is lis: ",lis)
-```
-
-This output:
-
-```powershell
-['---1_cCGK4M.mp4', '--12UOziMF0.mp4', '--5zANFBYzQ.mp4', '--9O4XZOge4.mp4', '--bSurT-1Ak.mp4', '--d2Z5qR4qQ.mp4', '--euLrzIU2Q.mp4', '--fG9gtFqJ0.mp4'......
-```
-
 
 
 #### 50. len() 方法
@@ -12728,6 +12985,165 @@ In this example:
 
 
 
+#### 106. open.write() mode 'a' and 'w'
+
+`open.write()` is not a standalone function in Python. Instead, it is typically used as part of the `open` function and `write` method to write data to a file. Here is how you can use it:
+
+1. **Open a File**: Use the `open()` function to open a file. You can specify the mode in which you want to open the file, such as `'w'` for writing, `'a'` for appending, `'r+'` for reading and writing, etc.
+2. **Write to the File**: Use the `write()` method to write data to the file.
+3. **Close the File**: Always close the file after you're done to ensure all data is properly saved and resources are freed.
+
+Here is an example:
+
+```python
+# Open a file for writing
+file = open('example.txt', 'w')
+
+# Write some data to the file
+file.write('Hello, World!\n')
+file.write('This is a test.\n')
+
+# Close the file
+file.close()
+```
+
+In this example:
+- `open('example.txt', 'w')` opens the file `example.txt` in write mode. If the file does not exist, it will be created. If it exists, its contents will be overwritten.
+- `file.write('Hello, World!\n')` writes the string `'Hello, World!\n'` to the file.
+- `file.close()` closes the file.
+
+To handle files more safely and ensure they are properly closed, it is common to use the `with` statement, which automatically takes care of closing the file for you:
+
+```python
+# Open a file for writing using the with statement
+with open('example.txt', 'w') as file:
+    # Write some data to the file
+    file.write('Hello, World!\n')
+    file.write('This is a test.\n')
+# No need to explicitly close the file, it's done automatically
+```
+
+This way, the file is automatically closed when the block inside the `with` statement is exited, even if an error occurs.
+
+
+
+##### The mode 'a'
+
+Sure! In Python, the mode `'a'` stands for "append." When you open a file in append mode, any data you write to the file will be added (or appended) to the end of the file, rather than overwriting the existing content. If the file does not exist, it will be created.
+
+Here is how appending works in practice:
+
+1. **Open the File in Append Mode**: Use the `open()` function with `'a'` as the mode.
+2. **Write to the File**: Use the `write()` method to add new data to the end of the file.
+3. **Close the File**: Close the file when you're done writing.
+
+Example of Appending to a File
+
+Let's say we have a file called `log.txt` with the following content:
+
+```
+Log Entry 1: Start of log
+```
+
+We want to add more log entries without deleting the existing ones. We can do this by opening the file in append mode:
+
+```python
+# Open the file in append mode
+with open('log.txt', 'a') as file:
+    # Write additional data to the file
+    file.write('Log Entry 2: Adding another log entry\n')
+    file.write('Log Entry 3: Another entry\n')
+
+# The file is automatically closed after the with block
+```
+
+After running this code, the `log.txt` file will look like this:
+
+```
+Log Entry 1: Start of log
+Log Entry 2: Adding another log entry
+Log Entry 3: Another entry
+```
+
+Key Points
+
+- **Appending Mode**: Using `'a'` as the mode in the `open()` function ensures that new data is added to the end of the file without altering the existing content.
+- **File Creation**: If the file does not exist, it will be created when you open it in append mode.
+- **Automatic File Closure**: Using the `with` statement ensures that the file is properly closed after the block of code is executed, even if an error occurs within the block.
+
+By using append mode, you can continuously add new information to a file without losing any previously stored data. This is especially useful for logging, data collection, and similar tasks where maintaining a historical record is important.
+
+
+
+##### The difference between `'a'` (append) and `'w'` (write) modes
+
+The difference between `'a'` (append) and `'w'` (write) modes in Python is primarily in how they handle the file content when it already exists.
+
+`'a'` Mode (Append)
+
+1. **File Existence**: If the file exists, it opens the file and moves the file pointer to the end of the file.
+2. **File Content**: It preserves the existing content of the file and allows new data to be written to the end of the file.
+3. **File Creation**: If the file does not exist, it creates a new file.
+4. **Usage**: Used when you want to add new data to the end of the file without deleting the existing data.
+
+```python
+# Open a file in append mode
+with open('example.txt', 'a') as file:
+    file.write('This is an appended line.\n')
+```
+
+`'w'` Mode (Write)
+
+1. **File Existence**: If the file exists, it opens the file and truncates (clears) the existing content.
+2. **File Content**: It deletes the existing content and allows new data to be written to the file from the beginning.
+3. **File Creation**: If the file does not exist, it creates a new file.
+4. **Usage**: Used when you want to start fresh and do not need to preserve the existing content of the file.
+
+```python
+# Open a file in write mode
+with open('example.txt', 'w') as file:
+    file.write('This will overwrite any existing content.\n')
+```
+
+Summary
+
+- **`'a'` (Append Mode)**: Adds new data to the end of the file without modifying the existing content.
+- **`'w'` (Write Mode)**: Clears the existing content of the file and starts writing from the beginning.
+
+Here is a practical comparison:
+
+Suppose `example.txt` initially contains:
+```
+Initial content.
+```
+
+Using Append Mode ('a'):
+
+```python
+with open('example.txt', 'a') as file:
+    file.write('Appended content.\n')
+```
+
+After running the above code, `example.txt` will contain:
+```
+Initial content.
+Appended content.
+```
+
+Using Write Mode ('w'):
+
+```python
+with open('example.txt', 'w') as file:
+    file.write('New content.\n')
+```
+
+After running the above code, `example.txt` will contain:
+```
+New content.
+```
+
+In the append mode, the new content is added to the end of the existing content. In the write mode, the new content replaces the existing content.
+
 
 
 ## About dataclasses
@@ -14509,38 +14925,11 @@ So, `n` is now a 2D array with one row and 20 columns. Adding the extra dimensio
 
 
 
-#### 27. numpy.random.randint()
 
-Parameters:
 
-- **low**int or array-like of ints
 
-  Lowest (signed) integers to be drawn from the distribution (unless `high=None`, in which case this parameter is one above the *highest* such integer).
 
-- **high**int or array-like of ints, optional
 
-  If provided, one above the largest (signed) integer to be drawn from the distribution (see above for behavior if `high=None`). If array-like, must contain integer values
-
-- **size**int or tuple of ints, optional
-
-  Output shape. If the given shape is, e.g., `(m, n, k)`, then `m * n * k` samples are drawn. Default is None, in which case a single value is returned.
-
-- **dtype**dtype, optional
-
-  Desired dtype of the result. Byteorder must be native. The default value is int.
-
-```python
-import numpy as np
-
-a=np.random.randint(807)
-print(a)
-```
-
-output:
-
-```
-400
-```
 
 
 
@@ -14908,7 +15297,7 @@ NumPy provides a variety of functions to generate random samples from different 
     print(samples)
     ```
 
-##### Binomial Distribution
+##### Binomial Distribution(二项分布)
 - **Function**: `numpy.random.binomial(n, p, size=None)`
 - **Description**: Draws samples from a binomial distribution.
 - **Parameters**:
@@ -15113,6 +15502,73 @@ Top 5 Columns:
 ```
 
 
+
+#### 39. numpy.ceil()
+
+**Function**: `numpy.ceil()`
+
+**Purpose**: To compute the ceiling of each element in an input array.
+
+**Input**: An array-like structure (e.g., a list, tuple, or NumPy array) containing numerical values.
+
+**Output**: A NumPy array with the ceiling of each element from the input array.
+
+```python
+import numpy as np
+
+# Example array
+array = np.array([1.2, 2.5, 3.1, -4.8])
+
+# Applying numpy.ceil() to the array
+result = np.ceil(array)
+
+print(result)
+
+```
+
+output:
+
+```
+[ 2.  3.  4. -4.]
+```
+
+
+
+#### 40. numpy.random.randint()
+
+The `numpy.random.randint()` function is used to generate random integers from a specified range. The syntax for this function is as follows:
+
+```python
+numpy.random.randint(low, high=None, size=None, dtype=int)
+```
+
+Parameters:
+
+1. **`low`**:
+   - *Type*: int
+   - *Description*: The lower (inclusive) bound of the range of random integers to be generated.
+2. **`high`**:
+   - *Type*: int, optional
+   - *Description*: The upper (exclusive) bound of the range of random integers to be generated. If `high` is not provided, the range will be from `0` to `low`.
+3. **`size`**:
+   - *Type*: int or tuple of ints, optional
+   - *Description*: The shape of the output array. If `size` is `None` (default), a single integer is returned. If `size` is an integer, a 1-D array of that length is returned. If `size` is a tuple, an array of the given shape is returned.
+4. **`dtype`**:
+   - *Type*: dtype, optional
+   - *Description*: Desired output data type for the array, e.g., `numpy.int32`, `numpy.int64`. The default is `numpy.int`.
+
+Returns:
+
+- An array of random integers from the specified range if `size` is given, otherwise a single random integer.
+
+```python
+random_integer = np.random.randint(5, 15)
+print(random_integer) # Output will be one of the values from 5 to 14
+```
+
+The `low` value is included in the range.
+
+The `high` value is excluded from the range.
 
 
 
@@ -15756,7 +16212,7 @@ Using micro or weighted averaging is often more appropriate for imbalanced datas
 
 ## About os
 
-#### 1. os.makedir(path)和os.makedirs(path)
+#### 01. os.makedir(path)和os.makedirs(path)
 
 首先说os.mkdir(path)，他的功能是一级一级的创建目录，前提是前面的目录已存在，如果不存在会报异常，比较麻烦，但是存在即有他的道理，当你的目录是根据文件名动态创建的时候，你会发现他虽然繁琐但是很有保障，不会因为你的一时手抖，创建而创建了双层或者多层错误路径，
 
@@ -15786,7 +16242,7 @@ os.makedirs('d:\hello\hi') #  正常
 
 
 
-#### 2. os.path.join()
+#### 02. os.path.join()
 
 1.如果各组件名首字母不包含'/'，则函数会自动加上
 
@@ -15887,7 +16343,7 @@ Path20 =  develop/home/
 
 
 
-#### 3. os.path.dirname
+#### 03. os.path.dirname
 
 语法：os.path.dirname(path)
 功能：去掉文件名，返回目录
@@ -15951,7 +16407,7 @@ E:/Read_File
 扩展
 若print os.path.dirname(file)所在脚本是以绝对路径运行的，则会输出该脚本所在的绝对路径，若以相对路径运行，输出空目录
 
-#### 4. os.getpaid()
+#### 04. os.getpaid()
 
 Python中的method用于获取当前进程的进程ID。
 
@@ -15967,7 +16423,7 @@ I am process 29041, running on jiang-B460MDS3HV2: starting (Tue Aug  2 10:20:27 
 
 
 
-#### 5. os.uname
+#### 05. os.uname
 
 返回值
 
@@ -15980,6 +16436,84 @@ I am process 29041, running on jiang-B460MDS3HV2: starting (Tue Aug  2 10:20:27 
 - **machine** - 硬件标识符。
 
 
+
+#### 06. os.path.splitext()
+
+```python
+import os
+
+filename = "/path/to/myfile.txt"
+basepath, extension = os.path.splitext(filename)
+
+print("Base path:", basepath)
+print("Extension:", extension)
+```
+
+output:
+
+```javascript
+Base path: /path/to/myfile
+Extension: .txt
+```
+
+In this example, `os.path.splitext` is used to split the file path `/path/to/myfile.txt` into its base path `/path/to/myfile` and extension `.txt`. The function returns a tuple containing the base path and extension, which are then assigned to the variables `basepath` and `extension`, respectively.
+
+Note that `os.path.splitext` does not actually check if the file exists, nor does it guarantee that the extension returned is actually valid. It simply splits the path at the last occurrence of the `.` character.
+
+
+
+#### 07. os.listdir() 方法
+
+##### 语法
+
+**listdir()**方法语法格式如下：
+
+```
+os.listdir(path)
+```
+
+##### 参数
+
+- **path** -- 需要列出的目录路径
+
+##### 返回值
+
+返回指定路径下的文件和文件夹列表。
+
+
+
+```python
+import os
+raw_video_dir = "data/AVE"  # videos in AVE dataset
+lis = os.listdir(raw_video_dir) # 返回指定路径下的文件和文件夹列表。
+print("This is lis: ",lis)
+```
+
+This output:
+
+```powershell
+['---1_cCGK4M.mp4', '--12UOziMF0.mp4', '--5zANFBYzQ.mp4', '--9O4XZOge4.mp4', '--bSurT-1Ak.mp4', '--d2Z5qR4qQ.mp4', '--euLrzIU2Q.mp4', '--fG9gtFqJ0.mp4'......
+```
+
+
+
+#### 08. os.path.abspath(__file__)
+
+`os.path.abspath(path)`: This function returns the absolute path of the specified path. If the given path is already an absolute path, it returns that path unchanged. If the path is relative, it converts it to an absolute path.
+
+`__file__`: This is a special variable in Python that contains the path of the script being executed.
+
+```python
+import os
+
+print(os.path.abspath(__file__))
+```
+
+output:
+
+```
+/media/huawei/93219077-4d31-405d-88e2-323585a4ba3e/effective-ECG-recognition/PuzzleMix-master/mian.py
+```
 
 
 
@@ -17119,7 +17653,7 @@ output:
 
 ## About matplotlib
 
-#### 1. plot histogram by matplotlib
+#### 01. plot histogram by matplotlib
 
 ```python
 import matplotlib.pyplot as plt
@@ -17147,7 +17681,7 @@ plt.title('Figure 1: Interval histograms of different sound lengths at milliseco
 
 
 
-#### 2. How to Adjust Line Thickness in Matplotlib
+#### 02. How to Adjust Line Thickness in Matplotlib
 
 ```python
 import matplotlib.pyplot as plt
@@ -17166,7 +17700,7 @@ plt.show()
 
 
 
-#### 3. Graph Plotting in Python easily
+#### 03. Graph Plotting in Python easily
 
 ```python
 # importing the required module
@@ -17196,7 +17730,7 @@ output:
 
 <img src="./pictures source/output.png" alt="output" style="zoom: 67%;" />
 
-#### 4. matplotlib.pyplot.figure().set_figwidth() or set_figheight()
+#### 04. matplotlib.pyplot.figure().set_figwidth() or set_figheight()
 
 Change plot size in Matplotlib – Python
 
@@ -17233,7 +17767,7 @@ output:
 
 ![img1-300x266](./pictures source/img1-300x266.png)
 
-#### 5.matplotlib.pyplot.**savefig**(**args*, ***kwargs*)
+#### 05. matplotlib.pyplot.**savefig**(**args*, ***kwargs*)
 
 Save the current figure.
 
@@ -17244,6 +17778,12 @@ import matplotlib.pyplot as plt
 
 plt.savefig('learning_curve.png', dpi=300, bbox_inches="tight")
 ```
+
+
+
+#### 06. matplotlib.pyplot.plt.imshow()
+
+
 
 
 
@@ -18566,160 +19106,7 @@ ResNet                                   [64, 1000]                --
 │    │    └─ReLU: 3-10                   [64, 256, 56, 56]         --
 │    └─Bottleneck: 2-2                   [64, 256, 56, 56]         --
 │    │    └─Conv2d: 3-11                 [64, 64, 56, 56]          16,384
-│    │    └─BatchNorm2d: 3-12            [64, 64, 56, 56]          128
-│    │    └─ReLU: 3-13                   [64, 64, 56, 56]          --
-│    │    └─Conv2d: 3-14                 [64, 64, 56, 56]          36,864
-│    │    └─BatchNorm2d: 3-15            [64, 64, 56, 56]          128
-│    │    └─ReLU: 3-16                   [64, 64, 56, 56]          --
-│    │    └─Conv2d: 3-17                 [64, 256, 56, 56]         16,384
-│    │    └─BatchNorm2d: 3-18            [64, 256, 56, 56]         512
-│    │    └─ReLU: 3-19                   [64, 256, 56, 56]         --
-│    └─Bottleneck: 2-3                   [64, 256, 56, 56]         --
-│    │    └─Conv2d: 3-20                 [64, 64, 56, 56]          16,384
-│    │    └─BatchNorm2d: 3-21            [64, 64, 56, 56]          128
-│    │    └─ReLU: 3-22                   [64, 64, 56, 56]          --
-│    │    └─Conv2d: 3-23                 [64, 64, 56, 56]          36,864
-│    │    └─BatchNorm2d: 3-24            [64, 64, 56, 56]          128
-│    │    └─ReLU: 3-25                   [64, 64, 56, 56]          --
-│    │    └─Conv2d: 3-26                 [64, 256, 56, 56]         16,384
-│    │    └─BatchNorm2d: 3-27            [64, 256, 56, 56]         512
-│    │    └─ReLU: 3-28                   [64, 256, 56, 56]         --
-├─Sequential: 1-6                        [64, 512, 28, 28]         --
-│    └─Bottleneck: 2-4                   [64, 512, 28, 28]         --
-│    │    └─Conv2d: 3-29                 [64, 128, 56, 56]         32,768
-│    │    └─BatchNorm2d: 3-30            [64, 128, 56, 56]         256
-│    │    └─ReLU: 3-31                   [64, 128, 56, 56]         --
-│    │    └─Conv2d: 3-32                 [64, 128, 28, 28]         147,456
-│    │    └─BatchNorm2d: 3-33            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-34                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-35                 [64, 512, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-36            [64, 512, 28, 28]         1,024
-│    │    └─Sequential: 3-37             [64, 512, 28, 28]         132,096
-│    │    └─ReLU: 3-38                   [64, 512, 28, 28]         --
-│    └─Bottleneck: 2-5                   [64, 512, 28, 28]         --
-│    │    └─Conv2d: 3-39                 [64, 128, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-40            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-41                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-42                 [64, 128, 28, 28]         147,456
-│    │    └─BatchNorm2d: 3-43            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-44                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-45                 [64, 512, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-46            [64, 512, 28, 28]         1,024
-│    │    └─ReLU: 3-47                   [64, 512, 28, 28]         --
-│    └─Bottleneck: 2-6                   [64, 512, 28, 28]         --
-│    │    └─Conv2d: 3-48                 [64, 128, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-49            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-50                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-51                 [64, 128, 28, 28]         147,456
-│    │    └─BatchNorm2d: 3-52            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-53                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-54                 [64, 512, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-55            [64, 512, 28, 28]         1,024
-│    │    └─ReLU: 3-56                   [64, 512, 28, 28]         --
-│    └─Bottleneck: 2-7                   [64, 512, 28, 28]         --
-│    │    └─Conv2d: 3-57                 [64, 128, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-58            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-59                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-60                 [64, 128, 28, 28]         147,456
-│    │    └─BatchNorm2d: 3-61            [64, 128, 28, 28]         256
-│    │    └─ReLU: 3-62                   [64, 128, 28, 28]         --
-│    │    └─Conv2d: 3-63                 [64, 512, 28, 28]         65,536
-│    │    └─BatchNorm2d: 3-64            [64, 512, 28, 28]         1,024
-│    │    └─ReLU: 3-65                   [64, 512, 28, 28]         --
-├─Sequential: 1-7                        [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-8                   [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-66                 [64, 256, 28, 28]         131,072
-│    │    └─BatchNorm2d: 3-67            [64, 256, 28, 28]         512
-│    │    └─ReLU: 3-68                   [64, 256, 28, 28]         --
-│    │    └─Conv2d: 3-69                 [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-70            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-71                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-72                 [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-73            [64, 1024, 14, 14]        2,048
-│    │    └─Sequential: 3-74             [64, 1024, 14, 14]        526,336
-│    │    └─ReLU: 3-75                   [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-9                   [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-76                 [64, 256, 14, 14]         262,144
-│    │    └─BatchNorm2d: 3-77            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-78                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-79                 [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-80            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-81                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-82                 [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-83            [64, 1024, 14, 14]        2,048
-│    │    └─ReLU: 3-84                   [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-10                  [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-85                 [64, 256, 14, 14]         262,144
-│    │    └─BatchNorm2d: 3-86            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-87                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-88                 [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-89            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-90                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-91                 [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-92            [64, 1024, 14, 14]        2,048
-│    │    └─ReLU: 3-93                   [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-11                  [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-94                 [64, 256, 14, 14]         262,144
-│    │    └─BatchNorm2d: 3-95            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-96                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-97                 [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-98            [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-99                   [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-100                [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-101           [64, 1024, 14, 14]        2,048
-│    │    └─ReLU: 3-102                  [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-12                  [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-103                [64, 256, 14, 14]         262,144
-│    │    └─BatchNorm2d: 3-104           [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-105                  [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-106                [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-107           [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-108                  [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-109                [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-110           [64, 1024, 14, 14]        2,048
-│    │    └─ReLU: 3-111                  [64, 1024, 14, 14]        --
-│    └─Bottleneck: 2-13                  [64, 1024, 14, 14]        --
-│    │    └─Conv2d: 3-112                [64, 256, 14, 14]         262,144
-│    │    └─BatchNorm2d: 3-113           [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-114                  [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-115                [64, 256, 14, 14]         589,824
-│    │    └─BatchNorm2d: 3-116           [64, 256, 14, 14]         512
-│    │    └─ReLU: 3-117                  [64, 256, 14, 14]         --
-│    │    └─Conv2d: 3-118                [64, 1024, 14, 14]        262,144
-│    │    └─BatchNorm2d: 3-119           [64, 1024, 14, 14]        2,048
-│    │    └─ReLU: 3-120                  [64, 1024, 14, 14]        --
-├─Sequential: 1-8                        [64, 2048, 7, 7]          --
-│    └─Bottleneck: 2-14                  [64, 2048, 7, 7]          --
-│    │    └─Conv2d: 3-121                [64, 512, 14, 14]         524,288
-│    │    └─BatchNorm2d: 3-122           [64, 512, 14, 14]         1,024
-│    │    └─ReLU: 3-123                  [64, 512, 14, 14]         --
-│    │    └─Conv2d: 3-124                [64, 512, 7, 7]           2,359,296
-│    │    └─BatchNorm2d: 3-125           [64, 512, 7, 7]           1,024
-│    │    └─ReLU: 3-126                  [64, 512, 7, 7]           --
-│    │    └─Conv2d: 3-127                [64, 2048, 7, 7]          1,048,576
-│    │    └─BatchNorm2d: 3-128           [64, 2048, 7, 7]          4,096
-│    │    └─Sequential: 3-129            [64, 2048, 7, 7]          2,101,248
-│    │    └─ReLU: 3-130                  [64, 2048, 7, 7]          --
-│    └─Bottleneck: 2-15                  [64, 2048, 7, 7]          --
-│    │    └─Conv2d: 3-131                [64, 512, 7, 7]           1,048,576
-│    │    └─BatchNorm2d: 3-132           [64, 512, 7, 7]           1,024
-│    │    └─ReLU: 3-133                  [64, 512, 7, 7]           --
-│    │    └─Conv2d: 3-134                [64, 512, 7, 7]           2,359,296
-│    │    └─BatchNorm2d: 3-135           [64, 512, 7, 7]           1,024
-│    │    └─ReLU: 3-136                  [64, 512, 7, 7]           --
-│    │    └─Conv2d: 3-137                [64, 2048, 7, 7]          1,048,576
-│    │    └─BatchNorm2d: 3-138           [64, 2048, 7, 7]          4,096
-│    │    └─ReLU: 3-139                  [64, 2048, 7, 7]          --
-│    └─Bottleneck: 2-16                  [64, 2048, 7, 7]          --
-│    │    └─Conv2d: 3-140                [64, 512, 7, 7]           1,048,576
-│    │    └─BatchNorm2d: 3-141           [64, 512, 7, 7]           1,024
-│    │    └─ReLU: 3-142                  [64, 512, 7, 7]           --
-│    │    └─Conv2d: 3-143                [64, 512, 7, 7]           2,359,296
-│    │    └─BatchNorm2d: 3-144           [64, 512, 7, 7]           1,024
-│    │    └─ReLU: 3-145                  [64, 512, 7, 7]           --
-│    │    └─Conv2d: 3-146                [64, 2048, 7, 7]          1,048,576
-│    │    └─BatchNorm2d: 3-147           [64, 2048, 7, 7]          4,096
-│    │    └─ReLU: 3-148                  [64, 2048, 7, 7]          --
+....
 ├─AdaptiveAvgPool2d: 1-9                 [64, 2048, 1, 1]          --
 ├─Linear: 1-10                           [64, 1000]                2,049,000
 ==========================================================================================
@@ -19771,7 +20158,7 @@ Overall, `contextlib.suppress` is a powerful tool for managing exceptions in a c
 
 #### 01. PIL.Image.open()
 
-The `PIL.Image.open()` function is part of the Python Imaging Library (PIL), specifically in the `PIL.Image` module. PIL has been succeeded by the `Pillow` library, which is a more modern and actively maintained fork of PIL. Here’s a detailed explanation of what `PIL.Image.open()` does:
+The `PIL.Image.open()` function is part of the **Python Imaging Library (PIL)**, specifically in the `PIL.Image` module. PIL has been succeeded by the `Pillow` library, which is a more modern and actively maintained fork of PIL. Here’s a detailed explanation of what `PIL.Image.open()` does:
 
 purpose:
 
@@ -19802,5 +20189,90 @@ img_resized.show()
 img_gray = img.convert("L")
 img_gray.show()
 
+```
+
+
+
+## About shutil
+
+#### 01. shutil.copy(src, dst, *, follow_symlinks=True)
+
+the `shutil.copy()` function is part of Python's `shutil` module. It is used to copy the **contents of a file** from a source to a **destination**. Here is a brief overview of how it works:
+
+`src`: The source file path.
+
+`dst`: The destination file path or directory.
+
+`follow_symlinks` (optional): If `True` (the default), it will copy the file pointed to by symbolic links. If `False`, it will copy the symbolic link itself.
+
+```python
+import shutil
+
+# Source path
+src = 'path/to/source/file.txt'
+
+# Destination path
+dst = 'path/to/destination/file.txt'
+
+# Copy the file
+shutil.copy(src, dst)
+
+```
+
+If the destination is a directory, the source file is copied into the directory with the same name as the source file.
+
+It only copies the content of the file, preserving the file's permissions. It does not copy metadata such as creation and modification times.
+
+
+
+## About multiprocessing
+
+#### 01. multiprocessing.pool()
+
+It is part of the `multiprocessing` library, which supports parallel processing by using separate processes. The `multiprocessing.Pool` class allows you to manage a pool of worker processes to which you can submit tasks for parallel execution. This is useful for tasks that can be parallelized to take advantage of multiple CPU cores, thereby improving performance.
+
+```python
+from multiprocessing import Pool
+import time
+
+def square(n):
+    time.sleep(1)
+    return n * n
+
+if __name__ == '__main__':
+    numbers = [1, 2, 3, 4, 5]
+
+    with Pool(processes=3) as pool:
+        results = pool.map(square, numbers)
+
+    print(results)
+
+```
+
+output:
+
+```
+[1, 4, 9, 16, 25]
+```
+
+
+
+#### 02. multiprocessing.cpu_count()
+
+The `multiprocessing.cpu_count()` function in Python is part of the `multiprocessing` module, and it returns the number of CPU cores available on the machine. This is useful for parallel processing, as it allows you to determine the number of processors you can leverage to optimize performance for CPU-bound tasks.
+
+Here's a basic example of how to use it:
+
+```python
+import multiprocessing
+
+num_cpu_cores = multiprocessing.cpu_count()
+print("Number of CPU cores:", num_cpu_cores)
+```
+
+output:
+
+```
+Number of CPU cores: 16
 ```
 
