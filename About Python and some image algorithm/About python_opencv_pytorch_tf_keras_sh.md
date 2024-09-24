@@ -3537,7 +3537,7 @@ In PyTorch, `zero_grad()` is a method used to clear the gradients of all optimiz
 
 
 
-#### 49. about with torch.no_grad()
+#### 49. with torch.no_grad()
 
 torch.no_grad() 是一个上下文管理器，被该语句 wrap 起来的部分将不会track 梯度。
 
@@ -3601,7 +3601,7 @@ def eval():
 
 
 
-#### 50. about torch.cat()
+#### 50. torch.cat()
 
 1.字面理解：torch.cat是将两个张量（tensor）拼接在一起，cat是concatenate的意思，即拼接，联系在一起。
 
@@ -7637,6 +7637,183 @@ Scope and Usage
 
 
 
+#### 135. torch.optim.AdamW()
+
+Certainly! The `torch.optim.AdamW` function in PyTorch is used to create an optimizer based on the AdamW optimization algorithm. This algorithm is a variant of the Adam optimizer that incorporates weight decay in a way that is more beneficial for training certain types of neural networks, particularly transformers and other deep learning models.
+
+Here's a breakdown of the key concepts and usage:
+
+What is AdamW?
+
+AdamW stands for Adaptive Moment Estimation with Weight Decay. It improves upon the standard Adam optimizer by decoupling weight decay (L2 regularization) from the gradient update. In the original Adam optimizer, weight decay is implemented by adding a regularization term to the loss. However, this can lead to undesirable interactions with the adaptive learning rates. AdamW addresses this by applying weight decay directly to the weights during the update step.
+
+How to Use `torch.optim.AdamW`
+
+The `torch.optim.AdamW` function is typically used as part of the training loop in PyTorch. Here's a basic example of its usage:
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Define a simple model
+model = nn.Sequential(
+    nn.Linear(10, 50),
+    nn.ReLU(),
+    nn.Linear(50, 1)
+)
+
+# Define a loss function
+criterion = nn.MSELoss()
+
+# Create the AdamW optimizer
+optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+
+# Dummy input and target tensors
+input = torch.randn(64, 10)
+target = torch.randn(64, 1)
+
+# Training loop
+for epoch in range(100):
+    optimizer.zero_grad()   # Zero the gradients
+    output = model(input)   # Forward pass
+    loss = criterion(output, target)  # Compute the loss
+    loss.backward()         # Backward pass (compute gradients)
+    optimizer.step()        # Update the parameters
+```
+
+Key Parameters
+
+- `params`: The parameters of the model that you want to optimize. Typically, you pass `model.parameters()` here.
+- `lr` (learning rate): Controls the step size in the parameter space. Default is `1e-3`.
+- `weight_decay`: The weight decay (L2 penalty) to apply. This helps regularize the model by penalizing large weights.
+- `betas`: Coefficients used for computing running averages of gradient and its square. Default is `(0.9, 0.999)`.
+- `eps`: A small value to prevent division by zero. Default is `1e-8`.
+
+Benefits of AdamW
+
+- **Decoupled Weight Decay**: The main benefit of AdamW over Adam is the decoupled weight decay, which tends to result in better training dynamics and generalization, especially for large models like transformers.
+- **Adaptive Learning Rates**: Like Adam, AdamW maintains per-parameter learning rates which adapt during training.
+
+In summary, `torch.optim.AdamW` is a powerful optimizer that combines the benefits of adaptive learning rates with a more effective implementation of weight decay, making it particularly useful for training large and complex models.
+
+##### torch.optim.AdamW().param_groups[0]
+
+`.param_groups`
+
+The `param_groups` attribute is a list of parameter groups that the optimizer is managing. Each parameter group is a dictionary containing the parameters and their associated hyperparameters (like learning rate, weight decay, etc.).
+
+A single optimizer can manage multiple parameter groups, which is useful when different parts of the model need different optimization settings. However, most models use a single parameter group.
+
+`[0]`
+
+This accesses the first parameter group in the list. Since `param_groups` is a list of dictionaries, `[0]` gets the first dictionary, which contains information about the first parameter group.
+
+Putting It All Together
+
+If you call `torch.optim.AdamW()` without arguments, it will fail because it needs at least the parameters of the model to optimize. But if we assume `optimizer` has been properly initialized, then:
+
+```python
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+first_param_group = optimizer.param_groups[0]
+```
+
+Here, `first_param_group` will be the dictionary containing the parameters and hyperparameters of the first (and often only) parameter group.
+
+Example of the Dictionary
+
+The `first_param_group` dictionary might look something like this:
+
+```python
+{
+    'params': [Parameter containing: tensor(...), Parameter containing: tensor(...)],
+    'lr': 0.001,
+    'weight_decay': 0.01,
+    ...
+}
+```
+
+This dictionary includes the actual model parameters to be optimized (`'params'`), along with other settings like learning rate (`'lr'`) and weight decay (`'weight_decay'`).
+
+Why This Might Be Used
+
+Accessing `param_groups[0]` is typically done to inspect or modify the optimization settings on-the-fly, such as changing the learning rate or other hyperparameters during training.
+
+Summary
+
+- `torch.optim.AdamW()` initializes the AdamW optimizer.
+- `.param_groups` is a list of parameter groups managed by the optimizer.
+- `[0]` accesses the first parameter group.
+
+The full code `torch.optim.AdamW().param_groups[0]` is thus trying to initialize the AdamW optimizer and then access the first parameter group, but without proper initialization, it would result in an error. It should be used in the context where `AdamW` is properly instantiated with model parameters.
+
+##### below is an example for the `.param_groups`
+
+```python
+import torch
+from torchvision.models import AlexNet
+
+model = AlexNet(num_classes=2)
+lr = 0.001
+# lrscheduler_start = 2
+# lrscheduler_step = 1
+# lrscheduler_decay = 0.5
+optimizer = torch.optim.Adam(model.parameters(), lr, weight_decay=5e-7, betas=(0.95, 0.999))
+# print(optimizer.param_groups)
+print(type(optimizer.param_groups))
+print(len(optimizer.param_groups))
+print(type(optimizer.param_groups[0]))
+print(optimizer.param_groups[0].keys())
+print(optimizer.param_groups[0]['lr'])
+```
+
+output:
+
+```
+<class 'list'>
+1
+<class 'dict'>
+dict_keys(['params', 'lr', 'betas', 'eps', 'weight_decay', 'amsgrad', 'maximize', 'foreach', 'capturable', 'differentiable', 'fused'])
+0.001
+```
+
+
+
+#### 136. torch.nn.functional.logsigmoid()
+
+The `torch.nn.functional.logsigmoid` function is often used in deep learning, especially in scenarios involving binary classification or learning binary features, where calculating log probabilities can be more stable or preferable.
+
+Here's how you can use it in PyTorch:
+
+```python
+import torch
+import torch.nn.functional as F
+
+# Example input tensor
+x = torch.tensor([1.0, 2.0, 3.0])
+
+# Applying log-sigmoid function
+output = F.logsigmoid(x)
+
+print(output)
+```
+
+Output
+
+For the example given, the output will be:
+
+```
+tensor([-0.3133, -0.1269, -0.0486])
+```
+
+Key Points
+
+- **Element-wise operation**: `logsigmoid` is applied to each element of the input tensor independently.
+- **Numerical stability**: Using the log-sigmoid function can provide better numerical stability, especially when dealing with log probabilities or avoiding overflow in exponential functions.
+- **Application**: Common in binary classification tasks, especially when using log-loss or cross-entropy loss functions where log-sigmoid can simplify the calculations and enhance stability.
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -9848,42 +10025,25 @@ t4(1, 2, 3, 4, e=5, f=6, g=7)
 
 #### 25. for in zip() 并行遍历
 
-
-
-```python
-stage_names = ["stage{}".format(i) for i in [2, 3, 4]]
-stages_repeats=[4, 8, 4]
-stages_out_channels=[24, 48, 96, 192, 1024]
-for name, repeats, output_channels in zip(stage_names, stages_repeats,stage_out_channels[1:]):
-    print(name,repeats,output_channels)
-#结果：
-# stage2 4 48
-# stage3 8 96
-# stage4 4 192
-```
-
-
+In Python, `for` and `zip()` are often used together to loop over multiple iterables in parallel. Here's a basic example:
 
 ```python
-list_1 = [1, 2, 3, 4]
-list_2 = ['a', 'b', 'c']
+list1 = [1, 2, 3]
+list2 = ['a', 'b', 'c']
 
-for x, y in zip(list_1, list_2):
-    print(x, y)
-#结果
-
-# 1 a
-# 2 b
-# 3 c
+for num, letter in zip(list1, list2):
+    print(num, letter)
 ```
 
+In this example, `zip(list1, list2)` combines the two lists into pairs, and the `for` loop iterates over these pairs. The output will be:
 
-
-```python
-In [4]: {key:value for key,value in zip('abc','jkl')}
-
-Out[4]: {'a': 'j', 'b': 'k', 'c': 'l'}
 ```
+1 a
+2 b
+3 c
+```
+
+The `zip()` function stops when the shortest iterable is exhausted. If the lists are of different lengths, it will only loop up to the length of the shorter one.
 
 
 
@@ -10278,8 +10438,6 @@ While it is true that you can achieve a similar result using just the `for...in`
 
 
 #### 37. extrating the .mat file and Convert dic to list
-
-
 
 ```python
 import scipy.io
@@ -11969,7 +12127,7 @@ Tuples are commonly used when you want to create a collection of values that sho
 
 
 
-#### 74. list
+#### 74. list and list[::number]
 
 In Python, square brackets ([]) indicate a list, and individual elements in the list are separated by commas. Here’s a simple example of a list that contains a few kinds of bicycles:
 
@@ -12003,6 +12161,24 @@ This is test:  6
 This is test:  5 
 
 This is test:  4
+```
+
+##### list[::number]
+
+```python
+t_wave = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+print(t_wave[::1])
+print(t_wave[::2])
+print(t_wave[::3])
+```
+
+output:
+
+```
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+[1, 3, 5, 7, 9]
+[1, 4, 7, 10]
 ```
 
 
@@ -13557,6 +13733,87 @@ New content.
 ```
 
 In the append mode, the new content is added to the end of the existing content. In the write mode, the new content replaces the existing content.
+
+
+
+#### 107. protected attribute in the class
+
+In Python, `self._step` and `self.step` are conventions used to indicate the intended access level of instance variables (attributes) within a class. Here's the difference between them:
+
+1. **`self.step`**:
+    - This is a public attribute.
+    - It is intended to be accessible from outside the class.
+    - There are no naming conventions or restrictions on accessing or modifying this attribute from outside the class.
+
+    ```python
+    class MyClass:
+        def __init__(self, step):
+            self.step = step
+    
+    obj = MyClass(5)
+    print(obj.step)  # Accessing public attribute
+    obj.step = 10    # Modifying public attribute
+    print(obj.step)
+    ```
+
+2. **`self._step`**:
+    - This is a protected attribute.
+    - It is a convention to indicate that this attribute is intended for internal use within the class and its subclasses.
+    - By convention, it should not be accessed or modified directly from outside the class. However, it is still technically accessible (i.e., Python does not enforce access restrictions).
+    
+    ```python
+    class MyClass:
+        def __init__(self, step):
+            self._step = step
+    
+    obj = MyClass(5)
+    print(obj._step)  # Accessing protected attribute (not recommended)
+    obj._step = 10    # Modifying protected attribute (not recommended)
+    print(obj._step)
+    ```
+
+In summary:
+- `self.step` is a public attribute meant to be freely accessed and modified.
+- `self._step` is a protected attribute meant to signal that it should not be accessed or modified directly outside the class or its subclasses, although it is still technically possible to do so.
+
+
+
+#### 108. min()
+
+the `min()` function in Python is used to find the smallest (minimum) value in an iterable (like a list, tuple, or set) or among two or more arguments. Here’s a quick overview:
+
+Syntax:
+
+```python
+min(iterable)
+```
+or
+```python
+min(arg1, arg2, *args)
+```
+
+Examples:
+
+1. **Finding the minimum value in a list**:
+    ```python
+    numbers = [10, 3, 7, 1, 9]
+    smallest = min(numbers)
+    print(smallest)  # Output: 1
+    ```
+
+2. **Finding the minimum among several values**:
+    ```python
+    smallest = min(5, 8, 3, 9)
+    print(smallest)  # Output: 3
+    ```
+
+3. **With custom key function (optional)**:
+    You can provide a key function to `min()` for custom comparisons, like finding the minimum based on length.
+    ```python
+    words = ["apple", "banana", "cherry"]
+    shortest_word = min(words, key=len)
+    print(shortest_word)  # Output: "apple"
+    ```
 
 
 
@@ -15683,7 +15940,9 @@ The Beta distribution is often used in Bayesian statistics, random proportion mo
 - If \(a > 1\) and \(b > 1\), the distribution is bell-shaped.
 - If \(a < 1\) and \(b < 1\), the distribution is U-shaped.
 
-Feel free to ask if you need more details or specific examples!
+ 
+
+
 
 
 
@@ -15986,6 +16245,176 @@ The `high` value is excluded from the range.
 
 
 
+#### 41. numpy.diff()
+
+`numpy.diff()` is a function in the NumPy library used to calculate the n-th discrete difference along a specified axis. It computes the difference between consecutive elements of an array. Here's an example:
+
+```python
+import numpy as np
+
+# Example array
+arr = np.array([1, 2, 4, 7, 11])
+
+# Compute the difference between consecutive elements
+diff_arr = np.diff(arr)
+print(diff_arr)
+```
+
+Output:
+```
+[1 2 3 4]
+```
+
+In this example, the differences are calculated as:
+- 2 - 1 = 1
+- 4 - 2 = 2
+- 7 - 4 = 3
+- 11 - 7 = 4
+
+By default, `numpy.diff()` operates along the last axis. You can also specify the `n` parameter to calculate higher-order differences, like so:
+
+```python
+diff_arr_2 = np.diff(arr, n=2)
+print(diff_arr_2)
+```
+
+Output:
+```
+[1 1 1]
+```
+
+In this case, it computes the second-order difference, which is the difference of the differences.
+
+
+
+#### 42. numpy.linspace()
+
+`numpy.linspace()` is a function in NumPy that generates an array of evenly spaced numbers over a specified range. Here's the basic syntax:
+
+```python
+numpy.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None, axis=0)
+```
+
+- `start`: The starting value of the sequence.
+- `stop`: The ending value of the sequence.
+- `num`: The number of evenly spaced samples to generate. The default is 50.
+- `endpoint`: If `True`, the `stop` value is included in the sequence. If `False`, it is excluded. The default is `True`.
+- `retstep`: If `True`, it returns a tuple of the array and the spacing between values.
+- `dtype`: The data type of the output array.
+- `axis`: The axis along which the samples are generated.
+
+Example:
+
+To generate 5 points between 0 and 1, including both endpoints:
+
+```python
+import numpy as np
+arr = np.linspace(0, 1, num=5)
+print(arr)
+```
+
+Output:
+```
+[0.   0.25 0.5  0.75 1.  ]
+```
+
+
+
+#### 43. numpy.interp()
+
+ `numpy.interp` is a function in the NumPy library used for one-dimensional linear interpolation. It can be used to find interpolated values between points in a dataset. Here's how it works:
+
+Syntax:
+
+```python
+numpy.interp(x, xp, fp, left=None, right=None, period=None)
+```
+
+Parameters:
+
+- **x**: The x-coordinates at which to evaluate the interpolated values.
+- **xp**: The x-coordinates of the data points, must be increasing.
+- **fp**: The y-coordinates of the data points, same length as `xp`.
+- **left**: Optional. Value to return for `x < xp[0]`, defaults to `fp[0]`.
+- **right**: Optional. Value to return for `x > xp[-1]`, defaults to `fp[-1]`.
+- **period**: Optional. If given, the x-coordinates are considered periodic with the period `period`.
+
+Example:
+
+```python
+import numpy as np
+
+# Define known points
+xp = [1, 2, 3]
+fp = [3, 2, 0]
+
+# Interpolate at specific points
+x = [2.5, 1.5, 3.5]
+interpolated_values = np.interp(x, xp, fp)
+
+print(interpolated_values)
+```
+
+This will interpolate values at `x = 2.5`, `x = 1.5`, and `x = 3.5` based on the known data points `xp` and `fp`.
+
+```
+[1.  2.5 0. ]
+```
+
+
+
+Let's break down how to calculate the values using `numpy.interp`.
+
+In your example:
+- You have known x-values: `xp = [1, 2, 3]`
+- You have known y-values: `fp = [3, 2, 0]`
+- You want to interpolate y-values at new x-points: `x = [2.5, 1.5, 3.5]`
+
+Step-by-Step Interpolation:
+
+1. **At `x = 2.5`:**
+   - The closest points in `xp` are `2` and `3` (the values between which you are interpolating).
+   - The corresponding `fp` values are `2` (for `x = 2`) and `0` (for `x = 3`).
+   - Since `2.5` is halfway between `2` and `3`, the interpolated value will be halfway between `2` and `0`. Therefore, the value at `2.5` will be `1.0`.
+
+2. **At `x = 1.5`:**
+   - The closest points in `xp` are `1` and `2`.
+   - The corresponding `fp` values are `3` (for `x = 1`) and `2` (for `x = 2`).
+   - Since `1.5` is halfway between `1` and `2`, the interpolated value will be halfway between `3` and `2`. Therefore, the value at `1.5` will be `2.5`.
+
+3. **At `x = 3.5`:**
+   - Since `x = 3.5` is outside the range of `xp`, the function will return the value `fp[-1] = 0` because, by default, the right-most value is returned for points beyond the range.
+
+Full Calculation:
+
+For `x = [2.5, 1.5, 3.5]`, the corresponding interpolated values will be `[1.0, 2.5, 0.0]`.
+
+
+
+#### 44. numpy.abs()
+
+`numpy.abs()` is a function in the NumPy library that returns the absolute value of each element in an array. It can handle arrays of any size or shape, as well as scalars. The function works element-wise, and for complex numbers, it returns the magnitude.
+
+Here’s an example:
+
+```python
+import numpy as np
+
+arr = np.array([-1, -2, 3, -4])
+abs_arr = np.abs(arr)
+print(abs_arr)  # Output: [1 2 3 4]
+```
+
+For complex numbers:
+
+```python
+complex_arr = np.array([1+2j, -3-4j])
+abs_complex_arr = np.abs(complex_arr)
+print(abs_complex_arr)  # Output: [2.23606798 5.        ]  # Magnitudes
+```
+
+
+
 ## About sklearn
 
 #### 1. about sklearn.preprocessing.MinMaxScaler()
@@ -16124,6 +16553,34 @@ output
 0.75 
 
 3
+```
+
+##### For the classification of multiple label
+
+1. **Subset Accuracy (Exact Match Ratio)**: This is a very strict metric that considers a prediction to be correct only if all the labels predicted for a sample exactly match the true labels.
+
+Here’s a Python example using `scikit-learn` to calculate accuracy for multi-label classification:
+
+```python
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+# Example true labels (ground truth)
+y_true = np.array([[1, 0, 1], [0, 1, 0], [1, 1, 0], [0, 1, 0], [1, 1, 0]])
+
+# Example predicted labels
+y_pred = np.array([[1, 0, 1], [0, 0, 1], [1, 1, 0], [0, 0, 1], [1, 1, 0]])
+
+# Subset accuracy
+subset_accuracy = accuracy_score(y_true, y_pred)
+
+print(f"Subset Accuracy: {subset_accuracy}")
+```
+
+output:
+
+```
+Subset Accuracy: 0.6
 ```
 
 
@@ -16621,6 +17078,91 @@ print("Weighted F1-score:", weighted_f1)
 ```
 
 Using micro or weighted averaging is often more appropriate for imbalanced datasets because they take into account the class distribution when computing the final F1-score.
+
+
+
+#### 13. sklearn.metrics.hamming_loss()
+
+Hamming Loss is a metric used to evaluate the performance of a multi-label classification model. It measures the fraction of labels that are incorrectly predicted, which includes both false positives and false negatives.
+
+Understanding Hamming Loss
+
+In multi-label classification, each sample can have multiple labels. For instance, if you are predicting the genres of a movie, a movie might be both "Action" and "Comedy." Hamming Loss helps quantify how many of these labels have been incorrectly predicted.
+
+How it Works
+
+- **False Positive (FP)**: A label is predicted as `1` (present) but is actually `0` (absent).
+- **False Negative (FN)**: A label is predicted as `0` (absent) but is actually `1` (present).
+
+Hamming Loss counts both types of errors.
+
+Example
+
+Suppose you have 3 samples and 4 possible labels:
+
+- **True Labels**: 
+  ```
+  [1, 0, 1, 0]  # Sample 1
+  [0, 1, 0, 1]  # Sample 2
+  [1, 1, 0, 0]  # Sample 3
+  ```
+
+- **Predicted Labels**: 
+  ```
+  [1, 1, 0, 0]  # Sample 1
+  [0, 1, 0, 0]  # Sample 2
+  [1, 0, 0, 1]  # Sample 3
+  ```
+
+Now, let's calculate the Hamming Loss:
+
+1. **Sample 1**: True `[1, 0, 1, 0]` vs. Predicted `[1, 1, 0, 0]`
+   - 2 mismatches (2nd and 3rd labels).
+   
+2. **Sample 2**: True `[0, 1, 0, 1]` vs. Predicted `[0, 1, 0, 0]`
+   - 1 mismatch (4th label).
+
+3. **Sample 3**: True `[1, 1, 0, 0]` vs. Predicted `[1, 0, 0, 1]`
+   - 2 mismatches (2nd and 4th labels).
+
+Total mismatches = 2 + 1 + 2 = 5
+
+Total possible label positions = \(3 \times 4 = 12\) (since there are 3 samples and 4 labels).
+
+Hamming Loss = \( \frac{5}{12} \approx 0.42 \)
+
+This means that 42% of the labels were incorrectly predicted.
+
+Using Hamming Loss in Python
+
+Here's how you can calculate Hamming Loss using `scikit-learn`:
+
+```python
+from sklearn.metrics import hamming_loss
+import numpy as np
+
+# True labels
+y_true = np.array([[1, 0, 1, 0], 
+                   [0, 1, 0, 1], 
+                   [1, 1, 0, 0]])
+
+# Predicted labels
+y_pred = np.array([[1, 1, 0, 0], 
+                   [0, 1, 0, 0], 
+                   [1, 0, 0, 1]])
+
+# Calculate Hamming Loss
+hamming = hamming_loss(y_true, y_pred)
+
+print(f"Hamming Loss: {hamming}")
+```
+
+Key Points
+
+- **Range**: Hamming Loss ranges from 0 to 1, where 0 indicates perfect classification and 1 indicates complete misclassification.
+- **Interpretation**: Lower Hamming Loss indicates better performance.
+
+Hamming Loss is particularly useful in multi-label classification because it treats each label prediction independently, giving a detailed measure of how many labels are correctly or incorrectly predicted across all samples.
 
 
 
@@ -17223,7 +17765,7 @@ for i in range(0,len(training_list)):
 
 
 
-#### 1. scipy.special.softmax()
+#### 01. scipy.special.softmax()
 
 ```python
 from scipy.special import softmax
@@ -17291,7 +17833,7 @@ output:
 
 
 
-#### 2. scipy.signal.butter()
+#### 02. scipy.signal.butter()
 
 Butterworth digital and analog filter design.
 
@@ -17346,7 +17888,7 @@ After the preprocessing of butterworth filter.
 
 ![scipy.signal.butter](./pictures source/scipy.signal.butter.webp)
 
-#### 3. scipy.signal.resample()
+#### 03. scipy.signal.resample()
 
 Resample *x* to *num* samples using Fourier method along the given axis.
 
@@ -17354,23 +17896,59 @@ The resampled signal starts at the same value as *x* but is sampled with a spaci
 
 
 
-#### 4. scipy.signal.resample_poly()
+#### 04. scipy.signal.resample_poly()
 
 Resample *x* along the given axis using polyphase filtering.
 
 
 
-#### 5. scipy.signal.filtfilt()
+#### 05. scipy.signal.filtfilt()
 
 Apply a digital filter forward and backward to a signal.
 
 
 
-#### 6. scipy.optimize.differential_evolution()
+#### 06. scipy.optimize.differential_evolution()
 
 Finds the global minimum of a multivariate function.
 
 
+
+#### 07. scipy.stats.pearsonr()
+
+`scipy.stats.pearsonr()` is a function in the SciPy library that calculates the **Pearson correlation coefficient** and the **p-value** for testing non-correlation between two datasets.
+
+- **Pearson correlation coefficient (r)**: It measures the linear relationship between two variables. The value ranges between -1 and 1:
+  - **1**: Perfect positive linear relationship.
+  - **-1**: Perfect negative linear relationship.
+  - **0**: No linear relationship.
+
+- **p-value**: It tests the hypothesis that there is no linear correlation (r = 0). A small p-value (typically ≤ 0.05) indicates strong evidence against the null hypothesis, suggesting a correlation.
+
+```python
+from scipy.stats import pearsonr
+import numpy as np
+
+# Example P-wave segments (arrays of data points)
+p_wave_1 = np.array([1, 2, 3, 4, 5])
+p_wave_2 = np.array([1, 2, 3, 4, 6])
+
+# Calculate Pearson Correlation Coefficient
+corr, p_value = pearsonr(p_wave_1, p_wave_2)
+
+# Output
+print("Pearson Correlation Coefficient:", corr)
+print("P-value:", p_value)
+```
+
+This would give you the correlation coefficient and the associated p-value.
+
+output:
+
+```
+Pearson Correlation Coefficient: 0.9863939238321437
+P-value: 0.0019012746601963693
+```
 
 
 
@@ -18196,6 +18774,16 @@ plt.savefig('learning_curve.png', dpi=300, bbox_inches="tight")
 
 
 #### 06. matplotlib.pyplot.plt.imshow()
+
+
+
+#### 07. matplotlib.pyplot.pcolormesh()
+
+
+
+
+
+
 
 
 
@@ -20689,4 +21277,192 @@ output:
 ```
 Number of CPU cores: 16
 ```
+
+
+
+## About neurokit2
+
+**NeuroKit2** is a Python package designed to facilitate the processing, analysis, and visualization of physiological signals. It's particularly useful for researchers and developers working in fields like neuroscience, psychophysiology, or biomedical engineering.
+
+Some key features of NeuroKit2 include:
+
+1. **Signal Processing**: It provides tools for preprocessing physiological signals, such as ECG (electrocardiogram), EDA (electrodermal activity), EMG (electromyography), and PPG (photoplethysmogram).
+2. **Feature Extraction**: NeuroKit2 can extract relevant features from physiological data, like heart rate variability (HRV), respiratory patterns, or skin conductance responses.
+3. **Visualization**: The package includes functions to easily visualize physiological signals and the results of analyses.
+4. **Data Analysis**: NeuroKit2 integrates with other Python libraries like NumPy, SciPy, and Pandas, making it versatile for advanced data analysis and statistical modeling.
+
+It's widely used for research purposes, especially in projects related to understanding the relationship between physiological signals and psychological states or behaviors.
+
+
+
+#### 01. neurokit2.ecg_process()
+
+It offers a comprehensive pipeline for analyzing ECG data, including steps like filtering, R-peak detection, heart rate variability (HRV) computation, and more.
+
+Here’s an overview of how it works:
+
+- **Input**: You provide raw ECG signals, and `neurokit2.ecg_process()` processes them through multiple stages, including signal cleaning, R-peak detection, and feature extraction.
+
+- Outputs:
+
+  1. **ECG signals**: A cleaned ECG signal, including important annotations like R-peaks.
+
+     ​	    ECG_Raw|The raw signal.
+
+     ​            ECG_Clean|The cleaned signal.
+
+     ​            ECG_Rate|Heart rate interpolated between R-peaks.
+
+     ​            ECG_Quality|The quality of the cleaned signal.
+
+     ​            ECG_R_Peaks|The R-peaks marked as "1" in a list of zeros.
+
+     ​            ECG_R_Onsets|The R-onsets marked as "1" in a list of zeros.
+
+     ​            ECG_R_Offsets|The R-offsets marked as "1" in a list of zeros.
+
+     ​            ECG_P_Peaks|The P-peaks marked as "1" in a list of zeros.
+
+     ​            ECG_P_Onsets|The P-onsets marked as "1" in a list of zeros.
+
+     ​            ECG_P_Offsets|The P-offsets marked as "1" in a list of zeros.
+
+     ​            ECG_Q_Peaks|The Q-peaks marked as "1" in a list of zeros.
+
+     ​            ECG_S_Peaks|The S-peaks marked as "1" in a list of zeros.
+
+     ​            ECG_T_Peaks|The T-peaks marked as "1" in a list of zeros.
+
+     ​            ECG_T_Onsets|The T-onsets marked as "1" in a list of zeros.
+
+     ​            ECG_T_Offsets|The T-offsets marked as "1" in a list of zeros.
+
+     ​            ECG_Phase_Atrial|Cardiac phase, marked by "1" for systole and "0" for diastole.
+
+     ​            ECG_Phase_Completion_Atrial|Cardiac phase (atrial) completion, expressed in percentage (from 0 to 1), representing the stage of the current cardiac phase.
+
+     ​            ECG_Phase_Completion_Ventricular|Cardiac phase (ventricular) completion, expressed in percentage (from 0 to 1), representing the stage of the current cardiac phase.
+
+  2. **ECG info**: A dictionary containing information on various morphological features of the ECG, such as heart rate, R-R intervals, and HRV indices.
+
+
+
+```python
+import neurokit2 as nk
+import matplotlib.pyplot as plt
+
+# Step 1: Simulate or load an ECG signal (for example purposes, we'll simulate)
+ecg_signal = nk.ecg_simulate(duration=10, heart_rate=70)
+
+# Step 2: Process the ECG signal
+ecg_processed, ecg_info = nk.ecg_process(ecg_signal, sampling_rate=1000)
+
+# Step 3: Plot the processed ECG signal
+nk.ecg_plot(ecg_processed, sampling_rate=1000)
+
+# Step 4: Display extracted information
+print("R-peaks indices:", ecg_info["ECG_R_Peaks"])
+print("Heart rate (bpm):", ecg_info["ECG_Rate"])
+
+```
+
+
+
+## About nolds
+
+ It is a Python library used for nonlinear time series analysis. The library is particularly useful for analyzing chaotic systems, and it includes methods to compute Lyapunov exponents, fractal dimensions, and other measures from time series data.
+
+#### 01. nolds.perm_entropy()
+
+```python
+import nolds
+# Assume you have ECG data in a NumPy array
+ecg_data = np.array([...])  # replace with actual ECG data
+
+entropy = nolds.perm_entropy(ecg_data, order=5, delay=1, normalize=True)
+print(f"ECG Permutation Entropy: {entropy}")
+```
+
+
+
+
+
+## About antropy
+
+**Antropy** is a library that provides easy-to-use functions for calculating a variety of entropy-based measures, especially in time-series analysis and biomedical signal processing (like ECG, EEG).
+
+Some common entropy measures you can calculate with the Antropy library are:
+
+1. **Permutation Entropy (`perm_entropy`)**: Measures the complexity of a time series by looking at the permutations of time-ordered values.
+2. **Sample Entropy (`sampen`)**: Quantifies the regularity or predictability of a time series by measuring the likelihood that patterns repeat.
+3. **Spectral Entropy (`spectral_entropy`)**: A frequency-domain measure of entropy that calculates the Shannon entropy of the power spectral density of a signal.
+4. **Approximate Entropy (`app_entropy`)**: Quantifies the unpredictability of fluctuations in a time series.
+
+
+
+#### 01. antropy.perm_entropy()
+
+```python
+import numpy as np
+from antropy import perm_entropy
+
+# Example time series data (e.g., ECG signal)
+time_series = np.random.rand(1000)  # Replace with real data
+
+# Calculate permutation entropy
+pe = perm_entropy(time_series, order=3, normalize=True)
+
+print(f"Permutation Entropy: {pe}")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
