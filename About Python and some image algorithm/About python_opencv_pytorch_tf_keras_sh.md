@@ -3005,9 +3005,15 @@ DataLoader是PyTorch中的一种数据类型。
 
 工作者数量，默认是0。使用多少个子进程来导入数据。设置为0，就是使用主进程来导入数据。注意：这个数字必须是大于等于0的，负数估计会出错。
 
+
+
 8、pin_memory：（数据类型 bool）
 
 内存寄存，默认为False。在数据返回前，是否将数据复制到CUDA内存中。
+
+When `pin_memory=True`, the DataLoader allocates data in **page-locked (pinned) memory**.  This allows the GPU to access data directly from the CPU memory, improving the efficiency of data transfer between the CPU and GPU.
+
+
 
 9、drop_last：（数据类型 bool）
 
@@ -3603,7 +3609,7 @@ def eval():
 
 #### 50. torch.cat()
 
-1.字面理解：torch.cat是将两个张量（tensor）拼接在一起，cat是concatenate的意思，即拼接，联系在一起。
+1.字面理解：torch.cat是将两个张量（tensor）拼接在一起，cat是concatenate / kənˈkæt(ə)nˌeɪt /  的意思，即拼接，联系在一起。
 
 2. 例子理解(1)
 
@@ -3828,6 +3834,52 @@ Key Features
 
 This optimizer is often preferred due to its efficiency and relatively low memory requirements, making it a popular choice for training deep learning models.
 
+##### different layers, different optimization
+
+This code is actually demonstrating how to apply different optimization settings to different layers of the network. Let me explain:
+
+The Adam optimizer is being configured with three different parameter groups:
+
+Each group can have its own unique optimization settings:
+
+1. First FC layer (fc1):
+   - Has its own parameter group
+   - Weight decay = 0.005
+2. Second FC layer (fc2):
+   - Has its own parameter group
+   - Weight decay = 0.009
+3. All other layers:
+   - Grouped together
+   - Weight decay = 0
+
+```python
+import torch.optim as optim
+from model import CNNModel
+
+model = CNNModel(no_of_leads = 12, no_of_classes=23)
+optimizer = optim.Adam([
+    {'params': model.fc1.parameters(), 'weight_decay': 0.005},  # First FC layer
+    {'params': model.fc2.parameters(), 'weight_decay': 0.009},  # Second FC layer
+    {'params': [p for n, p in model.named_parameters() 
+               if not any(x in n for x in ['fc1', 'fc2'])], 
+     'weight_decay': 0}  ], lr=0.0005, betas=(0.9, 0.999))
+
+print(optimizer.state_dict())
+print("---------------------------------------------------------------")
+for param_group in optimizer.param_groups:
+    print(param_group['lr'])
+```
+
+output:
+
+```
+{'state': {}, 'param_groups': [{'weight_decay': 0.005, 'lr': 0.0005, 'betas': (0.9, 0.999), 'eps': 1e-08, 'amsgrad': False, 'maximize': False, 'foreach': None, 'capturable': False, 'differentiable': False, 'fused': None, 'params': [0, 1, 2, 3]}, {'weight_decay': 0.009, 'lr': 0.0005, 'betas': (0.9, 0.999), 'eps': 1e-08, 'amsgrad': False, 'maximize': False, 'foreach': None, 'capturable': False, 'differentiable': False, 'fused': None, 'params': [4, 5, 6, 7]}, {'weight_decay': 0, 'lr': 0.0005, 'betas': (0.9, 0.999), 'eps': 1e-08, 'amsgrad': False, 'maximize': False, 'foreach': None, 'capturable': False, 'differentiable': False, 'fused': None, 'params': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]}]}
+---------------------------------------------------------------
+0.0005
+0.0005
+0.0005
+```
+
 
 
 #### 53. torch.optim.lr_scheduler.MultiStepLR()
@@ -3958,11 +4010,26 @@ Modules can also contain other Modules, allowing to nest them in a tree structur
 
 #### 58. data.to(device, non_blocking=True) 
 
-`non_blocking=True` indicates that the **tensor** will be moved to the GPU in a background thread. So, if you try to access `data` immediately after executing the statement, it may still be on the CPU. If you need to use the data in the very next statement, then using `non_blocking=True` won’t really help because the next statement will wait till the data has been moved to the GPU.
+`data.to(device, non_blocking=True)` is used to move tensors to a specified device (typically CPU or GPU) in PyTorch, with two key components:
 
-On the other hand, if you need to move several objects to the GPU, you can use `non_blocking=True` to move to the GPU in parallel using multiple background threads.
+1. `to(device)` - Moves the tensor to the specified device (e.g., CUDA GPU or CPU)
+2. `non_blocking=True` - This is an important performance optimization parameter:
+   - When True, it allows asynchronous memory transfers between CPU and GPU
+   - This is particularly useful during training when you want to overlap data transfer with computation
+   - Only has an effect when copying from CPU to GPU memory
 
-In general, you can always use `non_blocking=True`. The only risk is that there may be some weird edge cases which are not handled properly in the internal implementation (since parallel programming is hard), which I suspect is the reason why the default value of `non_blocking` is `False`.
+Here's a typical usage example:
+
+```python
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Moving data to GPU asynchronously
+inputs = data.to(device, non_blocking=True)
+```
+
+The `non_blocking=True` option is most beneficial when:
+- You're using DataLoader with `pin_memory=True`
+- Your code has computation that can run in parallel with the memory transfer
+- You're working with large datasets where memory transfer time is significant
 
 
 
@@ -7919,6 +7986,77 @@ torch.cuda.memory_reserved()   # See total memory reserved by PyTorch
 
 
 
+#### 141.torch.optim.lr_scheduler.LambdaLR()
+
+Yes, I know `torch.optim.lr_scheduler.LambdaLR` from PyTorch. It’s a learning rate scheduler that adjusts the learning rate of an optimizer according to a user-defined function (lambda function). This allows for highly customizable learning rate schedules.
+
+Syntax:
+
+```python
+torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda, last_epoch=-1, verbose=False)
+```
+
+Parameters:
+
+- **`optimizer`**: The optimizer for which the learning rate will be scheduled.
+- **`lr_lambda`**: A function or a list of functions that computes a multiplicative factor given an epoch index. If a list is provided, each function corresponds to a parameter group in the optimizer.
+- **`last_epoch`**: The index of the last epoch. Default is `-1`, meaning it starts from epoch `0`.
+- **`verbose`**: If `True`, prints a message to stdout for each update.
+
+Example:
+
+Here’s how you can use it to define a custom learning rate schedule:
+
+```python
+import torch
+from torch.optim import SGD
+from torch.optim.lr_scheduler import LambdaLR
+
+# Example model and optimizer
+model = torch.nn.Linear(10, 1)
+optimizer = SGD(model.parameters(), lr=0.1)
+
+# Define a lambda function for the learning rate
+lambda_lr = lambda epoch: 0.95 ** epoch  # Decay learning rate by 5% per epoch
+
+# Initialize the scheduler
+scheduler = LambdaLR(optimizer, lr_lambda=lambda_lr)
+
+# Training loop
+for epoch in range(10):
+    # Train your model
+    optimizer.step()  # Update model parameters
+    
+    # Update learning rate
+    scheduler.step()
+
+    print(f"Epoch {epoch+1}, Learning Rate: {scheduler.get_last_lr()}")
+```
+
+Key Features:
+
+- You can use different lambda functions for each parameter group in the optimizer.
+- Useful for implementing non-standard learning rate schedules like warm-ups or custom decay patterns.
+
+It seems there was an issue while running the code in the current environment. Let me outline the theoretical calculation of the learning rate values across epochs for the given lambda function lr=0.1×0.95epoch\text{lr} = 0.1 \times 0.95^\text{epoch}:
+
+Epoch-wise Learning Rates:
+
+- **Epoch 0**: 0.1×0.950=0.10.1 \times 0.95^0 = 0.1
+- **Epoch 1**: 0.1×0.951=0.0950.1 \times 0.95^1 = 0.095
+- **Epoch 2**: 0.1×0.952≈0.090250.1 \times 0.95^2 \approx 0.09025
+- **Epoch 3**: 0.1×0.953≈0.08573750.1 \times 0.95^3 \approx 0.0857375
+- **Epoch 4**: 0.1×0.954≈0.08145060.1 \times 0.95^4 \approx 0.0814506
+- **Epoch 5**: 0.1×0.955≈0.07737810.1 \times 0.95^5 \approx 0.0773781
+- **Epoch 6**: 0.1×0.956≈0.07350920.1 \times 0.95^6 \approx 0.0735092
+- **Epoch 7**: 0.1×0.957≈0.06983380.1 \times 0.95^7 \approx 0.0698338
+- **Epoch 8**: 0.1×0.958≈0.06634210.1 \times 0.95^8 \approx 0.0663421
+- **Epoch 9**: 0.1×0.959≈0.0630250.1 \times 0.95^9 \approx 0.063025
+
+
+
+
+
 ## About timm
 
 最近一年 Vision Transformer 及其相关改进的工作层出不穷，在他们开源的代码中，大部分都用到了这样一个库：timm。各位炼丹师应该已经想必已经对其无比熟悉了，本文将介绍其中最关键的函数之一：create_model 函数。
@@ -9937,6 +10075,134 @@ arg3: 3
 ```
 
 args和kwargs组合起来可以传入任意的参数，这在参数未知的情况下是很有效的，同时加强了函数的可拓展性。
+
+
+
+##### kwargs.get(key, default=None)
+
+Yes! The `kwargs.get` function is used to safely access optional keyword arguments in Python. Here's how it works:
+
+- **`kwargs`**: This is typically a dictionary of keyword arguments passed to a function using `**kwargs`.
+- **`get(key, default=None)`**: The `.get()` method retrieves the value associated with the specified `key` in the dictionary. If the key does not exist, it returns the `default` value instead of raising a `KeyError`.
+
+Example:
+
+```python
+def example_function(**kwargs):
+    value = kwargs.get('key', 'default_value')
+    print(f"Value: {value}")
+
+example_function(key='Hello')  # Output: Value: Hello
+example_function()            # Output: Value: default_value
+```
+
+Key Points:
+
+1. **Prevents errors**: It avoids `KeyError` if the key doesn't exist in the `kwargs` dictionary.
+2. **Default values**: You can specify a default value to use when the key is not found.
+
+**Another example:**
+
+```python
+from timm.models.registry import register_model
+from timm.models import create_model
+
+@register_model
+def test_model(depth = 5, **kwargs):
+    print("This is the depth", depth)
+    print("This is the block", kwargs.get('block', 'default_value'))
+    print("This is the depth", kwargs.get('depth', 'default_value'))
+    return 1
+
+model_name = "test_model"
+model = create_model(
+        model_name,
+        pretrained=False,
+        depth = 24,
+        drop_block_rate=None,
+        block = "HAHAHHAHHA",
+        img_size=8192
+    )
+```
+
+output:
+
+```
+This is the depth 24
+This is the block HAHAHHAHHA
+This is the depth default_value
+```
+
+output explanation:
+
+1. First line 
+
+   ```
+   This is the depth 24:
+   ```
+
+   - `depth=24` from `create_model()` overrides the default value `depth=5` in the function definition
+   - Since `depth` is a named parameter in the function, it's directly accessible as `depth`
+
+2. Second line 
+
+   ```
+   This is the block HAHAHHAHHA:
+   ```
+
+   - `block="HAHAHHAHHA"` from `create_model()` goes into `kwargs` because `block` isn't a named parameter
+   - `kwargs.get('block', 'default_value')` finds 'block' in kwargs and returns "HAHAHHAHHA"
+
+3. Third line 
+
+   ```
+   This is the depth default_value:
+   ```
+
+   - Even though we passed `depth=24`, it's not in `kwargs`
+   - This is because `depth` was captured as a named parameter
+   - So `kwargs.get('depth', 'default_value')` returns 'default_value'
+
+In summary, when we pass parameters to the function:
+
+- Named parameters (`depth`) are captured directly
+- All other parameters go into `kwargs`
+- The same parameter can't be in both places (that's why `kwargs.get('depth')` doesn't find the depth value)
+
+##### kwargs.update()
+
+the `kwargs.update()` method in Python is typically used when working with keyword arguments (`**kwargs`) in functions. Here's a breakdown of how it works:
+
+1. **What is `kwargs`?**
+   - `kwargs` is a special syntax in Python that allows a function to accept any number of keyword arguments. It is a dictionary containing all the keyword arguments passed to the function.
+2. **What does `kwargs.update()` do?**
+   - Since `kwargs` is a dictionary, the `update()` method is used to add new key-value pairs or update existing ones. It works like the `update()` method for any dictionary.
+
+Example
+
+```python
+def my_function(**kwargs):
+    print("Original kwargs:", kwargs)
+    
+    # Update kwargs with additional key-value pairs
+    kwargs.update({'new_key': 'new_value', 'another_key': 42})
+    
+    print("Updated kwargs:", kwargs)
+
+my_function(existing_key='existing_value')
+```
+
+**Output:**
+
+```
+Original kwargs: {'existing_key': 'existing_value'}
+Updated kwargs: {'existing_key': 'existing_value', 'new_key': 'new_value', 'another_key': 42}
+```
+
+Use Cases
+
+- Adding default values to `kwargs`.
+- Dynamically modifying keyword arguments before using them.
 
 
 
@@ -18077,6 +18343,8 @@ output:
 
 Butterworth digital and analog filter design.
 
+- It's commonly used to filter signals while preserving the shape and timing of waveform features, which is crucial for many scientific and engineering applications, such as ECG and PCG analysis.
+
 ```python
 #import required libraries
 from scipy.signal import filtfilt
@@ -18136,9 +18404,74 @@ The resampled signal starts at the same value as *x* but is sampled with a spaci
 
 
 
+```python
+from scipy import signal
+import numpy as np
+
+# Create a sample signal
+t = np.linspace(0, 10, 1000)
+x = np.sin(2*np.pi*t)  # Original signal with 1000 points
+print("This is the input's shape:",x.shape)
+# Resample to 500 points
+
+num_points = 500
+x_resampled = signal.resample(x, num_points)
+print("This is the output's shape:",x_resampled.shape)
+```
+
+output:
+
+```
+This is the input's shape: (1000,)
+This is the output's shape: (500,)
+```
+
+
+
 #### 04. scipy.signal.resample_poly()
 
-Resample *x* along the given axis using polyphase filtering.
+This function performs polyphase resampling of signals using a rational factor. It's often used when you need to change the sampling rate of a signal by a rational factor (up/down).
+
+Here's a basic example of how to use it:
+
+```python
+from scipy import signal
+import numpy as np
+
+# Create a sample signal
+t = np.linspace(0, 10, 1000)
+x = np.sin(2*np.pi*t)  # Original signal
+print("This is the input's shape", x.shape)
+
+# Resample with ratio 3/2 (upsampling by 3, then downsampling by 2)
+resampled = signal.resample_poly(x, up=3, down=2)
+print("This is the output's shape:", resampled.shape)
+```
+
+output:
+
+```
+This is the input's shape (1000,)
+This is the output's shape: (1500,)
+```
+
+The main parameters are:
+
+1. `x`: The input signal array
+2. `up`: The upsampling factor (numerator)
+3. `down`: The downsampling factor (denominator)
+
+This method is particularly useful because:
+- It's more efficient than `resample` for rational factors
+- It has better preservation of signal characteristics
+- It's less prone to aliasing compared to simple interpolation
+
+Common use cases include:
+- Converting audio between different sampling rates
+- Adjusting signal sampling rates for signal processing
+- Matching sampling rates of different signals for comparison
+
+Would you like to see a more specific example for your use case?
 
 
 
