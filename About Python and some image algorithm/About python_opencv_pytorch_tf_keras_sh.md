@@ -1289,7 +1289,7 @@ This is:  [2 3 1]
 
 
 
-#### 8.1 about torch.nn.functional.softmax(Tensor,dim) 
+#### 8. about torch.nn.functional.softmax(Tensor,dim) 
 
 The softmax function takes as input a vector of values and converts it into a probability distribution. The output values are in the range (0, 1) and sum to 1. This is useful when you want to interpret the output of a model as probabilities over different classes.
 
@@ -2832,7 +2832,7 @@ import torch.nn as nn
 # Create a random tensor
 input = torch.randn(20, 6, 10, 10)
 
-# Separate 6 channels into 3 groups
+# Separate 6 channels into 3 groupsgroups
 m = nn.GroupNorm(3, 6)
 
 # Activate the module
@@ -5220,63 +5220,119 @@ If `bias` is `None`, the function simply performs the matrix multiplication with
 
 This function is often used in defining custom neural network layers or for performing linear transformations outside of the usual `torch.nn.Linear` module.
 
-##### Hint: the difference between torch.nn.Linear() and torch.nn.functional.linear()
+Hint: the difference between torch.nn.Linear() and torch.nn.functional.linear()
 
 torch.nn.Linear: This is a class that defines a linear layer as part of a neural network model. It maintains its own learnable parameters (weights and biases).
 torch.nn.functional.linear: This is a function that applies a linear transformation to the incoming data. It does not maintain its own parameters; instead, **you must provide the weights and biases as arguments**.
 
 
 
-#### 76. torch.nn.sequential()
+#### 76. torch.nn.functional.conv1d(padding='same')
 
-A sequential container. Modules will be added to it in the order they are passed in the constructor. 
+Yes! In recent versions of PyTorch (from **1.10** onward), the `torch.nn.functional.conv1d` function supports the argument `padding='same'`.
 
-We assume here is 10 categories, and the input has 128 data.
+✅ How it works:
 
-```python
-import torch
-from torch import nn
+- `padding='same'` automatically calculates padding so that the output length is:
 
-model= nn.Sequential(
-​            nn.Linear(20, 30),
-​            nn.ReLU(),
-​            nn.Linear(30, 10)
-​        )
+$\text{output\_length} = \lceil \frac{\text{input\_length}}{\text{stride}} \rceil$
 
-input = torch.randn(128, 20)
-output=model(input)
-print(output.size())
-```
+In other words, the output size will match the input size (if `stride=1`), accounting for kernel size and dilation.
 
-output:
-
-```
-torch.Size([128, 10])
-```
-
-
-
-#### 77. tensor.norm()
-
-1-范数：║x║1=│x1│+│x2│+…+│xn│
-
-2-范数：║x║2=（│x1│2+│x2│2+…+│xn│2）1/2
-
-∞-范数：║x║∞=max（│x1│，│x2│，…，│xn│）
+Example:
 
 ```python
 import torch
-import torch.nn as nn
+import torch.nn.functional as F
 
-x = torch.tensor([2, 3, 4], dtype=torch.float, requires_grad=True)
-print(x.norm())
+x = torch.randn(1, 3, 10)  # (batch_size=1, channels=3, length=10)
+weight = torch.randn(5, 3, 3)  # (out_channels=5, in_channels=3, kernel_size=3)
+
+y = F.conv1d(x, weight, padding='same')
+print(y.shape)  # should be (1, 5, 10)
 ```
 
-output:
+Behind the scenes:
 
+PyTorch automatically figures out how much zero-padding to apply on both sides to maintain that *"same"* output length.
+
+------
+
+⚠ Notes:
+
+- ```
+  padding='same'
+  ```
+
+   works only if:
+
+  - `stride=1` (if you want perfect same size)
+  - Kernel size is odd (for exact symmetrical padding; PyTorch will still handle even kernels, but be cautious)
+
+- You need to ensure you’re using a sufficiently recent PyTorch version (≥ 1.10).
+
+👉 **You can check your version with:**
+
+```python
+import torch
+print(torch.__version__)
 ```
-tensor(5.3852, grad_fn=<CopyBackwards>)
+
+------
+
+
+
+#### 77. torch.nn.functional.scaled_dot_product_attention()
+
+This is a PyTorch function used to compute scaled dot-product attention, which is a key component of the Transformer architecture introduced in the paper "Attention is All You Need" by Vaswani et al. It’s commonly used in deep learning models, especially for tasks like natural language processing and computer vision.
+
+Here’s a quick breakdown of what it does:
+
+The function calculates attention based on the formula:
+\[ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V \]
+Where:
+- \( Q \) (queries), \( K \) (keys), and \( V \) (values) are input tensors.
+- \( d_k \) is the dimension of the keys (used for scaling to prevent large values in the dot product).
+- The scaling factor \(\sqrt{d_k}\) stabilizes gradients during training.
+
+Syntax in PyTorch:
+
+```python
+torch.nn.functional.scaled_dot_product_attention(query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False)
 ```
+
+Parameters:
+
+- `query`: Tensor of shape `(batch_size, num_heads, query_len, head_dim)` representing the queries.
+- `key`: Tensor of shape `(batch_size, num_heads, key_len, head_dim)` representing the keys.
+- `value`: Tensor of shape `(batch_size, num_heads, key_len, head_dim)` representing the values.
+- `attn_mask` (optional): A mask to ignore certain positions (e.g., padding tokens). Can be a boolean or float tensor.
+- `dropout_p` (optional): Dropout probability applied to the attention weights (default is 0.0).
+- `is_causal` (optional): If `True`, applies a causal mask to prevent attending to future tokens (useful for autoregressive tasks like language generation).
+
+Example Usage:
+
+```python
+import torch
+import torch.nn.functional as F
+
+# Example tensors (batch_size=1, num_heads=2, seq_len=3, head_dim=4)
+query = torch.randn(1, 2, 3, 4)
+key = torch.randn(1, 2, 3, 4)
+value = torch.randn(1, 2, 3, 4)
+
+# Compute scaled dot-product attention
+output = F.scaled_dot_product_attention(query, key, value)
+print(output.shape)  # Output shape: (1, 2, 3, 4)
+```
+
+Notes:
+
+- This function is optimized for performance on modern hardware (e.g., GPUs) and is often faster than manually implementing the attention mechanism.
+- It assumes the input tensors are already projected into the appropriate shapes (e.g., via linear layers in a Transformer model).
+- If you’re working with causal attention (like in GPT-style models), set `is_causal=True` to ensure the model only attends to previous positions.
+
+
 
 
 
@@ -6457,7 +6513,11 @@ print("Output shape:", output.shape)
 
 ```
 
+Hint:
 
+The actual values (e.g., random numbers from torch.randn()) are only the ***initial* values** of the parameter. During training, these values will be updated by the optimizer (e.g., SGD, Adam) based on gradients computed from the loss function.
+
+torch.randn() is a common choice because it provides random values from a standard normal distribution (mean 0, variance 1), which is a reasonable starting point for many neural network parameters. However, you could initialize with zeros (torch.zeros(3, 3)), ones (torch.ones(3, 3)), or any other values, and the Parameter would still work—it’s just that the training process might converge differently depending on the initialization.
 
 ##### torch.nn.Parameter()._no_weight_decay = True
 
@@ -6594,35 +6654,70 @@ output:
 ```
 tensor([[1, 2, 3],
         [4, 5, 6]])
-tensor([[7, 8, 9],
-        [7, 8, 9]])
 tensor([[7, 8, 9]])
 ```
 
 
 
-#### 109. torch.backends.cudnn.benchmark
+#### 109. torch.unbind()
 
-`torch.backends.cudnn.benchmark = True` is a configuration option used in PyTorch to optimize performance when using NVIDIA CUDA. When this option is set to `True`, PyTorch will **automatically find the best convolution algorithms to use for your specific input sizes and hardware configuration during the first invocation of a CUDA operation. This can lead to faster runtime performance as it avoids the overhead of selecting the best algorithm for each input size dynamically.**
+It's a PyTorch function used to split a tensor into a tuple of tensors along a specified dimension. Essentially, it "unbinds" the tensor into separate pieces by removing the specified dimension and returning the resulting slices as individual tensors.
 
-However, it's important to note that enabling `torch.backends.cudnn.benchmark = True` can lead to nondeterministic behavior in the computation, particularly when dealing with different input sizes or non-identical model architectures. Therefore, it's usually recommended to enable it when the input size and model architecture are fixed, such as during model inference or when training on fixed-size data.
+Here’s a quick breakdown:
+- **Syntax**: `torch.unbind(tensor, dim=0)`
+- **Input**: 
+  - `tensor`: The input tensor you want to split.
+  - `dim`: The dimension along which to unbind (default is 0).
+- **Output**: A tuple of tensors, where each tensor is a slice of the original tensor along the specified dimension.
 
-Here's a brief breakdown of what this setting does:
-
-- **torch.backends.cudnn.benchmark**: When set to `True`, PyTorch will use CuDNN's auto-tuner to find the best convolution algorithm for the current input size and hardware configuration. This can lead to improved performance but may result in nondeterministic behavior.
-- **CuDNN**: CUDA Deep Neural Network library, provided by NVIDIA, which contains highly optimized implementations of deep learning primitives such as convolutions, activation functions, and pooling operations.
-- **Auto-tuner**: CuDNN's auto-tuner explores different convolution algorithms and selects the one that provides the best performance for the given input size and hardware.
-
-To use this configuration option in your PyTorch code, simply set it before running any CUDA operations:
+Example
 
 ```python
 import torch
 
-torch.backends.cudnn.benchmark = True
+# Create a 3D tensor (2x3x4)
+tensor = torch.arange(24).reshape(2, 3, 4)
+print("Original tensor:")
+print(tensor)
 
+# Unbind along dimension 0 (splits into 2 tensors of shape 3x4)
+unbound = torch.unbind(tensor, dim=0)
+print("\nUnbound along dim 0:")
+for t in unbound:
+    print(t)
 ```
 
-Remember to use this option judiciously, especially in scenarios where determinism is crucial, such as when reproducing results or debugging.
+**Output**:
+```
+Original tensor:
+tensor([[[ 0,  1,  2,  3],
+         [ 4,  5,  6,  7],
+         [ 8,  9, 10, 11]],
+
+        [[12, 13, 14, 15],
+         [16, 17, 18, 19],
+         [20, 21, 22, 23]]])
+
+Unbound along dim 0:
+tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])
+tensor([[12, 13, 14, 15],
+        [16, 17, 18, 19],
+        [20, 21, 22, 23]])
+```
+
+If you unbind along `dim=1`, it would split into 3 tensors of shape (2x4), and along `dim=2`, it would split into 4 tensors of shape (2x3). It’s a handy way to break down a tensor into its components along a specific axis.
+
+
+
+| Feature                     | tensor.unbind()                | tensor.split()                    |
+| --------------------------- | ------------------------------ | --------------------------------- |
+| **Control over split size** | No (splits into single slices) | Yes (specify size or sections)    |
+| **Output**                  | Tuple of tensors               | Tuple of tensors                  |
+| **Number of outputs**       | Equal to size of dim           | Depends on split_size or sections |
+| **Flexibility**             | Less flexible                  | More flexible                     |
+| **Dimension removal**       | Effectively removes the dim    | Keeps the dim, splits into chunks |
 
 
 
@@ -7288,26 +7383,56 @@ This function is used to reverse the order of elements in a tensor along specifi
 ```python
 import torch
 
-x = torch.arange(8).view(2, 2, 2)
+x = torch.arange(30).view(2, 5, 3)
 print(x)
+print("-------------------------")
 
 y = x.flip([-1])
 print(y)
+print("-------------------------")
+
+z = x.flip([1])
+print(z)
 ```
 
 output:
 
 ```
-tensor([[[0, 1],
-         [2, 3]],
+tensor([[[ 0,  1,  2],
+         [ 3,  4,  5],
+         [ 6,  7,  8],
+         [ 9, 10, 11],
+         [12, 13, 14]],
 
-        [[4, 5],
-         [6, 7]]])
-tensor([[[1, 0],
-         [3, 2]],
+        [[15, 16, 17],
+         [18, 19, 20],
+         [21, 22, 23],
+         [24, 25, 26],
+         [27, 28, 29]]])
+-------------------------
+tensor([[[ 2,  1,  0],
+         [ 5,  4,  3],
+         [ 8,  7,  6],
+         [11, 10,  9],
+         [14, 13, 12]],
 
-        [[5, 4],
-         [7, 6]]])
+        [[17, 16, 15],
+         [20, 19, 18],
+         [23, 22, 21],
+         [26, 25, 24],
+         [29, 28, 27]]])
+-------------------------
+tensor([[[12, 13, 14],
+         [ 9, 10, 11],
+         [ 6,  7,  8],
+         [ 3,  4,  5],
+         [ 0,  1,  2]],
+
+        [[27, 28, 29],
+         [24, 25, 26],
+         [21, 22, 23],
+         [18, 19, 20],
+         [15, 16, 17]]])
 ```
 
 
@@ -8745,6 +8870,341 @@ Thus, PyTorch will internally use **`kernel_size=4`, `stride=3`**.
 3. **Deterministic behavior:** PyTorch consistently applies this rule, so you don't need to worry about multiple valid solutions.
 
 This method ensures that **no input values are skipped, and the entire sequence contributes to the output.**
+
+
+
+#### 150. tensor.chunk()
+
+`torch.chunk()` is a function that splits a tensor into a specific number of chunks along a given dimension. It returns a tuple of tensors, where each tensor is a "chunk" of the original tensor.
+
+Syntax:
+
+```python
+torch.chunk(input, chunks, dim=0)
+```
+- **input**: The tensor you want to split.
+- **chunks**: The number of chunks you want to split the tensor into (an integer).
+- **dim**: The dimension along which to split the tensor (default is 0).
+
+How it works:
+
+- The tensor is divided as evenly as possible into the specified number of chunks.
+- If the size of the tensor along the specified dimension is not perfectly divisible by the number of chunks, the last chunk will be smaller.
+
+Example:
+
+```python
+import torch
+
+# Create a sample tensor
+tensor = torch.arange(10)  # tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+# Split into 3 chunks along dimension 0
+chunks = torch.chunk(tensor, 3)
+
+print(chunks)
+# Output: (tensor([0, 1, 2, 3]), tensor([4, 5, 6, 7]), tensor([8, 9]))
+```
+Here:
+- The tensor has 10 elements.
+- We requested 3 chunks.
+- The result is 3 tensors: two with 4 elements each, and one with 2 elements (since 10 ÷ 3 isn’t perfectly even).
+
+Notes:
+
+- If the number of chunks is larger than the size of the tensor along the specified dimension, it will return as many chunks as possible, with some being empty.
+- Compare this to `torch.split()`, which allows you to specify the size of each chunk instead of the number of chunks.
+
+
+
+#### 151. torch.allclose()
+
+Yes, I’m familiar with `torch.allclose()`! It’s a function in PyTorch, a popular deep learning framework. This function checks if two tensors are element-wise equal within a specified tolerance. It’s super useful when you want to compare floating-point numbers, which can have tiny differences due to precision issues.
+
+Here’s the breakdown:
+
+- **Syntax**: `torch.allclose(input, other, rtol=1e-05, atol=1e-08, equal_nan=False)`
+  - `input`: First tensor to compare.
+  - `other`: Second tensor to compare.
+  - `rtol`: Relative tolerance (default: `1e-05`). It scales the difference relative to the size of the values.
+  - `atol`: Absolute tolerance (default: `1e-08`). It sets a minimum threshold for the difference.
+  - `equal_nan`: If `True`, NaN values in corresponding positions are considered equal.
+
+- **Returns**: A boolean (`True` if the tensors are "close" within the tolerances, `False` otherwise).
+
+How It Works
+
+It computes whether `|input - other| <= atol + rtol * |other|` holds for all elements. If every element satisfies this, it returns `True`.
+
+Example
+
+```python
+import torch
+
+a = torch.tensor([1.0, 2.0, 3.0])
+b = torch.tensor([1.0 + 1e-6, 2.0, 3.0])
+print(torch.allclose(a, b))  # True (small difference within default tolerance)
+print(torch.allclose(a, b + 0.1))  # False (difference too large)
+```
+
+output:
+
+```
+True
+False
+```
+
+
+
+#### 152. torch.nn.sequential()
+
+A sequential container. Modules will be added to it in the order they are passed in the constructor. 
+
+We assume here is 10 categories, and the input has 128 data.
+
+```python
+import torch
+from torch import nn
+
+model= nn.Sequential(
+​            nn.Linear(20, 30),
+​            nn.ReLU(),
+​            nn.Linear(30, 10)
+​        )
+
+input = torch.randn(128, 20)
+output=model(input)
+print(output.size())
+```
+
+output:
+
+```
+torch.Size([128, 10])
+```
+
+
+
+#### 153. tensor.norm()
+
+1-范数：║x║1=│x1│+│x2│+…+│xn│
+
+2-范数：║x║2=（│x1│2+│x2│2+…+│xn│2）1/2
+
+∞-范数：║x║∞=max（│x1│，│x2│，…，│xn│）
+
+```python
+import torch
+import torch.nn as nn
+
+x = torch.tensor([2, 3, 4], dtype=torch.float, requires_grad=True)
+print(x.norm())
+```
+
+output:
+
+```
+tensor(5.3852, grad_fn=<CopyBackwards>)
+```
+
+
+
+#### 154. torch.backends.cudnn.benchmark
+
+`torch.backends.cudnn.benchmark = True` is a configuration option used in PyTorch to optimize performance when using NVIDIA CUDA. When this option is set to `True`, PyTorch will **automatically find the best convolution algorithms to use for your specific input sizes and hardware configuration during the first invocation of a CUDA operation. This can lead to faster runtime performance as it avoids the overhead of selecting the best algorithm for each input size dynamically.**
+
+However, it's important to note that enabling `torch.backends.cudnn.benchmark = True` can lead to nondeterministic behavior in the computation, particularly when dealing with different input sizes or non-identical model architectures. Therefore, it's usually recommended to enable it when the input size and model architecture are fixed, such as during model inference or when training on fixed-size data.
+
+Here's a brief breakdown of what this setting does:
+
+- **torch.backends.cudnn.benchmark**: When set to `True`, PyTorch will use CuDNN's auto-tuner to find the best convolution algorithm for the current input size and hardware configuration. This can lead to improved performance but may result in nondeterministic behavior.
+- **CuDNN**: CUDA Deep Neural Network library, provided by NVIDIA, which contains highly optimized implementations of deep learning primitives such as convolutions, activation functions, and pooling operations.
+- **Auto-tuner**: CuDNN's auto-tuner explores different convolution algorithms and selects the one that provides the best performance for the given input size and hardware.
+
+To use this configuration option in your PyTorch code, simply set it before running any CUDA operations:
+
+```python
+import torch
+
+torch.backends.cudnn.benchmark = True
+
+```
+
+Remember to use this option judiciously, especially in scenarios where determinism is crucial, such as when reproducing results or debugging.
+
+
+
+#### 155. torch.fft.rfft()
+
+It’s part of PyTorch’s Fast Fourier Transform (FFT) module and is used to compute the one-dimensional discrete Fourier Transform (DFT) of a real-valued input signal, returning only the non-redundant portion of the result (hence the "r" in "**rfft**" for "real FFT").
+
+Details:
+
+- **Input**: A real-valued tensor (typically representing a time-domain signal).
+- **Output**: A complex-valued tensor containing the Fourier coefficients up to the Nyquist frequency (half the input length + 1, since the other half would be redundant for real inputs).
+- **Purpose**: It’s commonly used in signal processing tasks, such as analyzing the frequency components of a signal.
+
+Syntax:
+
+```python
+torch.fft.rfft(input, n=None, dim=-1, norm=None)
+```
+- **`input`**: The input tensor (real-valued).
+- **`n`**: The length of the signal to transform. If `None`, it defaults to the size of the input along the specified dimension.
+- **`dim`**: The dimension along which to compute the FFT (default is the last dimension, `-1`).
+- **`norm`**: Controls the normalization of the output. Options are:
+  - `None` (default): No normalization.
+  - `"forward"`: Normalize by `1/n`.
+  - `"backward"`: No normalization on the forward transform, but `1/n` on the inverse.
+  - `"ortho"`: Normalize by `1/sqrt(n)` for both forward and inverse.
+
+Example:
+
+```python
+import torch
+
+# Create a simple real-valued signal
+signal = torch.tensor([1.0, 2.0, 3.0, 4.0])
+
+# Compute the real FFT
+result = torch.fft.rfft(signal)
+
+print(result)
+```
+This might output something like:
+```
+tensor([10.0000+0.j, -2.0000+2.j, -2.0000+0.j])
+```
+Here, the result is a complex tensor with 3 elements (for an input of length 4), representing the frequency components up to the Nyquist frequency.
+
+
+
+#### 156. torch.fft.irfft(input, n=None, dim=-1, norm=None, *, out=None)
+
+Yes, I'm familiar with the `torch.fft.irfft` function in PyTorch. It computes the inverse real Fast Fourier Transform (FFT) of a given input tensor, which represents frequency-domain data, and returns a time-domain signal. This function is typically used when you have a real-valued signal's Fourier coefficients and want to reconstruct the original signal.
+
+Here’s a concise breakdown of `torch.fft.irfft`:
+
+Purpose
+
+- **Input**: A tensor containing the Fourier coefficients of a real-valued signal (typically the output of `torch.fft.rfft`).
+- **Output**: A tensor representing the reconstructed real-valued time-domain signal.
+- The input tensor is assumed to contain only the non-negative frequency components (since the input to the forward `rfft` is real, the negative frequencies are conjugate symmetric and omitted).
+
+Syntax
+
+```python
+torch.fft.irfft(input, n=None, dim=-1, norm=None, *, out=None)
+```
+
+Parameters
+
+- **`input`**: The input tensor, typically complex-valued (or real-valued representing complex numbers), containing Fourier coefficients.
+- **`n`**: The size of the output signal (in the time domain). If not specified, it’s inferred from the input size. If `n` is larger than expected, the output is zero-padded; if smaller, it’s truncated.
+- **`dim`**: The dimension along which to compute the inverse FFT. Default is `-1` (last dimension).
+- **`norm`**: Controls the normalization of the transform. Options are:
+  - `"forward"`: Normalize by `1/n`.
+  - `"backward"`: No normalization (default for `irfft`).
+  - `"ortho"`: Normalize by `1/sqrt(n)`.
+- **`out`**: Optional tensor to store the output.
+
+Key Notes
+
+- The input tensor typically has shape `(..., n//2 + 1)` for an even `n`, since `rfft` outputs only the non-negative frequency components.
+- The output tensor has shape `(..., n)` where `n` is either specified or inferred.
+- This function assumes the input is in the format produced by `torch.fft.rfft`, meaning it contains the Fourier coefficients for a real-valued signal.
+- It’s commonly used in signal processing tasks like audio analysis, image processing, or solving differential equations in the frequency domain.
+
+Example
+
+```python
+import torch
+
+# Create a real-valued signal
+signal = torch.tensor([1.0, 2.0, 3.0, 4.0])
+
+# Compute the forward real FFT
+freq = torch.fft.rfft(signal)  # Shape: [3] (n//2 + 1 for n=4)
+
+# Compute the inverse real FFT
+reconstructed = torch.fft.irfft(freq, n=4)  # Shape: [4]
+
+print(reconstructed)
+# Output: tensor([1.0000, 2.0000, 3.0000, 4.0000])
+```
+
+Practical Use
+
+- If you’re working with audio, you might use `rfft` to analyze frequencies, modify them, and then use `irfft` to reconstruct the modified audio signal.
+- Ensure the input to `irfft` matches the expected format (e.g., output of `rfft`), or you might get incorrect results.
+
+
+
+#### 157. torch.abs()
+
+It takes a tensor as input and returns a tensor of the same shape, where each element is the absolute value of the corresponding element in the input tensor.
+
+**Example**:
+```python
+import torch
+
+tensor = torch.tensor([-1, -2, 3, -4])
+result = torch.abs(tensor)
+# result = tensor([1, 2, 3, 4])
+```
+
+It works element-wise and supports both real and complex tensors. For complex tensors, it returns the magnitude (absolute value) of each complex number.
+
+
+
+For complex numbers in PyTorch, `torch.abs()` computes the magnitude (or modulus) of each complex number in the tensor. The magnitude of a complex number \( z = a + bi \) is defined as \( \sqrt{a^2 + b^2} \), where \( a \) is the real part and \( b \) is the imaginary part.
+
+**Example**:
+```python
+import torch
+
+# Create a complex tensor
+complex_tensor = torch.tensor([1+2j, -3+4j], dtype=torch.complex64)
+result = torch.abs(complex_tensor)
+# result = tensor([2.2361, 5.0000])
+# Explanation: 
+# For 1+2j, magnitude = sqrt(1^2 + 2^2) = sqrt(5) ≈ 2.2361
+# For -3+4j, magnitude = sqrt((-3)^2 + 4^2) = sqrt(25) = 5.0
+```
+
+The output is a real-valued tensor of the same shape, containing the magnitudes of the complex numbers. This operation is element-wise, like with real-valued tensors.
+
+
+
+#### 158. torch.angle()
+
+For each complex number \( z = a + bi \) in the tensor, it returns the angle \( \theta \) in radians, where \( \theta = \arctan2(b, a) \). This is the angle between the complex number and the positive real axis in the complex plane.
+
+For real-valued tensors, `torch.angle()` returns 0 for non-negative numbers and \( \pi \) for negative numbers, as real numbers lie on the real axis.
+
+**Example**:
+
+```python
+import torch
+
+# Complex tensor
+complex_tensor = torch.tensor([1+1j, -1+1j, -1-1j], dtype=torch.complex64)
+angles = torch.angle(complex_tensor)
+# angles = tensor([0.7854, 2.3562, -2.3562])
+# Explanation:
+# 1+1j: angle = arctan2(1, 1) = π/4 ≈ 0.7854
+# -1+1j: angle = arctan2(1, -1) = 3π/4 ≈ 2.3562
+# -1-1j: angle = arctan2(-1, -1) = -3π/4 ≈ -2.3562
+
+# Real tensor
+real_tensor = torch.tensor([1.0, -1.0, 0.0])
+angles_real = torch.angle(real_tensor)
+# angles_real = tensor([0.0000, 3.1416, 0.0000])
+```
+
+The output is a real-valued tensor of the same shape, containing the angles in radians. The function operates element-wise.
+
+
 
 
 
@@ -14879,6 +15339,31 @@ Examples:
 
 
 
+#### 109. python flag -u
+
+```python
+import time
+print("Step 1")
+time.sleep(2)
+print("Step 2")
+```
+
+- With python run.py
+  - If output is buffered (e.g., redirected to a file or piped), you might not see "Step 1" until the buffer is flushed, which could be after "Step 2" or when the script ends.
+- With python -u run.py
+  - "Step 1" appears immediately, followed by "Step 2" after the 2-second delay, regardless of whether the output is to a terminal, file, or pipe.
+
+**Trade-offs**
+
+- Pros
+  - Immediate output for better debugging and real-time monitoring.
+  - Ensures compatibility with tools expecting instant data (e.g., pipes, logs).
+- Cons
+  - Slightly slower performance due to frequent I/O operations (writing small chunks of data instead of large buffered chunks).
+  - Rarely noticeable unless dealing with massive output.
+
+
+
 ## About dataclasses
 
 #### 01. @dataclass
@@ -17577,6 +18062,34 @@ Output:
 ```
 
 In this example, `numpy.isfinite()` returns `True` for `1` and `5`, and `False` for `np.inf`, `np.nan`, and `-np.inf`, since they are not finite values.
+
+
+
+#### 48. numpy.sqrt()
+
+The `numpy.sqrt()` function calculates the square root of a given input. It can handle single numbers, arrays, or even multi-dimensional arrays, returning the non-negative square root(s) element-wise.
+
+Here’s a quick rundown:
+
+- **Input**: A number or array-like object (e.g., list, NumPy array).
+- **Output**: The square root of the input. For arrays, it computes the square root for each element.
+- **Notes**: 
+  - The input must be non-negative (since it returns real numbers, not complex ones).
+  - It’s optimized for performance with large datasets compared to Python’s built-in `math.sqrt()`, which only works on scalars.
+
+Example in Python:
+```python
+import numpy as np
+
+# Single number
+print(np.sqrt(16))  # Output: 4.0
+
+# Array
+arr = np.array([1, 4, 9, 16])
+print(np.sqrt(arr))  # Output: [1. 2. 3. 4.]
+```
+
+Let me know if you’d like more details or help with a specific use case!
 
 
 
