@@ -1,6 +1,6 @@
 # Complete collection of functions and commands
 
-## Common commands conda & pip (python)
+## Common commands conda & pip (python)...
 
 #### 1. View the current Python version
 
@@ -299,6 +299,32 @@ conda uninstall pytorch torchvision torchaudio
 ```
 sudo apt update
 sudo apt install build-essential
+```
+
+
+
+#### 27. Switch multiple versions of the gcc and g++
+
+gcc: Compiles C code, used for .c files.
+
+g++: Compiles C++ code, used for .cpp files, and includes C++-specific libraries (e.g., libstdc++).
+
+
+
+The --config gcc option tells update-alternatives to display an interactive menu of all installed GCC versions registered as alternatives for the gcc command. You can then select which version you want to use as the default.
+
+```
+sudo update-alternatives --config gcc
+```
+
+
+
+- Opens an interactive menu showing all registered versions of g++ in the update-alternatives system.
+- Allows you to select which version of g++ should be the default when you run the g++ command.
+- Updates the symbolic link /usr/bin/g++ to point to the chosen version (e.g., /usr/bin/g++-9).
+
+```
+sudo update-alternatives --config g++
 ```
 
 
@@ -20350,25 +20376,34 @@ choice('A String') :  n
 
 
 
-#### 07. random.shuffle
+#### 07. random.shuffle()
 
-对list列表随机打乱顺序，也就是洗牌
+Yes, `random.shuffle()` is a function in Python's `random` module. It randomly reorders the elements of a list in place, meaning it modifies the original list rather than returning a new one. Here's a quick overview:
 
-shuffle只作用于list，对str会报错，比如‘abcdfed’,
-而[‘1’,‘2’,‘3’,‘5’,‘6’,‘7’]可以
+- **Syntax**: `random.shuffle(sequence)`
+- **Parameter**: 
+  - `sequence`: A mutable sequence (e.g., a list) to be shuffled.
+- **Return**: None (it shuffles the list in place).
+- **Requires**: You must import the `random` module to use it.
+
+Example:
 
 ```python
-item1=[1,2,3,4,5,6,7]
-print item1
-random.shuffle(item1)
-print item1
+import random
 
-item2=['1','2','3','5','6','7']
-print item2
-random.shuffle(item2)
-print item2
-
+my_list = [1, 2, 3, 4, 5]
+random.shuffle(my_list)
+print(my_list)  # Output: A randomly reordered list, e.g., [3, 1, 5, 2, 4]
 ```
+
+Notes:
+
+- The shuffling is based on a pseudo-random number generator. You can set a seed with `random.seed()` for reproducible results.
+- It only works on mutable sequences like lists, not on immutable types like tuples or strings.
+- If you need a shuffled copy of a list (without modifying the original), you can use `random.sample()` instead:
+  ```python
+  shuffled_copy = random.sample(my_list, len(my_list))
+  ```
 
 
 
@@ -21948,7 +21983,7 @@ The [`argparse`](https://docs.python.org/3/library/argparse.html#module-argparse
 
 
 
-#### 1. Normal usage:
+#### 01. Normal usage:
 
 ```python
 import argparse
@@ -21990,7 +22025,7 @@ parser = argparse.ArgumentParser('DeiT training and evaluation script', parents=
 
 
 
-#### 2. easy way to add arguments
+#### 02. easy way to add arguments
 
 Here we can use 'args.abc' to add arguments.
 
@@ -22018,7 +22053,7 @@ This is the interger: 2
 
 
 
-#### 3. action=""
+#### 03. action=""
 
 [action](http://docs.python.org/dev/library/argparse.html#action) defines how to handle command-line arguments: store it as a constant, append into a list, store a boolean value etc. There are several built-in actions available, plus it's easy to write a custom one.
 
@@ -22036,7 +22071,7 @@ This is the interger: 2
 
 
 
-#### 4. parser.set_defaults()
+#### 04. parser.set_defaults()
 
 `argparse.ArgumentParser().set_defaults()` is a method in Python's `argparse` module that allows you to set default values for arguments in your command-line interface. This method sets default values for attributes of the argument parser.
 
@@ -22068,7 +22103,7 @@ default bar value
 
 
 
-#### 5. the `dest`' from the `parser.add_argument('--foo', help='foo help')`
+#### 05. the `dest`' from the `parser.add_argument('--foo', help='foo help')`
 
 ```python
 argparse.ArgumentParser.add_argument('--foo', help='foo help', dest='bar')
@@ -22081,6 +22116,35 @@ The value of the `'--foo'` argument will be stored in the namespace under the na
 
 
 invoke the script(调用脚本)
+
+
+
+#### 06. parser.parse_known_args()
+
+The parse_known_args() method parses command-line arguments but, unlike parse_args(), it doesn’t raise an error for unrecognized arguments. Instead, it returns a tuple containing:
+
+1. A namespace object with the parsed arguments (similar to what parse_args() returns).
+2. A list of remaining (unparsed) arguments.
+
+This is particularly useful when you’re dealing with partial argument parsing, such as when a script uses multiple parsers or when you want to pass unparsed arguments to another command or function.
+
+
+
+```python
+import argparse
+
+# Create a parser with a space as the program name and no help option
+parser = argparse.ArgumentParser(' ', add_help=False)
+
+# Add a single argument
+parser.add_argument('--foo', type=int, default=42, help='Foo value')
+
+# Parse arguments
+parsed_args, unknown_args = parser.parse_known_args(['--foo', '123', '--bar', 'test'])
+
+print(parsed_args)  # Namespace(foo=123)
+print(unknown_args)  # ['--bar', 'test']
+```
 
 
 
