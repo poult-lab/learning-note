@@ -329,6 +329,41 @@ sudo update-alternatives --config g++
 
 
 
+#### 28. breakpoint()
+
+`breakpoint()` is a built-in function introduced in Python 3.7 (PEP 553) that allows you to enter the Python debugger at the point where it's called. It pauses execution and opens an interactive debugging session, typically using `pdb` (Python's default debugger) or another debugger if configured.
+
+**Key Details:**
+
+- **Usage**: Simply call `breakpoint()` in your code where you want to pause execution.
+- **Behavior**: It invokes the debugger, letting you inspect variables, step through code, or execute commands.
+- **Environment Variable**: You can customize the debugger used by setting the `PYTHONBREAKPOINT` environment variable. For example:
+  - `PYTHONBREAKPOINT=pdb.set_trace` uses `pdb` (default).
+  - `PYTHONBREAKPOINT=ipdb.set_trace` uses `ipdb` (if installed).
+  - `PYTHONBREAKPOINT=0` disables `breakpoint()`.
+- **Example**:
+  
+  ```python
+  def divide(a, b):
+      breakpoint()  # Execution pauses here
+      return a / b
+  
+  result = divide(10, 2)
+  print(result)
+  ```
+  When `breakpoint()` is hit, you’ll enter the debugger, where you can:
+  - Check variable values (e.g., `print(a, b)`).
+  - Step through code (`n` for next, `s` for step into, `c` for continue).
+  - Exit with `q`.
+  
+- **Why Use It?**: It’s a cleaner alternative to manually importing `pdb` and calling `pdb.set_trace()`. It’s also configurable and integrates with modern IDEs or debuggers.
+
+If you’re using an older Python version (<3.7), you’d need to use `import pdb; pdb.set_trace()` instead. Let me know if you need help with debugging workflows or specific debugger commands!
+
+
+
+
+
 ## Colab server
 
 #### 01. download dataset via wget from hugging face
@@ -6791,7 +6826,7 @@ In this example, `start_event` and `end_event` are recorded at the beginning and
 
 #### 111. torch.cuda.synchronize()
 
-`torch.cuda.synchronize()` is a function used in PyTorch to synchronize the current stream with the host. In CUDA programming, streams are sequences of operations that are executed asynchronously on the GPU. When you call a function like `torch.cuda.synchronize()`, it ensures that all CUDA operations that were issued before this function call have been completed.
+`torch.cuda.synchronize()` is a function used in PyTorch to synchronize /ˈsɪŋkrənaɪz/ the current stream with the host. In CUDA programming, streams are sequences of operations that are executed asynchronously on the GPU. When you call a function like `torch.cuda.synchronize()`, it ensures that all CUDA operations that were issued before this function call have been completed.
 
 This synchronization is useful in scenarios where you want to accurately measure the **time taken** by a specific operation on the GPU or ensure that certain operations are complete before proceeding. For example, you might use it when benchmarking different parts of your code to accurately measure their performance.
 
@@ -12144,31 +12179,37 @@ output:
 
 #### 40. Python String startswith() Method
 
-```python
-txt = "Hello, welcome to my world."
-x = txt.startswith("Hello")
-print(x)
-```
+The Python `startswith()` method is used to check if a string starts with a specified prefix. It returns `True` if the string starts with the prefix, and `False` otherwise.
 
-output:
-
-```javascript
-True
-```
-
-Check if position 7 to 20 starts with the characters "wel":
+Syntax:
 
 ```python
-txt = "Hello, welcome to my world."
-x = txt.startswith("wel", 7, 20)
-print(x)
+str.startswith(prefix[, start[, end]])
 ```
 
-output:
+Parameters:
 
-```javascript
-True
+- **prefix**: The string (or tuple of strings) to check.
+- **start** *(optional)*: The position in the string to start checking.
+- **end** *(optional)*: The position in the string to stop checking.
+
+Examples:
+
+```python
+text = "hello world"
+
+# Basic usage
+print(text.startswith("hello"))     # True
+print(text.startswith("world"))     # False
+
+# With start and end
+print(text.startswith("world", 6))  # True
+
+# With tuple of prefixes
+print(text.startswith(("hi", "hello")))  # True
 ```
+
+
 
 
 
@@ -14348,6 +14389,13 @@ def feeder(get_next_item: Callable[[], str]) -> None:
 
 ```
 
+Variable Type Hints:
+
+```python
+age: int = 25
+name: str = "Alice"
+```
+
 
 
 #### 86.关于 from . import 问题
@@ -15387,6 +15435,82 @@ print("Step 2")
 - Cons
   - Slightly slower performance due to frequent I/O operations (writing small chunks of data instead of large buffered chunks).
   - Rarely noticeable unless dealing with massive output.
+
+#### 110. del
+
+In Python, `del` is a keyword used to **delete objects**, including:
+
+1. **Variables**:
+
+   ```python
+   x = 10
+   del x  # Now x is deleted and cannot be used anymore
+   ```
+
+2. **Items from a list or dictionary**:
+
+   ```python
+   my_list = [1, 2, 3]
+   del my_list[1]  # Now my_list becomes [1, 3]
+   
+   my_dict = {'a': 1, 'b': 2}
+   del my_dict['a']  # Now my_dict becomes {'b': 2}
+   ```
+
+3. **Slices of a list**:
+
+   ```python
+   nums = [0, 1, 2, 3, 4]
+   del nums[1:3]  # Now nums becomes [0, 3, 4]
+   ```
+
+4. **Attributes of objects** (if the object allows it):
+
+   ```python
+   class MyClass:
+       def __init__(self):
+           self.value = 10
+   
+   obj = MyClass()
+   del obj.value  # Now obj no longer has the 'value' attribute
+   ```
+
+It doesn’t free memory immediately but **decreases the reference count** of the object. If the count reaches zero, Python's garbage collector will clean it up.
+
+
+
+
+
+
+
+## About collections
+
+#### 01. collections.OrderedDict()
+
+In Python, `OrderedDict` is a class from the `collections` module that functions like a regular dictionary but **preserves the insertion order** of its keys. This means that when you iterate over an `OrderedDict`, the items are returned in the order in which they were added.
+
+**Move-to-end Feature**: `OrderedDict` has a `.move_to_end(key, last=True)` method to reposition elements.
+
+```python
+from collections import OrderedDict
+
+od = OrderedDict()
+od['apple'] = 1
+od['banana'] = 2
+od['cherry'] = 3
+
+print(od)  # Output: OrderedDict([('apple', 1), ('banana', 2), ('cherry', 3)])
+
+od.move_to_end('banana')
+print(od)  # Moves 'banana' to the end
+```
+
+output:
+
+```
+OrderedDict([('apple', 1), ('banana', 2), ('cherry', 3)])
+OrderedDict([('apple', 1), ('cherry', 3), ('banana', 2)])
+```
 
 
 
