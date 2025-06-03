@@ -16485,15 +16485,41 @@ reshape 则不需要依赖目标 tensor 是否在内存中是连续的。
 
 
 
-#### 04. about numpy.max() and min()
+#### 04. about numpy.min()
 
-ndarray.max([int axis])
+`numpy.min()` is a function in the NumPy library for Python that returns the minimum value of an array along a specified axis or of the entire array if no axis is specified.
 
-函数功能：求ndarray中指定维度的最大值，默认求所有值的最大值。
+**Details:**
 
-axis=0:求各column的最大值
+- **Syntax**: `numpy.min(a, axis=None, out=None, keepdims=False, initial=None, where=True)`
+- **Parameters**:
+  - `a`: Input array (NumPy array or array-like).
+  - `axis`: (Optional) Axis or axes along which to compute the minimum. If `None`, the minimum is computed over the flattened array.
+  - `out`: (Optional) Alternative output array to store the result.
+  - `keepdims`: (Optional) If `True`, the reduced axes are left in the result as dimensions with size one.
+  - `initial`: (Optional) The maximum value of an output element, used as a starting point.
+  - `where`: (Optional) A boolean array to indicate which elements to include in the minimum computation.
+- **Returns**: The minimum value(s) along the specified axis or the entire array.
 
-axis=1:求各row的最大值
+**Example:**
+
+```python
+import numpy as np
+
+# Sample array
+arr = np.array([[1, 2, 3], [4, 0, 5]])
+
+# Minimum of the entire array
+min_value = np.min(arr)  # Returns 0
+
+# Minimum along axis 0 (columns)
+min_axis0 = np.min(arr, axis=0)  # Returns [1, 0, 3]
+
+# Minimum along axis 1 (rows)
+min_axis1 = np.min(arr, axis=1)  # Returns [1, 0]
+```
+
+**Hint: For numpy.min(), the input must be a NumPy array or an array-like object (e.g., a Python list, tuple, or other sequence that can be converted to a NumPy array). NumPy will automatically convert array-like inputs to a NumPy array before computing the minimum.**
 
 
 
@@ -17906,39 +17932,45 @@ output:
 
 #### 40. numpy.random.randint()
 
-The `numpy.random.randint()` function is used to generate random integers from a specified range. The syntax for this function is as follows:
+It generates random integers from a specified range.
+
+Function Details:
+
+- **Syntax**: `numpy.random.randint(low, high=None, size=None, dtype=int)`
+- **Parameters**:
+  - `low`: The lower bound (inclusive) of the random integers.
+  - `high`: The upper bound (exclusive) of the random integers. If not provided, `low` is treated as the upper bound, and the lower bound is 0.
+  - `size`: The shape of the output array. Can be an integer (for a 1D array) or a tuple (for a multi-dimensional array). If not provided, a single integer is returned.
+  - `dtype`: The data type of the integers (e.g., `int`, `np.int32`, `np.int64`). Default is `np.int64` (or `int` in older versions).
+
+- **Returns**: An array (or single integer if `size` is not specified) of random integers within the range `[low, high)`.
+
+Example:
 
 ```python
-numpy.random.randint(low, high=None, size=None, dtype=int)
+import numpy as np
+
+# Generate a single random integer between 1 and 10 (inclusive of 1, exclusive of 10)
+single_num = np.random.randint(1, 10)
+print(single_num)  # e.g., 7
+
+# Generate a 1D array of 5 random integers between 1 and 10
+array_1d = np.random.randint(1, 10, size=5)
+print(array_1d)  # e.g., [3, 8, 1, 6, 4]
+
+# Generate a 2x3 array of random integers between 0 and 5
+array_2d = np.random.randint(0, 5, size=(2, 3))
+print(array_2d)  # e.g., [[2, 4, 1], [0, 3, 4]]
 ```
 
-Parameters:
+Notes:
 
-1. **`low`**:
-   - *Type*: int
-   - *Description*: The lower (inclusive) bound of the range of random integers to be generated.
-2. **`high`**:
-   - *Type*: int, optional
-   - *Description*: The upper (exclusive) bound of the range of random integers to be generated. If `high` is not provided, the range will be from `0` to `low`.
-3. **`size`**:
-   - *Type*: int or tuple of ints, optional
-   - *Description*: The shape of the output array. If `size` is `None` (default), a single integer is returned. If `size` is an integer, a 1-D array of that length is returned. If `size` is a tuple, an array of the given shape is returned.
-4. **`dtype`**:
-   - *Type*: dtype, optional
-   - *Description*: Desired output data type for the array, e.g., `numpy.int32`, `numpy.int64`. The default is `numpy.int`.
+- The `high` value is **exclusive**, so `np.random.randint(1, 10)` generates numbers from 1 to 9.
+- If you only provide one number (e.g., `np.random.randint(10)`), it generates integers from 0 to 9.
+- The `size` parameter allows flexible array shapes, such as scalars, 1D arrays, or multi-dimensional arrays.
+- The random numbers are generated using NumPy's random number generator, which can be seeded for reproducibility with `np.random.seed()`.
 
-Returns:
 
-- An array of random integers from the specified range if `size` is given, otherwise a single random integer.
-
-```python
-random_integer = np.random.randint(5, 15)
-print(random_integer) # Output will be one of the values from 5 to 14
-```
-
-The `low` value is included in the range.
-
-The `high` value is excluded from the range.
 
 
 
@@ -18239,7 +18271,9 @@ arr = np.array([1, 4, 9, 16])
 print(np.sqrt(arr))  # Output: [1. 2. 3. 4.]
 ```
 
-Let me know if you’d like more details or help with a specific use case!
+
+
+49.
 
 
 
