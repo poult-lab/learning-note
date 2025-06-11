@@ -16472,13 +16472,13 @@ dod
 
 
 
-##### PyTorch view和reshape的区别
+**PyTorch view和reshape的区别**
 
-##### 相同之处
+**相同之处**
 
 都可以用来重新调整 tensor 的形状。
 
-##### 不同之处
+**不同之处**
 
 view 函数只能用于 contiguous 后的 tensor 上，也就是只能用于内存中连续存储的 tensor。如果对 tensor 调用过 transpose, permute 等操作的话会使该 tensor 在内存中变得不再连续，此时就不能再调用 view 函数。因此，需要先使用 contiguous 来返回一个 contiguous copy。
 reshape 则不需要依赖目标 tensor 是否在内存中是连续的。
@@ -16523,37 +16523,40 @@ min_axis1 = np.min(arr, axis=1)  # Returns [1, 0]
 
 
 
-#### 05. about 简单的归一化函数
+#### 05. numpy.min() vs numpy.minimum()
 
-```python
-import numpy as np
+In NumPy, `numpy.min()` and `numpy.minimum()` serve different purposes:
 
-input = np.random.randint(0, 10, size=(10,7,7))
+- **numpy.min()**:
+  - A method of a NumPy array (e.g., `array.min()`) or a function (`np.min(array)`).
+  - Computes the minimum value along a specified axis of a single array or returns the minimum of all elements if no axis is specified.
+  - Example:
+    ```python
+    import numpy as np
+    arr = np.array([3, 1, 4, 2])
+    print(np.min(arr))  # Output: 1
+    print(arr.min())    # Output: 1
+    ```
 
-print("This is input: ",input)
+- **numpy.minimum()**:
+  - A function (`np.minimum(x1, x2)`) that performs element-wise comparison between two arrays (or an array and a scalar) and returns a new array with the minimum value at each position.
+  - Requires two inputs of compatible shapes (or a scalar for one input).
+  - Example:
+    ```python
+    import numpy as np
+    arr1 = np.array([3, 1, 4, 2])
+    arr2 = np.array([2, 3, 3, 5])
+    print(np.minimum(arr1, arr2))  # Output: [2, 1, 3, 2]
+    print(np.minimum(arr1, 3))     # Output: [3, 1, 3, 2]
+    ```
+
+**Key Differences**:
+1. **Purpose**: `np.min()` finds the single minimum value in an array (or along an axis), while `np.minimum()` compares two arrays/scalars element-wise to produce an array of minimums.
+2. **Inputs**: `np.min()` takes one array; `np.minimum()` takes two inputs (arrays or scalar).
+3. **Output**: `np.min()` returns a scalar (or reduced array if axis is specified); `np.minimum()` returns an array of the same shape as the input arrays.
+4. **Usage**: Use `np.min()` to find the smallest value in an array; use `np.minimum()` for element-wise minimum comparisons.
 
 
-
-def normalize(x, min=0, max=255):
-
-
-  num, row, col = x.shape
-
-  for i in range(num):
-
-​    xi = x[i, :, :]
-
-​    xi = max * (xi - np.min(xi)) / (np.max(xi) - np.min(xi))
-
-​    x[i, :, :] = xi
-
-  return x
-
-input = normalize(input, 0, 255)
-
-
-print("This is a new input: ",input)
-```
 
 
 
@@ -18273,7 +18276,39 @@ print(np.sqrt(arr))  # Output: [1. 2. 3. 4.]
 
 
 
-49.
+#### 50. about 简单的归一化函数
+
+```python
+import numpy as np
+
+input = np.random.randint(0, 10, size=(10,7,7))
+
+print("This is input: ",input)
+
+
+
+def normalize(x, min=0, max=255):
+
+
+  num, row, col = x.shape
+
+  for i in range(num):
+
+​    xi = x[i, :, :]
+
+​    xi = max * (xi - np.min(xi)) / (np.max(xi) - np.min(xi))
+
+​    x[i, :, :] = xi
+
+  return x
+
+input = normalize(input, 0, 255)
+
+
+print("This is a new input: ",input)
+```
+
+
 
 
 
