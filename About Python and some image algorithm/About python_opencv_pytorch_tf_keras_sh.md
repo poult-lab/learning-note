@@ -9267,6 +9267,87 @@ The output is a real-valued tensor of the same shape, containing the angles in r
 
 
 
+#### 159. torch.einsum()
+
+`torch.einsum()` is a function in PyTorch that performs Einstein summation convention on tensors. It provides a concise way to express multi-dimensional tensor operations like summation, contraction, and transposition by specifying the operation using a string notation.
+
+**Syntax**
+
+```python
+torch.einsum(equation, *operands) -> Tensor
+```
+
+- **equation**: A string describing the operation. It uses letters (e.g., `i`, `j`, `k`) to represent dimensions of the input tensors and the output tensor. The format is typically `input1,input2,...,inputN->output`.
+- **operands**: The input tensors (PyTorch tensors) to operate on.
+
+**How It Works**
+
+- Each letter in the equation corresponds to a dimension in the tensors.
+- Repeated letters in the input (e.g., `i` appearing twice) imply summation over that dimension.
+- Letters appearing in the output specify the dimensions of the resulting tensor.
+- The order of letters in the output defines the order of dimensions in the result.
+
+**Examples**
+
+1. **Matrix Multiplication**:
+   ```python
+   import torch
+   
+   A = torch.randn(3, 4)  # Shape: (3, 4)
+   B = torch.randn(4, 5)  # Shape: (4, 5)
+   result = torch.einsum('ij,jk->ik', A, B)  # Shape: (3, 5)
+   ```
+   - `ij`: Dimensions of `A` (rows `i`, columns `j`).
+   - `jk`: Dimensions of `B` (rows `j`, columns `k`).
+   - `j` is repeated, so sum over `j`.
+   - Output has dimensions `i,k`.
+
+2. **Element-wise Multiplication and Sum (Dot Product)**:
+   ```python
+   A = torch.randn(5)
+   B = torch.randn(5)
+   result = torch.einsum('i,i->', A, B)  # Scalar
+   ```
+   - `i,i`: Both tensors have dimension `i`.
+   - Repeated `i` means sum over `i`.
+   - No output dimension (`->`), so result is a scalar.
+
+3. **Batch Matrix Multiplication**:
+   ```python
+   A = torch.randn(2, 3, 4)  # Batch of 2 matrices (3x4)
+   B = torch.randn(2, 4, 5)  # Batch of 2 matrices (4x5)
+   result = torch.einsum('bij,bjk->bik', A, B)  # Shape: (2, 3, 5)
+   ```
+   - `b`: Batch dimension.
+   - `ij` and `jk`: Matrix multiplication for each batch.
+   - Output: Batch of matrices with shape `(2, 3, 5)`.
+
+4. **Transpose**:
+   ```python
+   A = torch.randn(3, 4)
+   result = torch.einsum('ij->ji', A)  # Shape: (4, 3)
+   ```
+   - Swaps dimensions `i` and `j`.
+
+**Key Features**
+
+- **Flexibility**: Handles arbitrary tensor operations (e.g., contractions, reductions, permutations).
+- **Readability**: The equation string makes the operation explicit.
+- **Performance**: Optimized for efficient computation in PyTorch.
+- **Broadcasting**: Supports broadcasting when dimensions match or are omitted.
+
+**Notes**
+
+- The letters in the equation are arbitrary (e.g., `i`, `j`, or `a`, `b` work equally well).
+- Dimension sizes must be consistent (e.g., repeated indices must have the same size).
+- If you’re familiar with NumPy, `torch.einsum` is similar to `np.einsum`, but operates on PyTorch tensors and leverages GPU acceleration when available.
+
+
+
+
+
+
+
 
 
 ## About timm
@@ -14093,6 +14174,8 @@ Stripped String: 'Hello, World!'
 
 As you can see, the `strip()` method has removed the leading and trailing spaces from the original string.
 
+
+
 #### 80. Python getattr() 函数 
 
 描述
@@ -14105,13 +14188,13 @@ As you can see, the `strip()` method has removed the leading and trailing spaces
 getattr(object, name[, default])
 ```
 
-##### 参数
+参数
 
 - object -- 对象。
 - name -- 字符串，对象属性。
 - default -- 默认返回值，如果不提供该参数，在没有对应属性时，将触发 AttributeError。
 
-##### Example 1: How getattr() works in Python?
+Example 1: How getattr() works in Python?
 
 ```python
 class Person:
@@ -14132,7 +14215,7 @@ The age is: 23
 
 ------
 
-##### Example 2: getattr() when named attribute is not found
+Example 2: getattr() when named attribute is not found
 
 ```python
 class Person:
@@ -15478,6 +15561,119 @@ In Python, `del` is a keyword used to **delete objects**, including:
 It doesn’t free memory immediately but **decreases the reference count** of the object. If the count reaches zero, Python's garbage collector will clean it up.
 
 
+
+#### 111. type annotation
+
+Type Annotations: These are explicit declarations of the expected type of a variable, parameter, or return value using a colon (:) for variables/parameters and an arrow (->) for function return types.
+
+```python
+x: int = 42  # Variable annotation
+def add(a: int, b: int) -> int:  # Function with parameter and return type annotations
+    return a + b
+```
+
+**If the type hint does not match the actual return type of function(), it won't raise an error at runtime because Python's type hints are not enforced during execution.**
+
+
+
+#### 112. print(,flush=True)
+
+In Python, the `flush=True` parameter in the `print()` function forces the output to be written to the console or file immediately, bypassing any buffering. By default, `print()` buffers output, meaning it may not display instantly, especially when outputting to files or in non-interactive environments like scripts. Setting `flush=True` ensures immediate output, which is useful for real-time updates, such as progress bars or logging in long-running processes.
+
+Example:
+```python
+import time
+
+for i in range(5):
+    print(f"Processing {i}...", flush=True)
+    time.sleep(1)  # Simulate work
+```
+Here, `flush=True` makes each line print immediately, rather than waiting until the buffer is full or the program ends. Without it, output might appear delayed or in chunks.
+
+
+
+#### 113. the underscore (_) is used in class
+
+In Python, the underscore (`_`) is used in class definitions in several ways, each with a specific meaning depending on the context. Here's a concise overview:
+
+1. **Single Leading Underscore (`_attribute`)**:
+   - Indicates a "protected" attribute or method, suggesting it’s intended for internal use within the class or its subclasses.
+   - It’s a convention, not enforced by Python, to signal developers that the attribute/method should not be accessed directly from outside the class.
+   - Example:
+     ```python
+     class MyClass:
+         def __init__(self):
+             self._protected_var = 42
+     
+         def _protected_method(self):
+             return "This is protected"
+     
+     obj = MyClass()
+     print(obj._protected_var)  # Accessible but discouraged (42)
+     ```
+
+2. **Double Leading Underscore (`__attribute`)**:
+   
+   - Triggers **name mangling**, where the attribute name is prefixed with `_ClassName` to make it harder to access from outside the class.
+   - Used to avoid naming conflicts in subclasses, effectively making the attribute "private" (though not truly private, as Python doesn’t enforce strict encapsulation).
+   - Example:
+     ```python
+     class MyClass:
+         def __init__(self):
+             self.__private_var = 100
+     
+         def get_private(self):
+             return self.__private_var
+     
+     obj = MyClass()
+     print(obj.get_private())  # 100
+     # print(obj.__private_var)  # Raises AttributeError
+     print(obj._MyClass__private_var)  # 100 (bypassing name mangling, but bad practice)
+     ```
+   
+3. **Single Trailing Underscore (`attribute_`)**:
+   - Used to avoid naming conflicts with Python keywords or built-in names (e.g., `class_`, `type_`).
+   - It’s a convention to make variable names valid without altering their intended meaning.
+   - Example:
+     ```python
+     class MyClass:
+         def __init__(self, class_):
+             self.class_ = class_  # Avoids conflict with 'class' keyword
+     ```
+
+4. **Double Leading and Trailing Underscore (`__method__`)**:
+   - Reserved for Python’s **special methods** (also called magic or dunder methods), like `__init__`, `__str__`, or `__len__`.
+   - These define behavior for built-in operations (e.g., object initialization, string representation).
+   - You should only define these for specific functionality, not for general use.
+   - Example:
+     ```python
+     class MyClass:
+         def __init__(self, value):
+             self.value = value
+     
+         def __str__(self):
+             return f"MyClass with value {self.value}"
+     
+     obj = MyClass(10)
+     print(obj)  # MyClass with value 10
+     ```
+
+5. **Single Underscore as a Variable (`_`)**:
+   - Used as a throwaway variable in class methods or loops when the variable isn’t needed.
+   - Example:
+     ```python
+     class MyClass:
+         def ignore_values(self, items):
+             for _ in items:
+                 print("Ignoring item")
+     ```
+
+**Summary**:
+- `_attribute`: Protected, internal use (convention only).
+- `__attribute`: Private, name-mangled to avoid subclass conflicts.
+- `attribute_`: Avoids keyword conflicts.
+- `__method__`: Special methods for Python’s built-in behavior.
+- `_`: Throwaway variable.
 
 
 
@@ -22477,7 +22673,7 @@ In [Python](https://www.geeksforgeeks.org/python-programming-language/), Assignm
 
 > ***\*Syntax:\**** copy.copy(x)
 
-#### Example 1:
+**Example 1:**
 
 In order to make these copies, we use the copy module. The copy() returns a shallow copy of the list, and deepcopy() returns a deep copy of the list. As you can see that both have the same value but have different IDs.
 
@@ -22524,7 +22720,7 @@ This is the li2 and li3:  [1, 2, 3, 4] [1, 2, 3, 4]
 
 
 
-#### Example 2
+**Example 2**
 
 ```python
 import copy
@@ -22569,7 +22765,7 @@ This is the li2 and li3:  6 6
 
 
 
-#### shallow copy vs deep copy
+**shallow copy vs deep copy**
 
 <img src="https://media.geeksforgeeks.org/wp-content/uploads/deep-copy.jpg" style="zoom:25%;" />
 
@@ -22691,11 +22887,92 @@ These examples show how the function can be used to apply different types of fil
 
 
 
+
+
+## YACS
+
+YACS (Yet Another Configuration System): In software development, YACS is a lightweight Python library for managing system configurations, particularly for scientific experiments. It uses YAML for human-readable serialization of configurations like hyperparameters for machine learning models. YACS is designed for reproducibility, with a project config file (e.g., config.py) defining defaults. It’s used in projects like Detectron and supports structured configuration via CfgNode.
+
+**Usage**:
+
+- CfgNode is typically used to define a configuration structure with nested parameters. You initialize a CfgNode object to hold default settings, which can then be overridden by external YAML files or programmatically.
+
+```python
+from yacs.config import CfgNode as CN
+
+# Define a configuration
+_C = CN()
+_C.SYSTEM = CN()
+_C.SYSTEM.NUM_GPUS = 8
+_C.TRAIN = CN()
+_C.TRAIN.HYPERPARAMETER_1 = 0.1
+
+# Load from a YAML file to override defaults
+_C.merge_from_file("config.yaml")
+```
+
+**Key Features**:
+
+- **Hierarchical Structure**: Supports nested configurations (e.g., _C.TRAIN.HYPERPARAMETER_1).
+- **YAML Integration**: You can load configurations from YAML files using merge_from_file.
+- **Immutability**: Configurations can be frozen to prevent accidental changes using _C.freeze().
+- **Reproducibility**: Ensures consistent experiment setups, widely used in projects like Facebook’s Detectron.
+
+**Example YAML File** (config.yaml):
+
+```
+SYSTEM:  
+	NUM_GPUS: 4 
+TRAIN:  
+	HYPERPARAMETER_1: 0.2
+```
+
+Loading this file would override _C.SYSTEM.NUM_GPUS to 4 and _C.TRAIN.HYPERPARAMETER_1 to 0.2.
+
+
+
+#### 01. defrost()
+
+In the context of from yacs.config import CfgNode, the defrost() method is used to make a CfgNode object mutable, allowing its configuration values to be modified.
+
+By default, a CfgNode object in the yacs (Yet Another Configuration System) library is "frozen," meaning its attributes are immutable and cannot be changed after initialization to prevent accidental modifications. Calling defrost() on a CfgNode object unfreezes it, enabling you to update or add new configuration values.
+
+**Example:**
+
+```python
+from yacs.config import CfgNode
+
+# Create a configuration
+config = CfgNode()
+config.PARAM1 = 10
+config.PARAM2 = "test"
+config.freeze()  # Make the config immutable
+
+# Try to modify (will raise an error)
+try:
+    config.PARAM1 = 20  # This will fail because config is frozen
+except Exception as e:
+    print(e)
+
+# Defrost to make it mutable again
+config.defrost()
+config.PARAM1 = 20  # Now this works
+print(config.PARAM1)  # Output: 20
+```
+
+**Key Points:**
+
+- defrost() is the counterpart to freeze(). While freeze() locks the configuration, defrost() unlocks it.
+- After calling defrost(), you can modify existing attributes or add new ones.
+- This is useful in scenarios where you need to dynamically update a configuration during runtime, such as in machine learning experiments where hyperparameters might need adjustment.
+
+
+
 ## wfdb
 
 The native Python waveform-database (WFDB) package. A library of tools for reading, writing, and processing WFDB signals and annotations.
 
-### processing
+processing
 
 #### 01. wfdb.processing.XQRS()
 
