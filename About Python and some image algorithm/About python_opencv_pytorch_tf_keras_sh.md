@@ -2364,50 +2364,75 @@ The `torch.nn.Identity()` module in PyTorch might seem like it doesn’t do much
 
 #### 26. torch.nn.module.apply()
 
-The `apply()` function is a method of the `torch.nn.Module` class in PyTorch. [It applies a function recursively to every submodule (as returned by `.children()`) as well as to the module itself.
+It’s a method provided by the `torch.nn.Module` class, which is the base class for all neural network modules in PyTorch. This method allows you to apply a function recursively to every submodule (and the module itself) in a neural network.
 
-Here’s how it works:
+Details of `torch.nn.Module.apply()`
+
+- **Purpose**: The `apply()` method calls a specified function on the module itself and recursively on all its submodules (e.g., layers or components of a neural network).
+- **Signature**: 
+  ```python
+  Module.apply(fn)
+  ```
+  - `fn`: A function that takes a `torch.nn.Module` as its argument and returns `None`. This function is applied to the module and all its submodules.
+- **Behavior**: The function `fn` is invoked for the module itself and then recursively for every submodule in the module's hierarchy (e.g., layers, blocks, or other nested modules).
+- **Return Value**: The method returns the module itself (i.e., `self`), allowing for method chaining.
+
+Common Use Cases
+
+1. **Initializing Weights**: You can use `apply()` to initialize the weights of all layers in a neural network by defining a custom initialization function.
+2. **Modifying Modules**: It’s useful for applying changes to module properties, such as setting specific attributes or configurations.
+3. **Inspecting Modules**: You can use it to traverse the module hierarchy and inspect or modify parameters, buffers, or other properties.
+
+Example: Initializing Weights
+
+Here’s an example of using `apply()` to initialize the weights of a neural network with a custom initialization function:
 
 ```python
-def apply(self, fn):
-    for module in self.children():
-        module.apply(fn)
-    fn(self)
-    return self
-```
+import torch
+import torch.nn as nn
 
-The typical use of `apply()` includes initializing the parameters of a model. Here’s an example:
+# Define a simple neural network
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(10, 5)
+        self.fc2 = nn.Linear(5, 2)
 
-```python
-@torch.no_grad()
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# Custom initialization function
 def init_weights(m):
-    print(m)
-    if type(m) == nn.Linear:
-        m.weight.fill_(1.0)
-        print(m.weight)
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
 
-net = nn.Sequential(nn.Linear(2, 2), nn.Linear(2, 2))
+# Create an instance of the network
+net = Net()
+
+# Apply the initialization function to all modules
 net.apply(init_weights)
+
+# Verify the initialization
+for name, param in net.named_parameters():
+    print(f"{name}: {param.data}")
 ```
 
-In this example, `init_weights` is a function that fills the weights of linear layers with 1.0. [The `apply()` function is called on a network (`net`), and it applies the `init_weights` function to each submodule of the network](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+Explanation of the Example
 
-[Please note that the `apply()` function modifies the module in-place and returns the module itself](https://pytorch.org/docs/stable/generated/torch.nn.Module.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.Module.html).
+- The `init_weights` function checks if a module is an instance of `nn.Linear` and initializes its weights using Xavier uniform initialization and sets biases to 0.01.
+- `net.apply(init_weights)` applies this function to `net` and all its submodules (i.e., `fc1` and `fc2`).
+- The result is that all linear layers in the network have their weights and biases initialized according to the specified function.
+
+Notes
+
+- **Recursive Application**: The method traverses the module hierarchy in a depth-first manner, ensuring that the function `fn` is applied to every submodule.
+- **Caution**: The function `fn` should not return a new module or modify the module’s structure in a way that breaks the hierarchy, as this could lead to unexpected behavior.
+- **Use with Care**: Since `apply()` modifies modules in place, ensure that the function `fn` is designed to handle all possible module types in the network to avoid errors.       
 
 
-
-The `apply()` function in PyTorch is a utility function that applies a given function to the module itself and its submodules recursively.
-
-In the context of the example provided earlier, the `apply()` function is used to apply the `init_weights` function to each module (or layer) in the neural network. Here’s what happens step by step:
-
-1. The `apply()` function is called on the network (`net`) with `init_weights` as its argument: `net.apply(init_weights)`.
-2. The `apply()` function goes through each module (or layer) in the network.
-3. For each module, it calls the `init_weights` function, passing the module as the argument. This is where `m` comes from in `init_weights(m)`.
-4. Inside `init_weights`, if the module `m` is an instance of `nn.Linear` (a linear layer), it fills the weights of `m` with 1.0.
-
-So, the `apply()` function is essentially a way to apply a specific operation (defined in a function) to each module in a network. In this case, it’s used to initialize the weights of each linear layer in the network to 1.0. This is a common use case, but you could define any function to initialize the weights differently, or to perform any other operation on the modules. The `apply()` function gives you a convenient way to apply these operations to all modules in a network at once.
-
-​              
 
 #### 27. torch.autograd.Function.apply()
 
@@ -2784,55 +2809,49 @@ This means that `perm` contains a random permutation of integers from 0 to 9. Ea
 
 #### 33. torch.nn.LayerNorm()
 
-Yes! `torch.nn.LayerNorm()` is a normalization layer in PyTorch that normalizes the inputs across the **features** dimension(s) for each individual sample in a batch. It helps stabilize training and improve model performance, especially in deep learning models like Transformers.
+`torch.nn.LayerNorm` in PyTorch applies **Layer Normalization**, which normalizes the features of each sample in a tensor to stabilize and speed up training. It’s commonly used in models like transformers.
 
-------
+Simple Explanation
 
-How It Works
+Layer Normalization makes sure the values in a tensor (e.g., features for each sample) have a mean of 0 and a standard deviation of 1, then optionally scales and shifts them. It works on each sample independently, not across the batch.
 
-Given an input tensor XX, `LayerNorm` normalizes each sample independently by computing:
+**Formula (simplified)**:
+- Subtract the mean of the features.
+- Divide by the standard deviation (with a small number added to avoid division by zero).
+- Optionally scale and shift using learned parameters.
 
-Y=X−μσ+ϵ∗γ+βY = \frac{X - \mu}{\sigma + \epsilon} * \gamma + \beta
+Syntax
 
-where:
+```python
+torch.nn.LayerNorm(normalized_shape, eps=1e-05, elementwise_affine=True)
+```
+- **normalized_shape**: The size of the dimensions to normalize (e.g., `512` for a 512-dimensional feature vector).
+- **eps**: A tiny number (default: 1e-5) for numerical stability.
+- **elementwise_affine**: If `True` (default), learns scaling and shifting parameters.
 
-- μ\mu = Mean of the features for each sample.
-- σ\sigma = Standard deviation of the features for each sample.
-- γ\gamma and β\beta = Learnable affine parameters (if `elementwise_affine=True`).
-- ϵ\epsilon = Small constant for numerical stability.
-
-------
-
-**Key Features**
-
-1. **Normalizes Across Feature Dimensions**
-    Unlike `BatchNorm`, which normalizes across the batch, `LayerNorm` operates **independently on each input sample**, making it well-suited for NLP and time-series models like Transformers and Mamba.
-2. **Stable for Small Batches**
-    Since normalization happens per sample, it works well even when batch sizes are small, unlike `BatchNorm`, which relies on batch statistics.
-3. **Affine Transformation**
-    By default, `LayerNorm` includes learnable parameters γ\gamma (scale) and β\beta (shift), allowing the model to retain representational flexibility.
-
-------
-
-**Usage Example in PyTorch**
+Example
 
 ```python
 import torch
 import torch.nn as nn
 
-# Create LayerNorm with feature dimension of 5
-layer_norm = nn.LayerNorm(5)
+# LayerNorm for 512 features
+layer_norm = nn.LayerNorm(512)
 
-# Input tensor of shape (batch_size=2, features=5)
-x = torch.tensor([[1.0, 2.0, 3.0, 4.0, 5.0], 
-                  [5.0, 4.0, 3.0, 2.0, 1.0]])
+# Input: 2 samples, 3 positions, 512 features each
+input_tensor = torch.randn(2, 3, 512)
 
 # Apply LayerNorm
-output = layer_norm(x)
-print(output)
+output = layer_norm(input_tensor)  # Same shape: (2, 3, 512)
 ```
 
-------
+Why Use It?
+
+- Stabilizes training by keeping values in a consistent range.
+- Works well for small or variable batch sizes (unlike BatchNorm).
+- Common in transformers (e.g., BERT) and sequence models.
+
+
 
 **Difference Between LayerNorm and BatchNorm**
 
@@ -2843,9 +2862,7 @@ print(output)
 | **Works with Small Batches?** | ✅ Yes                                  | ❌ No                               |
 | **Use Case**                  | NLP, Transformers, Time Series         | CNNs, Large Batch Training         |
 
-------
 
-Since you're working with **ECG and PCG signals in Transformer and Mamba-based models**, `LayerNorm` is particularly useful for stabilizing training. 
 
 ​              
 
@@ -4470,11 +4487,39 @@ It's important to note that the use of parentheses to call methods is not limite
 
 In summary, the `forward()` method in PyTorch is called using parentheses `()` in Python because it follows the convention of calling methods, where parentheses are used to invoke functions or methods and pass any necessary arguments.
 
-##### (2)not always but recommend
+##### (2) not always but recommend
 
 If you define an `nn.Module`, you are usually storing some submodules, parameters, buffers or other arguments in its `__init__` method and write the actual forward logic in its `forward` method.
 This is a convenient method as `nn.Module.__call__` will register hooks etc. and call finally into the `forward` method.
 However, you don’t need to use this approach and could completely write your model in a functional way.
+
+##### (3) overriding the forward
+
+Example:
+
+```python
+import torch
+import torch.nn as nn
+
+class VSSM(nn.Module):
+    def __init__(self):
+        super(VSSM, self).__init__()
+        self.linear = nn.Linear(10, 10)
+        self.forward = self.my_forward
+
+    def my_forward(self, x):
+        return self.linear(x)
+
+
+model = VSSM()
+input = torch.randn(1, 10)
+output = model(input)   # Calls my_forward via self.forward
+print(output.shape)     # Should print: torch.Size([1, 10])
+```
+
+you can write the code as shown, where you assign the my_forward method to self.forward in the __init__ method of your VSSM class. This will effectively make my_forward the method that gets called when you invoke the model instance (e.g., model(input)).
+
+
 
 
 
@@ -4655,7 +4700,7 @@ Applies a 2D convolution over an input signal composed of several input planes.
 
   **stride** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Stride of the convolution. Default: 1 
 
-  **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to all four sides of the input. Default: 0 **padding_mode** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – `'zeros'`, `'reflect'`, `'replicate'` or `'circular'`. Default: `'zeros'` 
+  **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to **all four sides** of the input. Default: 0 **padding_mode** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – `'zeros'`, `'reflect'`, `'replicate'` or `'circular'`. Default: `'zeros'` 
 
   **dilation** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Spacing between kernel elements. Default: 1 
 
@@ -4696,6 +4741,12 @@ torch.Size([20, 33, 24, 49])
 ##### The dilation of CNN
 
 **Dilated Convolution:** It is a technique that expands the kernel (input) by inserting holes between its consecutive elements. In simpler terms, it is the same as convolution but it involves pixel skipping, so as to cover a larger area of the input. 
+
+Key Point: Dilation and Gaps
+
+- **Dilation** in CNNs controls how far apart the input elements are when the kernel samples them.
+- The **spacing** (or gaps) between the sampled input elements is determined by dilation - 1.
+- When dilation = 1 (the default in torch.nn.Conv2d), the spacing is: $\text{spacing} = \text{dilation} - 1 = 1 - 1 = 0$ This means **no gaps**—the kernel samples consecutive, adjacent elements in the input, just like a standard convolution.
 
 ```python
 import numpy as np
@@ -4760,29 +4811,87 @@ output:
 
 
 
-#### 66. tensor.shape[-1] & tensor.shape[-2]
+#### 66.torch.nn.ConvTranspose2d()
 
-shape[-1]代表有多少列, shape[-2]代表有多少行. 有没有-3,-4,-5... 取决于tensor的维度。
+Alright — let’s break down **`torch.nn.ConvTranspose2d`** and how it differs from **`torch.nn.Conv2d`**, because they are often misunderstood due to the "transpose" part of the name.
+
+------
+
+1️⃣ `torch.nn.Conv2d`
+
+This is the **standard convolution layer** in 2D:
+
+- It takes an input image/tensor and applies a kernel (filter) to extract features.
+- Usually **reduces spatial dimensions** (unless you use padding to keep them the same).
+- **Operation**: slides the kernel over the input, performing dot products and producing a new feature map.
+
+**Shape effect**
+ If:
+
+- `input` has shape `(N, C_in, H_in, W_in)`
+- `Conv2d` params: `kernel_size`, `stride`, `padding`
+   Then output size is:
+
+$H_{\text{out}} = \left\lfloor \frac{H_{\text{in}} + 2 \cdot \text{padding} - \text{kernel\_size}}{\text{stride}} \right\rfloor + 1$$W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} + 2 \cdot \text{padding} - \text{kernel\_size}}{\text{stride}} \right\rfloor + 1$
+
+------
+
+2️⃣ `torch.nn.ConvTranspose2d`
+
+This is the **inverse operation** (also called **deconvolution** or **upconvolution**):
+
+- It’s not exactly the mathematical inverse of convolution, but it **increases** the spatial dimensions — used for upsampling in decoder parts of CNNs (e.g., in autoencoders, UNet, GANs).
+- Instead of sliding a kernel *over* the input, it projects each input value into a larger space and overlaps the projections, summing them.
+- Often used to go from a low-resolution feature map to a higher-resolution one.
+
+**Shape effect**
+ If:
+
+- `input` has shape `(N, C_in, H_in, W_in)`
+- `ConvTranspose2d` params: `kernel_size`, `stride`, `padding`, `output_padding`
+   Then output size is:
+
+$H_{\text{out}} = (H_{\text{in}} - 1) \cdot \text{stride} - 2 \cdot \text{padding} + \text{kernel\_size} + \text{output\_padding}$$W_{\text{out}} = (W_{\text{in}} - 1) \cdot \text{stride} - 2 \cdot \text{padding} + \text{kernel\_size} + \text{output\_padding}$
+
+------
+
+3️⃣ Main Differences
+
+| Feature             | `Conv2d`                                         | `ConvTranspose2d`                           |
+| ------------------- | ------------------------------------------------ | ------------------------------------------- |
+| Purpose             | Extract features                                 | Upsample / reconstruct features             |
+| Spatial size change | Usually decreases (unless padding keeps it same) | Usually increases                           |
+| Used in             | Encoder, feature extraction                      | Decoder, image generation                   |
+| Formula             | Shrinks dimensions                               | Expands dimensions                          |
+| Output padding      | Not applicable                                   | Needed sometimes to match exact target size |
+
+------
+
+4️⃣ Small Example
 
 ```python
 import torch
-import numpy as np
+import torch.nn as nn
 
+# Standard convolution: reduces size
+conv = nn.Conv2d(3, 6, kernel_size=3, stride=2, padding=1)
+x = torch.randn(1, 3, 32, 32)
+y = conv(x)
+print("Conv2d output:", y.shape)  # (1, 6, 16, 16)
 
-target=torch.tensor(np.array([[1, 2, 7],[9,3,6], [4, 5, 6],[4, 5, 6],[4, 5, 6]]))
-column=target.shape[-1]# shape[-1]代表有多少列, shape[-2]代表有多少行.
-line=target.shape[-2]
-
-print(column)
-print(line)
+# Transposed convolution: increases size
+tconv = nn.ConvTranspose2d(6, 3, kernel_size=3, stride=2, padding=1, output_padding=1)
+z = tconv(y)
+print("ConvTranspose2d output:", z.shape)  # (1, 3, 32, 32)
 ```
 
-output:
+------
 
-```bash
-3 
-5
-```
+💡 **Key takeaway:**
+
+- Think of **`Conv2d`** as *compressing* space and extracting features.
+- Think of **`ConvTranspose2d`** as *expanding* space and reconstructing details.
+- They are not perfect inverses, but they are shape-opposites in deep learning architectures.
 
 
 
@@ -7011,11 +7120,9 @@ In this example, `w` is a tensor with shape (3, 5). After the `torch.nn.init.zer
 
 [Remember, while initializing all weights to zero might be useful in certain cases, it’s not always the best approach because it can lead to symmetry during training and might prevent the network from learning effectively](https://stackoverflow.com/questions/49433936/how-do-i-initialize-weights-in-pytorch)[3](https://stackoverflow.com/questions/49433936/how-do-i-initialize-weights-in-pytorch). Therefore, other initialization methods are often used in practice.
 
-I hope this helps! Let me know if you have any other questions. 😊
+
 
 ​              
-
-
 
 #### 114. torch.nn.init.ones_()
 
@@ -7048,88 +7155,70 @@ tensor([[1., 1., 1., 1., 1.],
 
 ​             
 
+#### 115. torch.nn.init.constant_()
 
+The `torch.nn.init.constant_` function in PyTorch is used to initialize the parameters (weights or biases) of a neural network module with a constant value. It modifies the tensor *in-place*, meaning it directly alters the input tensor's values without creating a new tensor.
 
-​                
-
-#### 115. torch.nn.ReLU()
-
-Applies the rectified linear unit function element-wise:
+Syntax
 
 ```python
-import torch
-from torch import nn
-
-m = nn.ReLU()
-input = torch.randn(6)
-print(input)
-print("-------------------")
-output = m(input)
-print(output)
+torch.nn.init.constant_(tensor, val)
 ```
 
-output:
+Parameters
 
-```
-tensor([ 0.4323, -0.1210, -0.3644,  0.0493,  1.2092,  0.7658]) 
--------------------
-tensor([0.4323, 0.0000, 0.0000, 0.0493, 1.2092, 0.7658])
-```
+- **tensor**: The PyTorch tensor to be initialized (e.g., weights or biases of a neural network layer).
+- **val**: The constant value (a scalar, typically a float or integer) that will be used to fill the tensor.
 
+Functionality
 
+- This function sets all elements of the input `tensor` to the specified constant value `val`.
+- It is commonly used to initialize parameters in a neural network, such as setting biases to a specific value (e.g., 0 or 1) or weights to a constant for specific use cases.
+- The operation is performed *in-place*, so the tensor is modified directly, and no new tensor is returned.
 
-
-
-#### 116. torch.nn.SiLU()
-
-​         
-
-[`torch.nn.SiLU()` is a method in PyTorch that applies the **Sigmoid Linear Unit (SiLU)** function, also known as the **Swish** function, element-wise to the input](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html).
-
-The SiLU function is defined as:
-
-silu(x)=x∗σ(x)
-
-where 
-
-σ(x)
-
-[  is the logistic sigmoid function](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html) 
+Example
 
 ```python
 import torch
 import torch.nn as nn
 
-m = nn.SiLU()
-input = torch.randn(2)
-print("This is the input:", input)
-output = m(input)
-print("This is the output:", output)
+# Define a linear layer
+layer = nn.Linear(3, 2)
 
+# Initialize the weights to a constant value of 0.5
+nn.init.constant_(layer.weight, 0.5)
+
+# Initialize the biases to a constant value of 0.0
+nn.init.constant_(layer.bias, 0.0)
+
+print(layer.weight)
+print(layer.bias)
 ```
 
-output:
+**Output**:
 
 ```
-This is the input: tensor([1.4487, 0.3081])
-This is the output: tensor([1.1732, 0.1776])
+Parameter containing:
+tensor([[0.5000, 0.5000, 0.5000],
+        [0.5000, 0.5000, 0.5000]], requires_grad=True)
+Parameter containing:
+tensor([0., 0.], requires_grad=True)
 ```
 
+Key Points
 
+- **In-Place Operation**: The trailing underscore in `constant_` indicates that the function modifies the tensor in-place.
+- **Use Case**: Useful for debugging, testing, or when a specific constant initialization is required (e.g., setting biases to 0 or weights to a small constant value).
+- **Common Applications**: Often used in scenarios like initializing biases to zero or setting weights to a small constant to avoid large initial gradients.
+- **Compatibility**: Works with any PyTorch tensor, typically used with `nn.Parameter` objects (e.g., `layer.weight` or `layer.bias` in a neural network module).
 
-The Sigmoid Linear Unit (SiLU) function, also known as the Swish function, has several advantages that make it special compared to other activation functions:
+Notes
 
-1. **Non-Monotonicity**: Unlike the ReLU (and other commonly used activation units such as sigmoid and tanh units), the activation of the SiLU is not monotonically increasing. Instead, it has a global minimum value of approximately −0.28 for 
+- Be cautious when using constant initialization, as setting all parameters to the same value can lead to symmetry issues in neural networks, potentially causing poor training dynamics (e.g., neurons learning the same features).
+- For weights, other initialization methods like `xavier_uniform_`, `kaiming_uniform_`, or `normal_` are often preferred to introduce diversity in the initial values.
+- Always ensure the tensor being initialized is part of a module with `requires_grad=True` if it’s meant to be trainable.
 
-   z_k ≈ −1.28zk≈−1.28
-
-2. **Self-Stabilizing Property**: An attractive feature of the SiLU is that it has a self-stabilizing property. [The global minimum, where the derivative is zero, functions as a ‘‘soft floor’’ on the weights that serves as an implicit regularizer that inhibits the learning of weights of large magnitudes](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
-
-3. **Improved Accuracy**: One of the key benefits of using SiLU over other activation functions is its improved accuracy in deep neural networks. [It benefits from a gradual rise and fall, making it less likely to overfit and more likely to produce accurate results](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[2](https://serp.ai/sigmoid-linear-unit/).
-
-4. [**Usage in Various Fields**: SiLU is later used by many papers from other fields such as object detection](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
-
-These properties make SiLU a valuable tool in the toolbox of activation functions for neural networks. However, the choice of activation function can depend on the specific task and the nature of the data. It’s always a good idea to experiment with different activation functions and see which one works best for your specific use case.
+This function is simple but powerful for specific initialization needs in PyTorch neural networks.
 
 ​                 
 
@@ -7164,7 +7253,7 @@ optimizer.step()              # Update the weights
 
 [Remember, this function modifies the gradients in-place, meaning the gradients of the model parameters are changed without needing to create a new variable](https://stackoverflow.com/questions/54716377/how-to-do-gradient-clipping-in-pytorch)[2](https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html).
 
-I hope this helps! Let me know if you have any other questions. 😊
+
 
 ​              
 
@@ -9344,9 +9433,187 @@ torch.einsum(equation, *operands) -> Tensor
 
 
 
+#### 160. torch.nn.ReLU()
+
+Applies the rectified linear unit function element-wise:
+
+```python
+import torch
+from torch import nn
+
+m = nn.ReLU()
+input = torch.randn(6)
+print(input)
+print("-------------------")
+output = m(input)
+print(output)
+```
+
+output:
+
+```
+tensor([ 0.4323, -0.1210, -0.3644,  0.0493,  1.2092,  0.7658]) 
+-------------------
+tensor([0.4323, 0.0000, 0.0000, 0.0493, 1.2092, 0.7658])
+```
 
 
 
+
+
+#### 161. torch.nn.SiLU()
+
+​         
+
+[`torch.nn.SiLU()` is a method in PyTorch that applies the **Sigmoid Linear Unit (SiLU)** function, also known as the **Swish** function, element-wise to the input](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)[1](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html).
+
+The SiLU function is defined as:
+
+silu(x)=x∗σ(x)
+
+where 
+
+σ(x)
+
+[  is the logistic sigmoid function](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html) 
+
+```python
+import torch
+import torch.nn as nn
+
+m = nn.SiLU()
+input = torch.randn(2)
+print("This is the input:", input)
+output = m(input)
+print("This is the output:", output)
+
+```
+
+output:
+
+```
+This is the input: tensor([1.4487, 0.3081])
+This is the output: tensor([1.1732, 0.1776])
+```
+
+
+
+The Sigmoid Linear Unit (SiLU) function, also known as the Swish function, has several advantages that make it special compared to other activation functions:
+
+1. **Non-Monotonicity**: Unlike the ReLU (and other commonly used activation units such as sigmoid and tanh units), the activation of the SiLU is not monotonically increasing. Instead, it has a global minimum value of approximately −0.28 for 
+
+   z_k ≈ −1.28zk≈−1.28
+
+2. **Self-Stabilizing Property**: An attractive feature of the SiLU is that it has a self-stabilizing property. [The global minimum, where the derivative is zero, functions as a ‘‘soft floor’’ on the weights that serves as an implicit regularizer that inhibits the learning of weights of large magnitudes](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
+
+3. **Improved Accuracy**: One of the key benefits of using SiLU over other activation functions is its improved accuracy in deep neural networks. [It benefits from a gradual rise and fall, making it less likely to overfit and more likely to produce accurate results](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[2](https://serp.ai/sigmoid-linear-unit/).
+
+4. [**Usage in Various Fields**: SiLU is later used by many papers from other fields such as object detection](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d)[1](https://sh-tsang.medium.com/review-silu-sigmoid-weighted-linear-unit-be4bc943624d).
+
+These properties make SiLU a valuable tool in the toolbox of activation functions for neural networks. However, the choice of activation function can depend on the specific task and the nature of the data. It’s always a good idea to experiment with different activation functions and see which one works best for your specific use case.
+
+
+
+#### 162. torch.nn.functional.layer_norm()
+
+Yes, I'm familiar with both `torch.nn.functional.layer_norm()` and `torch.nn.LayerNorm()` in PyTorch. They both perform layer normalization, but they differ in their implementation and usage. Here's a clear explanation of each and their differences:
+
+`torch.nn.functional.layer_norm()`
+
+- **Type**: Function (stateless)
+- **Module**: `torch.nn.functional`
+- **Description**: This is a functional interface for layer normalization, which applies normalization directly to the input tensor. It computes the mean and variance across the specified dimensions and normalizes the input accordingly.
+- **Parameters**:
+  - `input`: The input tensor to normalize.
+  - `normalized_shape`: The shape of the dimensions to normalize (e.g., the last few dimensions of the input tensor).
+  - `weight`: Optional learnable scale parameter (default: None).
+  - `bias`: Optional learnable bias parameter (default: None).
+  - `eps`: Small value added to the denominator for numerical stability (default: 1e-5).
+- **Usage**: You call this function directly, passing the input tensor and parameters each time. It does not maintain any internal state (e.g., no learnable parameters are stored within the function itself).
+- **Example**:
+  ```python
+  import torch
+  import torch.nn.functional as F
+  
+  x = torch.randn(2, 3, 4)
+  normalized_shape = (4,)  # Normalize over the last dimension
+  weight = torch.ones(4)
+  bias = torch.zeros(4)
+  output = F.layer_norm(x, normalized_shape, weight, bias, eps=1e-5)
+  ```
+
+#### 163. torch.nn.functional.layer_norm() vs torch.nn.LayerNorm()
+
+The main differences between `torch.nn.functional.layer_norm()` and `torch.nn.LayerNorm()` are:
+
+Function vs Module
+
+- `torch.nn.functional.layer_norm()` is a **function** that performs layer normalization computation directly
+- `torch.nn.LayerNorm()` is a **module/layer** that you instantiate and can be part of a model
+
+Parameter Management
+
+- `torch.nn.functional.layer_norm()` requires you to pass weight and bias parameters explicitly each time you call it
+- `torch.nn.LayerNorm()` manages its own learnable weight and bias parameters internally
+
+Usage Pattern
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Using the functional version
+x = torch.randn(2, 3, 4)
+weight = torch.ones(4)
+bias = torch.zeros(4)
+output = F.layer_norm(x, normalized_shape=(4,), weight=weight, bias=bias)
+
+# Using the module version
+layer_norm = nn.LayerNorm(4)  # Creates learnable parameters internally
+output = layer_norm(x)
+```
+
+When to Use Each
+
+- **Use `nn.LayerNorm()`** when:
+  - Building neural network models
+  - You want learnable parameters that get updated during training
+  - You need the layer to be part of `model.parameters()`
+- **Use `F.layer_norm()`** when:
+  - You want more control over the parameters
+  - Implementing custom layers or operations
+  - You're managing parameters manually
+  - You need the functional interface for specific algorithmic reasons
+
+Parameter Initialization
+
+- `nn.LayerNorm()` automatically initializes weight to 1s and bias to 0s
+- `F.layer_norm()` requires you to provide these parameters or pass `None` for no scaling/shifting
+
+#### 164. tensor.shape[-1] & tensor.shape[-2]
+
+shape[-1]代表有多少列, shape[-2]代表有多少行. 有没有-3,-4,-5... 取决于tensor的维度。
+
+```python
+import torch
+import numpy as np
+
+
+target=torch.tensor(np.array([[1, 2, 7],[9,3,6], [4, 5, 6],[4, 5, 6],[4, 5, 6]]))
+column=target.shape[-1]# shape[-1]代表有多少列, shape[-2]代表有多少行.
+line=target.shape[-2]
+
+print(column)
+print(line)
+```
+
+output:
+
+```bash
+3 
+5
+```
 
 
 
@@ -9830,53 +10097,94 @@ Please note that the `create_optimizer` function in `timm` accepts `args` as the
 
 #### 12. timm.scheduler.create_scheduler()
 
-[The `timm.scheduler.create_scheduler()` function is a factory method in the `timm` library that creates a learning rate scheduler for training a model](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [It’s designed to be used with PyTorch models and supports a variety of schedulers](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+🔧 Purpose
 
-Here’s how you can use it:
+`create_scheduler()` sets up the **learning rate scheduler** (like cosine decay, step decay, etc.) based on the provided arguments, often parsed from a training script.
+
+------
+
+✅ Basic Usage
 
 ```python
-from types import SimpleNamespace
-from timm.optim.optim_factory import create_optimizer
 from timm.scheduler import create_scheduler
-from timm import create_model
+from timm.optim import create_optimizer
 
-model = create_model('resnet34')
-args = SimpleNamespace()
-args.weight_decay = 0
-args.lr = 1e-4
-args.opt = 'adam'  # 'lookahead_adam' to use `lookahead`
-args.momentum = 0.9
-args.sched = 'cosine'
-args.epochs = 200
-args.decay_epochs = 90
-args.warmup_epochs = 10
-args.lr_noise = None
-
-optimizer = create_optimizer(args, model)
-scheduler = create_scheduler(args, optimizer)
-
+# Typical setup
+optimizer = create_optimizer(args, model)  # You define `args` (or a config dict)
+lr_scheduler, num_epochs = create_scheduler(args, optimizer)
 ```
 
-[In this example, `args` is a `SimpleNamespace` object that mimics the `args` parameter from `ArgumentParser` in the `timm` training script](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [The `args` object should have the following attributes set](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers):
+------
 
-- `sched`: Scheduler name
-- `epochs`: Total number of epochs
-- `decay_epochs`: Number of epochs for decay
-- `warmup_epochs`: Number of warmup epochs
-- `lr_noise`: Learning rate noise
+📌 Required Input
 
-[The `optimizer` is the optimizer that you want to use for training](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+It usually expects:
 
-Please note that the `create_scheduler` function in `timm` accepts `args` as the first argument and `optimizer` as the second argument. [This `args` parameter is from `ArgumentParser` so you might have to mock it to create a scheduler for your custom training script](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers).
+- `args`: An `argparse.Namespace` or similar config object with the following fields:
+  - `sched`: Scheduler type (e.g., `'cosine'`, `'step'`, `'plateau'`, etc.)
+  - `lr`: Base learning rate
+  - `epochs`: Total training epochs
+  - `warmup_lr`: Warmup starting LR
+  - `warmup_epochs`: Number of warmup epochs
+  - `decay_rate`: (for step-based schedulers)
+  - `cooldown_epochs`, `patience_epochs` (for plateau)
+  - `min_lr`: Minimum LR for cosine decay
 
-##### 'timm.scheduler.create_scheduler()' VS 'torch.optim.lr_scheduler.StepLR()'
+------
 
-The `timm.scheduler.create_scheduler()` and `torch.optim.lr_scheduler.StepLR()` are both learning rate schedulers used in training deep learning models, but they have different functionalities and use-cases.
+📘 Example args Namespace
 
-1. [`timm.scheduler.create_scheduler()`: This is a factory function from the `timm` library that creates a learning rate scheduler](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers). [The `timm` library provides a variety of learning rate schedulers such as Cosine decay with restarts, MultiStepLR, PlateauLR, Polynomial decay, and StepLR](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers)[2](https://timm.fast.ai/schedulers). [The specific scheduler created by `timm.scheduler.create_scheduler()` depends on the arguments passed to it](https://huggingface.co/docs/timm/reference/schedulers)[1](https://huggingface.co/docs/timm/reference/schedulers)
-2. [`torch.optim.lr_scheduler.StepLR()`: This is a learning rate scheduler provided by PyTorch](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html). [It decays the learning rate of each parameter group by a factor of `gamma` every `step_size` epochs](https://huggingface.co/docs/timm/reference/schedulers)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html). [This is a more straightforward scheduler and is commonly used when you want to decrease the learning rate at a constant interval](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html)[3](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.StepLR.html).
+```python
+import argparse
 
-In summary, while both are used for adjusting the learning rate during training, `timm.scheduler.create_scheduler()` provides a variety of scheduling strategies and is more flexible, while `torch.optim.lr_scheduler.StepLR()` provides a simple and straightforward strategy for decreasing the learning rate at constant intervals.
+args = argparse.Namespace(
+    sched='cosine',
+    lr=5e-4,
+    epochs=100,
+    warmup_lr=1e-5,
+    warmup_epochs=5,
+    cooldown_epochs=10,
+    patience_epochs=10,
+    decay_rate=0.1,
+    min_lr=1e-6,
+    noise=None,  # Optional noise
+)
+```
+
+Then:
+
+```python
+scheduler, num_epochs = create_scheduler(args, optimizer)
+```
+
+------
+
+🧠 Behind the Scenes
+
+Internally, `create_scheduler()` will:
+
+- Choose the correct scheduler class (e.g., `CosineLRScheduler`, `StepLRScheduler`, etc.).
+- Configure it with parameters from `args`.
+- Return:
+  - The scheduler instance
+  - The total number of epochs (possibly adjusted)
+
+------
+
+✅ Supported Schedulers (as of latest versions)
+
+- `cosine` (CosineAnnealing)
+- `step` (MultiStepLR-style)
+- `plateau` (ReduceLROnPlateau)
+- `tanh`, `onecycle`, etc.
+
+You can find the scheduler code in:
+
+```python
+timm/scheduler/scheduler_factory.py
+```
+
+
 
 ​         
 
@@ -9933,6 +10241,8 @@ Hint: The `accuracy()` function in the `timm` library is typically used for sing
 
 #### 14. timm.models.layers.trunc_normal_()
 
+timm.layers.trunc_normal_(), However, for future-proofing and to follow best practices, import from timm.layers instead of the deprecated timm.models.layers.
+
 [The `trunc_normal_()` function is an initializer that generates a **truncated normal distribution**](https://zhuanlan.zhihu.com/p/521318833)[2](https://zhuanlan.zhihu.com/p/521318833). In the context of neural networks, initializers are used to set the initial random weights of network layers.
 
 [A truncated normal distribution is similar to a standard normal distribution, but values that are more than two standard deviations from the mean are discarded and re-drawn](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html)[3](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html). This is particularly useful in neural networks as it helps to avoid large weights, which can lead to unstable training results. [It’s a recommended initializer for neural network weights and filters](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html)[3](http://man.hubwiz.com/docset/TensorFlow.docset/Contents/Resources/Documents/api_docs/python/tf/keras/initializers/TruncatedNormal.html).
@@ -9953,6 +10263,8 @@ In this example, a tensor of size 3x5 is created and then initialized with the t
 
 #### 15. timm.models.layers.lecun_normal_()
 
+timm.layers.lecun_normal_(), For best practices, use timm.layers.lecun_normal_ to avoid deprecated modules.
+
 In the context of neural networks, initializers are used to set the initial random weights of network layers. [The LeCun normal initializer draws samples from a truncated normal distribution centered on 0 with `stddev = sqrt(1 / fan_in)` where `fan_in` is the number of input units in the weight tensor](https://discuss.pytorch.org/t/default-weight-initialisation-for-conv-layers-including-selu/87012)[2](https://discuss.pytorch.org/t/default-weight-initialisation-for-conv-layers-including-selu/87012).
 
 Here’s a simple usage example:
@@ -9970,6 +10282,181 @@ AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing
 In this example, a tensor of size 3x5 is created and then initialized with the LeCun normal distribution using the `lecun_normal_()` function. The resulting `weights` tensor now holds the initial weights for a layer in a neural network, ready to be trained.
 
 ​              
+
+| **Aspect**               | **trunc_normal_**                                  | **lecun_normal_**                                |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------ |
+| **Distribution**         | Truncated normal (clips values > 2 std devs)       | Normal with `std = sqrt(1 / fan_in)`             |
+| **Variance Scaling**     | Fixed std (e.g., 0.02), not tied to layer size     | Scaled by `fan_in` (number of input units)       |
+| **Use Case**             | General-purpose, esp. for ViTs and modern networks | Optimized for sigmoid/tanh, convolutional layers |
+| **Activation Functions** | Works well with ReLU, GELU, etc.                   | Best for sigmoid, tanh, or softsign              |
+| **Framework Alignment**  | Matches JAX/TensorFlow initialization schemes      | Matches LeCun’s 1998 initialization for CNNs     |
+
+
+
+#### 16. timm.utils.AverageMeter
+
+AverageMeter可以记录当前的输出，累加到某个变量之中，然后根据需要可以打印出历史上的平均
+这个class是一种常用的工具
+
+```python
+class AverageMeter(object):
+    def __init__(self):
+        self.reset()
+    def is_empty(self):
+        return self.cnt == 0
+    def reset(self):
+        self.avg = 0.
+        self.sum = 0.
+        self.cnt = 0
+    def update(self, val, n=1):
+        self.sum += val*n
+        self.cnt += n
+        self.avg = self.sum / self.cnt
+```
+
+这样在调用的时候，可以先声明
+
+```python
+obj = AverageMeter()
+```
+
+需要将所有变量清零的时候，调用
+
+```python
+obj.reset()
+```
+
+然后需要更新某个变量的时候
+
+```python
+obj.update(x)
+```
+
+这样的话比如想要求平均，就可以直接用
+
+```python
+obj.avg
+```
+
+
+
+example:
+
+```python
+from timm.utils import accuracy, AverageMeter
+
+losses = AverageMeter()
+loss_list = [0.1, 0.2, 0.3, 0.4, 0.5]
+
+for los in loss_list:
+    losses.update(los)
+    print("This is the value of losses:",losses.val)
+    print("This is the average of losses:",losses.avg)
+
+print("--------------------------")
+print(losses.avg)
+print(losses.val)
+losses.reset()
+print(losses.avg)
+
+
+```
+
+output:
+
+```bash
+This is the value of losses: 0.1
+This is the average of losses: 0.1
+This is the value of losses: 0.2
+This is the average of losses: 0.15000000000000002
+This is the value of losses: 0.3
+This is the average of losses: 0.20000000000000004
+This is the value of losses: 0.4
+This is the average of losses: 0.25
+This is the value of losses: 0.5
+This is the average of losses: 0.3
+--------------------------
+0.3
+0.5
+0
+```
+
+
+
+#### 17.timm.scheduler.cosine_lr.CosineLRScheduler()
+
+💡 Overview of the Schedule Components
+
+You’re using:
+
+```python
+optimizer = torch.optim.Adam(
+    model.parameters(), 
+    lr=0.0006,  # <- peak LR
+    betas=(0.9, 0.98), 
+    eps=1e-9
+)
+lr_scheduler = CosineLRScheduler(
+    optimizer,
+    t_initial=13,         # decay phase: 13 epochs
+    lr_min=1e-6,          # final LR after cosine decay
+    warmup_lr_init=1e-5,  # starting LR at epoch 0
+    warmup_t=5,           # 5 epochs of warm-up
+    cycle_limit=1,        # only 1 cosine cycle
+    t_in_epochs=True,
+    warmup_prefix=True    # warmup is treated as part of the schedule
+)
+```
+
+------
+
+🔄 How the Learning Rate Evolves
+
+🟡 Epochs 0 to 4 (Warmup Phase: 5 epochs)
+
+- Learning rate increases **linearly** from `1e-5` → `0.0006`.
+
+- The LR at each warmup epoch is:
+
+  lr(t)=warmup_lr_init+twarmup_t⋅(lr−warmup_lr_init)\text{lr}(t) = \text{warmup\_lr\_init} + \frac{t}{\text{warmup\_t}} \cdot (\text{lr} - \text{warmup\_lr\_init})
+
+| Epoch | Learning Rate (approx) |
+| ----- | ---------------------- |
+| 0     | 0.00001                |
+| 1     | ~0.00014               |
+| 2     | ~0.00027               |
+| 3     | ~0.00041               |
+| 4     | 0.0006                 |
+
+🔵 Epochs 5 to 17 (Cosine Decay Phase: 13 epochs)
+
+- After reaching `0.0006`, the LR **decays following a cosine curve** from `0.0006` → `1e-6`.
+
+- Cosine decay formula:
+
+  lr(t)=lr_min+0.5⋅(lr−lr_min)⋅(1+cos⁡(π⋅(t−warmup_t)tinitial))\text{lr}(t) = \text{lr\_min} + 0.5 \cdot (\text{lr} - \text{lr\_min}) \cdot \left(1 + \cos\left(\frac{\pi \cdot (t - \text{warmup\_t})}{t_{\text{initial}}}\right)\right)
+
+| Epoch | Learning Rate (approx) |
+| ----- | ---------------------- |
+| 5     | 0.0006                 |
+| 6     | ↓                      |
+| 11    | ↓                      |
+| 17    | ~0.000001              |
+
+⚫ Epochs >17
+
+- Since `cycle_limit=1`, the scheduler **stops** decaying after 1 cycle.
+- LR will **remain constant at `1e-6`** from epoch 18 onward.
+
+------
+
+🧠 Summary
+
+- **Epoch 0–4**: Warmup from `1e-5` → `0.0006` linearly.
+- **Epoch 5–17**: Cosine decay from `0.0006` → `1e-6`.
+- **Epoch 18+**: Constant at `1e-6`.
+
+
 
 
 
@@ -11600,28 +12087,43 @@ This is functionally equivalent to the previous example where we manually applie
 
 
 
-#### 22. @classmethod
+#### 22. Python index()
 
-`@classmethod` is a decorator in Python used to define a method that operates on the class itself rather than on instances of the class. When you decorate a method with `@classmethod`, the method receives the class itself as the first argument, traditionally named `cls`, instead of an instance of the class. This allows you to access or modify class-level variables and methods within the method.
-
-Here's a basic example:
+The method `index()` returns the lowest index in the list where the element searched for appears. If any element which is not present is searched, it returns a **ValueError**.
 
 ```python
-class MyClass:
-    class_variable = 10
+list_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+element = 3
+list_numbers.index(element)
 
-    @classmethod
-    def class_method(cls):
-        print(cls.class_variable)
-
-MyClass.class_method()  # Output: 10
 ```
 
-In this example, `class_method` can access the `class_variable` directly via the `cls` argument, which refers to the `MyClass` class itself. This makes `@classmethod` useful for creating alternative constructors, accessing class-level variables, or modifying class state.
+output:
 
-`@classmethod` can indeed be called directly on the class **without instantiation**. This is because a class method receives the class itself as its first argument (`cls` by convention), allowing you to work with class-level variables and methods.
+```
+2
+```
 
 
+
+#### 
+
+
+
+#### 23. Using range()
+
+Using the `range()` function to create a list from 1 to 100 in Python
+
+```python
+lst = list(range(1,101))
+print(lst)  
+```
+
+output:
+
+```
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
+```
 
 
 
@@ -13363,39 +13865,94 @@ In the example above, `static_method` is a static method, and you can call it on
 
 
 
-#### 65. Using range()
-
-Using the `range()` function to create a list from 1 to 100 in Python
-
-```python
-lst = list(range(1,101))
-print(lst)  
-```
-
-output:
-
-```
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
-```
 
 
+#### 65. decorator-@classmethod
 
-#### 66. Python index()
+`@classmethod` is a decorator in Python used to define a method that operates on the class itself rather than on instances of the class. When you decorate a method with `@classmethod`, the method receives the class itself as the first argument, traditionally named `cls`, instead of an instance of the class. This allows you to access or modify class-level variables and methods within the method.
 
-The method `index()` returns the lowest index in the list where the element searched for appears. If any element which is not present is searched, it returns a **ValueError**.
+Here's a basic example:
 
 ```python
-list_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-element = 3
-list_numbers.index(element)
+class MyClass:
+    class_variable = 10
 
+    @classmethod
+    def class_method(cls):
+        print(cls.class_variable)
+
+MyClass.class_method()  # Output: 10
 ```
 
-output:
+In this example, `class_method` can access the `class_variable` directly via the `cls` argument, which refers to the `MyClass` class itself. This makes `@classmethod` useful for creating alternative constructors, accessing class-level variables, or modifying class state.
 
-```
-2
-```
+`@classmethod` can indeed be called directly on the class **without instantiation**. This is because a class method receives the class itself as its first argument (`cls` by convention), allowing you to work with class-level variables and methods.
+
+
+
+#### 66. @staticmethod vs @classmethod
+
+In Python, `@staticmethod` and `@classmethod` are decorators used to define methods in a class that aren't tied to an instance in the typical way. Here's a breakdown of their differences:
+
+- **@staticmethod**:
+  - A static method is a method that belongs to a class but doesn't require access to the instance (`self`) or the class (`cls`).
+  - It behaves like a regular function but is defined within the class's namespace for organization.
+  - Use it when the method doesn't need to access or modify instance or class state.
+  - Called on the class or an instance, but no implicit `self` or `cls` is passed.
+  - Example:
+    ```python
+    class MathUtils:
+        @staticmethod
+        def add(a, b):
+            return a + b
+    
+    print(MathUtils.add(2, 3))  # Output: 5
+    print(MathUtils().add(2, 3))  # Output: 5
+    ```
+
+- **@classmethod**:
+  - A class method takes the class itself as its first argument, conventionally named `cls`.
+  - It can access and modify class-level data (shared across all instances).
+  - Useful for alternative constructors or methods that need to work with the class rather than an instance.
+  - Called on the class or an instance, with `cls` passed implicitly.
+  - Example:
+    ```python
+    class MyClass:
+        class_name = "MyClass"
+    
+        @classmethod
+        def from_string(cls, name):
+            return cls()  # Creates an instance of the class
+    
+        @classmethod
+        def get_class_name(cls):
+            return cls.class_name
+    
+    obj = MyClass.from_string("test")  # Creates instance
+    print(MyClass.get_class_name())  # Output: MyClass
+    ```
+
+**Key Differences**:
+- **First Argument**:
+  - `@staticmethod`: No implicit argument (`self` or `cls`).
+  - `@classmethod`: Receives `cls` as the first argument.
+- **Use Case**:
+  - `@staticmethod`: For utility functions that don't need instance or class state.
+  - `@classmethod`: For methods that need to interact with the class, like creating instances or accessing class attributes.
+- **Access to State**:
+  - `@staticmethod`: Can't access instance or class attributes unless explicitly passed.
+  - `@classmethod`: Can access and modify class attributes.
+- **Inheritance**:
+  - `@classmethod`: Useful in inheritance because `cls` refers to the calling class, not the parent class.
+  - `@staticmethod`: No special behavior in inheritance; just a function in the class.
+
+**When to Use**:
+- Use `@staticmethod` for standalone helper functions that logically belong to the class but don't depend on its state (e.g., utility calculations).
+- Use `@classmethod` for alternative constructors or methods that need to work with class-level data or behavior.
+
+Both can be called on the class or an instance, but `@classmethod` is more flexible for class-related operations, while `@staticmethod` is simpler for independent functions.
+
+
 
 
 
@@ -14294,7 +14851,7 @@ Person has salary?: False
 
 
 
-#### 82. Python Anonymous [əˈnɒnɪməs]  [əˈnɑːnɪməs] /Lambda Function
+#### 82. Python Anonymous [əˈnɒnɪməs]  [əˈnɑːnɪməs] Function
 
 ##### 1 for 简写
 
@@ -14913,6 +15470,8 @@ print(result)  # Output will be 25
 ```
 
 Lambda functions are often used in conjunction with functions like `map()`, `filter()`, and `reduce()` for functional programming paradigms. They are also commonly used in situations where a small, throwaway function is needed, such as when passing a function as an argument to another function. However, lambda functions are limited in that they can only contain a single expression, which can make them less suitable for complex logic compared to named functions defined with `def`.
+
+
 
 #### 100. isinstance() 函数
 
@@ -15677,6 +16236,133 @@ In Python, the underscore (`_`) is used in class definitions in several ways, ea
 
 
 
+#### 114. super().__init__()
+
+The `super().__init__()` code in Python is used in class inheritance to call the parent (or superclass) class's `__init__` method from a subclass. Let me break down why it's needed, when to use it, and where to place it.
+
+**Why We Need `super().__init__()`**
+
+- **Purpose**: When a subclass inherits from a parent class, it may need to initialize attributes or run setup code defined in the parent class’s `__init__` method. Calling `super().__init__()` ensures the parent class is properly initialized before the subclass adds its own initialization logic.
+- **Avoiding Redundancy**: Without `super().__init__()`, you’d have to manually replicate the parent class’s initialization code in the subclass, which is error-prone and violates the DRY (Don’t Repeat Yourself) principle.
+- **Proper Inheritance**: It ensures the parent class’s state is set up correctly, maintaining the integrity of the inheritance chain, especially in complex hierarchies or multiple inheritance scenarios.
+
+**When Do We Need It?**
+
+You need `super().__init__()` when:
+1. **Your class inherits from another class** that has an `__init__` method defining important initialization logic (e.g., setting attributes or resources).
+2. **The subclass needs to extend or modify the parent’s initialization** while still executing the parent’s setup.
+3. **You’re using multiple inheritance** (to ensure all parent classes are initialized properly, following Python’s Method Resolution Order, or MRO).
+4. You **don’t want to override the parent’s initialization entirely** but rather extend it.
+
+You may *not* need it if:
+- The parent class doesn’t define an `__init__` method (in which case Python’s default `__init__` does nothing).
+- The subclass completely overrides the parent’s initialization and doesn’t need the parent’s logic.
+
+**Where to Put `super().__init__()`**
+
+- **Location**: Place `super().__init__()` inside the subclass’s `__init__` method, typically as the *first* statement, unless the subclass needs to perform some setup before calling the parent’s initialization.
+- **Reason for Placement**: Calling it first ensures the parent’s attributes and state are set up before the subclass modifies or adds to them, preventing potential issues (e.g., accessing uninitialized attributes).
+
+**Syntax and Usage**
+
+The `super()` function provides access to the parent class. In Python 3, the common syntax is:
+```python
+super().__init__(arguments)
+```
+Here, `arguments` are any parameters the parent class’s `__init__` method expects.
+
+**Example**
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+        print(f"Animal initialized with name: {self.name}")
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)  # Call parent’s __init__ to set name
+        self.breed = breed      # Add subclass-specific initialization
+        print(f"Dog initialized with breed: {self.breed}")
+
+dog = Dog("Max", "Labrador")
+```
+**Output**:
+```
+Animal initialized with name: Max
+Dog initialized with breed: Labrador
+```
+- Here, `super().__init__(name)` ensures `Animal`’s `__init__` sets the `name` attribute before `Dog` adds its `breed` attribute.
+
+
+
+```python
+class Animal:
+    def __init__(self, ):
+        self.name = "hahaha"
+        print(f"Animal initialized with name: {self.name}")
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__()      # Call parent’s __init__ to set name
+        self.breed = breed      # Add subclass-specific initialization
+        print(f"Dog initialized with breed: {self.breed}")
+
+dog = Dog("Max", "Labrador")
+```
+
+output:
+
+```
+Animal initialized with name: hahaha
+Dog initialized with breed: Labrador
+```
+
+
+
+**Multiple Inheritance**
+
+In cases of multiple inheritance, `super()` follows the MRO to ensure all parent classes are initialized properly:
+```python
+class A:
+    def __init__(self):
+        print("A initialized")
+
+class B:
+    def __init__(self):
+        print("B initialized")
+
+class C(A, B):
+    def __init__(self):
+        super().__init__()  # Calls A’s __init__, which may call B’s if needed
+        print("C initialized")
+
+c = C()
+```
+**Output** (depends on MRO, typically):
+```
+A initialized
+C initialized
+```
+Use `C.__mro__` to check the method resolution order if needed.
+
+**Key Notes**
+
+- **Arguments**: Pass the correct arguments to `super().__init__()` as required by the parent class’s `__init__`.
+- **No Parent `__init__`**: If the parent class has no `__init__`, calling `super().__init__()` is harmless but unnecessary.
+- **Python 2 vs. 3**: In Python 2, you’d use `super(Subclass, self).__init__()`. Python 3’s `super()` is simpler and preferred.
+- **Placement Flexibility**: While usually first, you might delay `super().__init__()` if the subclass needs to preprocess data before passing it to the parent (rare).
+
+**Common Mistakes**
+
+- Forgetting to call `super().__init__()` when the parent class expects it, leading to uninitialized attributes.
+- Passing incorrect arguments to `super().__init__()`, causing errors.
+- Misplacing `super().__init__()` after subclass logic that depends on parent initialization.
+
+
+
+
+
 
 
 ## About collections
@@ -15707,6 +16393,10 @@ output:
 OrderedDict([('apple', 1), ('banana', 2), ('cherry', 3)])
 OrderedDict([('apple', 1), ('cherry', 3), ('banana', 2)])
 ```
+
+
+
+Summary: Since Python 3.7, regular dictionaries preserve order, making OrderedDict less necessary unless you need its specific methods, explicit order semantics, or compatibility with older Python versions. Use OrderedDict for specialized cases; otherwise, a regular dict is usually fine.
 
 
 
@@ -21819,83 +22509,6 @@ This method is used when you're working with string columns in pandas and want t
 
 ## About util.AverageMeter()
 
-AverageMeter可以记录当前的输出，累加到某个变量之中，然后根据需要可以打印出历史上的平均
-这个class是一种常用的工具
-
-```python
-class AverageMeter(object):
-    def __init__(self):
-        self.reset()
-    def is_empty(self):
-        return self.cnt == 0
-    def reset(self):
-        self.avg = 0.
-        self.sum = 0.
-        self.cnt = 0
-    def update(self, val, n=1):
-        self.sum += val*n
-        self.cnt += n
-        self.avg = self.sum / self.cnt
-```
-
-这样在调用的时候，可以先声明
-
-```python
-obj = AverageMeter()
-```
-
-需要将所有变量清零的时候，调用
-
-```python
-obj.reset()
-```
-
-然后需要更新某个变量的时候
-
-```python
-obj.update(x)
-```
-
-这样的话比如想要求平均，就可以直接用
-
-```python
-obj.avg
-```
-
-
-
-example:
-
-```python
-from util import*
-
-losses = AverageMeter()
-loss_list = [0.5,0.4,0.5,0.6,1]
-batch_size = 1
-for los in loss_list:
-​    losses.update(los)
-​    print(losses.avg)
-
-print("--------------------------")
-print(losses.avg)
-losses.reset()
-print(losses.avg)
-
-```
-
-output:
-
-```bash
-0.5 
-0.45 
-0.4666666666666666 
-0.5 
-0.6 
---------------------------
-0.6 
-0
-```
-
 
 
 ## import math
@@ -23810,7 +24423,9 @@ print(f"Permutation Entropy: {pe}")
 
 
 
+## About Triton
 
+Description: Triton is an open-source programming language and compiler designed for writing highly efficient GPU code for deep learning operations. It simplifies GPU programming by providing a Python-like syntax, making it accessible to developers without extensive CUDA experience. It’s particularly useful for creating custom neural network kernels, such as matrix multiplication or fused operations, that can match or outperform existing libraries like cuBLAS.
 
 
 
