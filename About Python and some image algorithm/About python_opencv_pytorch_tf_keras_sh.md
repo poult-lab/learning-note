@@ -8457,37 +8457,89 @@ Epoch-wise Learning Rates:
 
 
 
-#### 143. add_module()
+#### 143. torch.nn.TransformerEncoderLayer and torch.nn.TransformerEncoder
 
-`add_module()` is a method used to add a new module (layer) to a neural network. It takes two parameters:
+Let’s carefully break down the **contents of `nn.TransformerEncoderLayer` and `nn.TransformerEncoder`** in PyTorch.
 
-- First parameter ('norm5'): The name you want to give to this layer
-- Second parameter: The actual layer module
+------
 
-```python
-import torch.nn as nn
+1️⃣ `nn.TransformerEncoderLayer`
 
-class MyNetwork(nn.Module):
-    def __init__(self, num_features=64):
-        super(MyNetwork, self).__init__()
-        # Using add_module to add batch norm
-        self.add_module('norm5', nn.BatchNorm2d(num_features))
-        # You might also have other layers
-        self.add_module('conv', nn.Conv2d(3, num_features, kernel_size=3))
+This represents **a single layer of a Transformer encoder**, which is the building block of the full encoder. Internally, it contains:
 
-    def forward(self, x):
-        # When using add_module, you can access the layer in two ways:
-        
-        # Method 1: Using getattr
-        x = self.conv(x)
-        x = getattr(self, 'norm5')(x)
-        
-        # OR Method 2: Access directly like before
-        x = self.conv(x)
-        x = self.norm5(x)  # This also works!
-        
-        return x
+1. **Multi-Head Self-Attention (`nn.MultiheadAttention`)**
+
+   - Computes attention of each token with every other token in the sequence.
+   - `nhead` specifies the number of attention heads.
+   - `d_model` specifies the embedding dimension.
+
+2. **Feedforward Neural Network (Position-wise FFN)**
+
+   - A two-layer MLP applied to each position independently:
+
+     FFN(x)=Linear2(ReLU(Linear1(x)))\text{FFN}(x) = \text{Linear}_2(\text{ReLU}(\text{Linear}_1(x)))
+
+   - `d_model` → input/output dimension,
+
+   - `dim_feedforward` → hidden dimension of the feedforward network (default 2048).
+
+3. **Residual Connections & Layer Normalization**
+
+   - After attention and after feedforward, residual connections are applied:
+
+     ```text
+     x = x + self_attention(x)
+     x = layernorm(x)
+     ```
+
+   - Same for the feedforward block.
+
+4. **Dropout layers**
+
+   - Applied to attention weights and feedforward output for regularization.
+
+**In summary:**
+ `nn.TransformerEncoderLayer` = **Self-Attention + Feedforward + Residuals + LayerNorm + Dropout**
+
+------
+
+2️⃣ `nn.TransformerEncoder`
+
+This represents the **full encoder**, which is **just a stack of multiple `TransformerEncoderLayer`s**. Internally, it contains:
+
+1. **A sequence of `nn.TransformerEncoderLayer` objects**
+   - `num_layers` determines how many layers are stacked.
+   - Each layer is identical (same dimensions and number of heads).
+2. **Optional final layer normalization (`norm`)**
+   - If you pass `norm=nn.LayerNorm(d_model)`, it applies a normalization to the encoder output.
+
+**Essentially:**
+ `nn.TransformerEncoder` = **LayerStack([EncoderLayer, EncoderLayer, ...]) + optional final LayerNorm**
+
+------
+
+✅ **Visualization of data flow through one layer:**
+
 ```
+Input X
+   │
+   ▼
+Multi-Head Self-Attention
+   │
++ Residual + LayerNorm
+   │
+Feedforward (MLP)
+   │
++ Residual + LayerNorm
+   │
+Output of one encoder layer
+```
+
+Stack 3 of these (or `num_layers`) → `nn.TransformerEncoder`.
+
+------
+
+
 
 
 
@@ -9614,6 +9666,44 @@ output:
 3 
 5
 ```
+
+
+
+#### 165. add_module()
+
+`add_module()` is a method used to add a new module (layer) to a neural network. It takes two parameters:
+
+- First parameter ('norm5'): The name you want to give to this layer
+- Second parameter: The actual layer module
+
+```python
+import torch.nn as nn
+
+class MyNetwork(nn.Module):
+    def __init__(self, num_features=64):
+        super(MyNetwork, self).__init__()
+        # Using add_module to add batch norm
+        self.add_module('norm5', nn.BatchNorm2d(num_features))
+        # You might also have other layers
+        self.add_module('conv', nn.Conv2d(3, num_features, kernel_size=3))
+
+    def forward(self, x):
+        # When using add_module, you can access the layer in two ways:
+        
+        # Method 1: Using getattr
+        x = self.conv(x)
+        x = getattr(self, 'norm5')(x)
+        
+        # OR Method 2: Access directly like before
+        x = self.conv(x)
+        x = self.norm5(x)  # This also works!
+        
+        return x
+```
+
+
+
+#### 
 
 
 
