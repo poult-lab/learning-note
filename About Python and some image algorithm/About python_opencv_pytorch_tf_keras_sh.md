@@ -1204,8 +1204,6 @@ Squeezed shape: torch.Size([3, 4])
 
 #### 4. About h5py
 
-
-
 ```python
 import h5py
 
@@ -4657,7 +4655,7 @@ Parameters
 - **out_channels** ([*int*](https://docs.python.org/3/library/functions.html#int)) – Number of channels produced by the convolution
 - **kernel_size** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)) – Size of the convolving kernel
 - **stride** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Stride of the convolution. Default: 1
-- **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to both sides of the input. Default: 0
+- **padding** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple) *or* [*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – Padding added to **both sides** of the input. Default: 0
 - **padding_mode** ([*str*](https://docs.python.org/3/library/stdtypes.html#str)*,* *optional*) – `'zeros'`, `'reflect'`, `'replicate'` or `'circular'`. Default: `'zeros'`
 - **dilation** ([*int*](https://docs.python.org/3/library/functions.html#int) *or* [*tuple*](https://docs.python.org/3/library/stdtypes.html#tuple)*,* *optional*) – Spacing between kernel elements. Default: 1
 - **groups** ([*int*](https://docs.python.org/3/library/functions.html#int)*,* *optional*) – Number of blocked connections from input channels to output channels. Default: 1
@@ -4895,45 +4893,111 @@ print("ConvTranspose2d output:", z.shape)  # (1, 3, 32, 32)
 
 
 
-#### 67. torch.roll(input, shifts, dims=None) → Tensor
+#### 67. torch.nn.ConvTranspose1d()
 
--  input (Tensor) —— 输入张量。
--  shifts (python:int 或 tuple of python:int) —— 张量元素移位的位数。如果该参数是一个元组（例如shifts=(x,y)），dims必须是一个相同大小的元组（例如dims=(a,b)），相当于在第a维度移x位，在b维度移y位
--  dims (int 或 tuple of python:int) 确定的维度。
+Sure — let’s go step by step through `torch.nn.ConvTranspose1d()`, which is sometimes called a **“deconvolution”** or **“fractionally strided convolution”**.
 
-沿给定维数滚动张量，移动到最后一个位置以外的元素将在第一个位置重新引入。如果没有指定尺寸，张量将在轧制前被压平，然后恢复到原始形状。
+------
+
+🧩 1. **What It Does**
+
+`torch.nn.ConvTranspose1d` performs the *inverse* of a normal 1D convolution (`Conv1d`).
+ Instead of **reducing** the sequence length (as `Conv1d` usually does), it **increases** it — hence, it's often used for **upsampling** in time-series or audio generation tasks.
+
+Think of it as:
+
+> "How can we reconstruct a longer sequence from a compressed one using learned filters?"
+
+------
+
+⚙️ 2. **Syntax**
+
+```python
+torch.nn.ConvTranspose1d(
+    in_channels,
+    out_channels,
+    kernel_size,
+    stride=1,
+    padding=0,
+    output_padding=0,
+    groups=1,
+    bias=True,
+    dilation=1,
+    padding_mode='zeros'
+)
+```
+
+------
+
+📏 3. **Input / Output Shapes**
+
+If your input has shape:
+
+```
+(batch_size, in_channels, input_length)
+```
+
+Then the output will have shape:
+
+```
+(batch_size, out_channels, output_length)
+```
+
+The **output length** is computed as:
+
+[
+ L_{\text{out}} = (L_{\text{in}} - 1) \times \text{stride} - 2 \times \text{padding} + \text{dilation} \times (\text{kernel_size} - 1) + \text{output_padding} + 1
+ ]
+
+------
+
+🧠 4. **Intuitive Example**
+
+```python
+import torch
+import torch.nn as nn
+
+x = torch.randn(1, 4, 5)  # (batch=1, channels=4, length=5)
+conv_t = nn.ConvTranspose1d(in_channels=4, out_channels=2, kernel_size=3, stride=2, padding=1)
+y = conv_t(x)
+print(y.shape)
+```
+
+Let’s calculate manually:
+
+[
+ L_{\text{out}} = (5 - 1) \times 2 - 2 \times 1 + 3 + 0 + 1 = 10
+ ]
+
+✅ So output shape → `(1, 2, 10)`
+
+------
+
+🎯 5. **Why Use ConvTranspose1d**
+
+- **Upsampling** time series or audio (e.g., from latent representation to waveform).
+- **Decoder** part of autoencoders or generative models.
+- Inverse of a Conv1d when reconstructing signals.
+
+------
+
+⚖️ 6. **Difference from `Conv1d`**
+
+| Feature          | `Conv1d`                                           | `ConvTranspose1d`                              |
+| ---------------- | -------------------------------------------------- | ---------------------------------------------- |
+| Typical use      | Downsampling / feature extraction                  | Upsampling / reconstruction                    |
+| Effect on length | Usually decreases                                  | Usually increases                              |
+| Stride           | Moves kernel forward                               | Expands output with spacing                    |
+| Formula          | (L_{out} = \frac{L_{in} + 2p - d(k-1) - 1}{s} + 1) | (L_{out} = (L_{in}-1)s - 2p + d(k-1) + op + 1) |
+
+------
+
+🔍 7. **Common Gotcha: `output_padding`**
+
+`output_padding` doesn’t add padding—it’s used to *fix size mismatches* when reversing a convolution.
+ If you want exact symmetry in encoder–decoder architectures, you may need to adjust this manually.
 
 
->>> ```python
->>> x = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8]).view(4, 2)
->>> x
->>> tensor([[1, 2],
->>> [3, 4],
->>> [5, 6],
->>> [7, 8]])
->>> '''第0维度向下移1位，多出的[7,8]补充到顶部'''
->>> torch.roll(x, 1, 0)
->>> tensor([[7, 8],
->>> [1, 2],
->>> [3, 4],
->>> [5, 6]])
->>> '''第0维度向上移1位，多出的[1,2]补充到底部'''
->>> torch.roll(x, -1, 0)
->>> tensor([[3, 4],
->>> [5, 6],
->>> [7, 8],
->>> [1, 2]])
->>> '''tuple元祖,维度一一对应：
->>> 第0维度向下移2位，多出的[5,6][7,8]补充到顶部，
->>> 第1维向右移1位，多出的[6,8,2,4]补充到最左边'''
->>> torch.roll(x, shifts=(2, 1), dims=(0, 1))
->>> tensor([[6, 5],
->>> [8, 7],
->>> [2, 1],
->>> [4, 3]])
->>> ```
-
-简单理解：shifts的值为正数相当于向下挤牙膏，挤出的牙膏又从顶部塞回牙膏里面；shifts的值为负数相当于向上挤牙膏，挤出的牙膏又从底部塞回牙膏里面
 
 
 
@@ -6781,7 +6845,7 @@ When you run this code, you'll get batches of data where elements are sampled ac
 
 #### 108. torch.split()
 
-Certainly! `torch.split()` is a PyTorch function used to split a tensor into a specific number of chunks along a given dimension. It takes in three main parameters:
+ `torch.split()` is a PyTorch function used to split a tensor into a specific number of chunks along a given dimension. It takes in three main parameters:
 
 1. `tensor`: The input tensor that you want to split.
 
@@ -6826,6 +6890,42 @@ tensor([[1, 2, 3],
         [4, 5, 6]])
 tensor([[7, 8, 9]])
 ```
+
+
+
+`torch.split` (when you give it a tuple/list) expects the **sizes of each chunk**, and they must add up exactly to the tensor length along that dimension.
+
+```python
+import torch
+
+tensor = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9], [4, 5, 6], [7, 8, 9], 
+                       [4, 5, 6], [7, 8, 9], [7, 8, 9], [4, 5, 6], [7, 8, 9]])
+
+split_indices = (3, 2, 1, 4)  # sums to 10
+
+chunks = torch.split(tensor, split_indices, dim=0)
+
+for chunk in chunks:
+    print(chunk)
+
+```
+
+output:
+
+```
+tensor([[1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]])
+tensor([[4, 5, 6],
+        [7, 8, 9]])
+tensor([[4, 5, 6]])
+tensor([[7, 8, 9],
+        [7, 8, 9],
+        [4, 5, 6],
+        [7, 8, 9]])
+```
+
+
 
 
 
@@ -9703,7 +9803,106 @@ class MyNetwork(nn.Module):
 
 
 
-#### 
+#### 166. tensor.stride(-1)
+
+You have a tensor `xz` and this code:
+
+```python
+if xz.stride(-1) != 1:
+    xz = xz.contiguous()
+```
+
+------
+
+1. What is `stride`?
+
+- In PyTorch, the **stride** of a tensor tells you how many steps in memory you need to take to move to the next element along a given dimension.
+- For example:
+  - A standard contiguous 2D tensor (row-major, C-style) will have:
+    - `stride(0) = number of columns`
+    - `stride(1) = 1` (because the next column element is right next to the previous one in memory).
+- If you slice or transpose tensors, the stride may change — the tensor may no longer be **contiguous** in memory.
+
+------
+
+2. `xz.stride(-1) != 1`
+
+- `stride(-1)` means “the stride of the last dimension.”
+- If this value is `1`, it means the last dimension elements are stored **contiguously** in memory.
+- If it’s not `1`, the last dimension is **strided** (skipping memory locations).
+
+Example:
+
+```python
+x = torch.arange(12).reshape(3, 4)
+print(x.stride())  # (4, 1) → contiguous
+```
+
+But if you transpose:
+
+```python
+y = x.t()  # shape (4, 3)
+print(y.stride())  # (1, 4) → NOT contiguous
+```
+
+Here, `y.stride(-1) = 4`, not `1`.
+
+------
+
+3. Why call `.contiguous()`?
+
+- `.contiguous()` **makes a copy of the tensor** in memory so that it is stored in the standard contiguous layout.
+- This is often required by operations (like `view()`, some CUDA kernels, etc.) that assume contiguous memory.
+
+So your code basically says:
+ 👉 *If the tensor’s last dimension is not laid out contiguously in memory, make it contiguous.*
+
+------
+
+✅ **Summary**:
+ This code ensures that the tensor `xz` has its last dimension stored in contiguous memory. It prevents hidden bugs or slowdowns when performing operations that require or expect contiguous memory.
+
+
+
+#### 167. torch.roll(input, shifts, dims=None) → Tensor
+
+-  input (Tensor) —— 输入张量。
+-  shifts (python:int 或 tuple of python:int) —— 张量元素移位的位数。如果该参数是一个元组（例如shifts=(x,y)），dims必须是一个相同大小的元组（例如dims=(a,b)），相当于在第a维度移x位，在b维度移y位
+-  dims (int 或 tuple of python:int) 确定的维度。
+
+沿给定维数滚动张量，移动到最后一个位置以外的元素将在第一个位置重新引入。如果没有指定尺寸，张量将在轧制前被压平，然后恢复到原始形状。
+
+
+>>> ```python
+>>> x = torch.tensor([1, 2, 3, 4, 5, 6, 7, 8]).view(4, 2)
+>>> x
+>>> tensor([[1, 2],
+>>> [3, 4],
+>>> [5, 6],
+>>> [7, 8]])
+>>> '''第0维度向下移1位，多出的[7,8]补充到顶部'''
+>>> torch.roll(x, 1, 0)
+>>> tensor([[7, 8],
+>>> [1, 2],
+>>> [3, 4],
+>>> [5, 6]])
+>>> '''第0维度向上移1位，多出的[1,2]补充到底部'''
+>>> torch.roll(x, -1, 0)
+>>> tensor([[3, 4],
+>>> [5, 6],
+>>> [7, 8],
+>>> [1, 2]])
+>>> '''tuple元祖,维度一一对应：
+>>> 第0维度向下移2位，多出的[5,6][7,8]补充到顶部，
+>>> 第1维向右移1位，多出的[6,8,2,4]补充到最左边'''
+>>> torch.roll(x, shifts=(2, 1), dims=(0, 1))
+>>> tensor([[6, 5],
+>>> [8, 7],
+>>> [2, 1],
+>>> [4, 3]])
+>>> ```
+
+简单理解：shifts的值为正数相当于向下挤牙膏，挤出的牙膏又从顶部塞回牙膏里面；shifts的值为负数相当于向上挤牙膏，挤出的牙膏又从底部塞回牙膏里面
 
 
 
