@@ -2862,6 +2862,46 @@ Why Use It?
 
 
 
+The core difference between **![img](data:,)** (Layer Normalization) and **![img](data:,)** (Batch Normalization) lies in the axis along which the statistics (mean and variance) are calculated. This distinction significantly impacts where and why each method is used in deep learning architectures.
+
+------
+
+
+
+🔬 Comparison of LayerNorm and BatchNorm
+
+
+
+| Feature                   | Layer Normalization (![img](data:,))                         | Batch Normalization (![img](data:,))                         |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Normalization Axis**    | Across the **Channel and Spatial** dimensions.               | Across the **Batch** and **Spatial** dimensions.             |
+| **Dependency**            | **Independent** of the batch size.                           | **Dependent** on the batch size.                             |
+| **Input Shape**           | ![img](data:,) for 1D, ![img](data:,) for 2D.                | ![img](data:,) for 1D, ![img](data:,) for 2D.                |
+| **Statistics Calculated** | Mean/Variance is calculated for **each sample** across all pixels/tokens and channels. | Mean/Variance is calculated for **each channel** across all samples in the batch and all spatial locations. |
+| **Best Use Case**         | **Sequence/NLP** models (Transformers, RNNs). **Vision models** where small batch sizes are necessary (e.g., fine-tuning high-res images). | Standard **CNNs** (ResNet, VGG). **High-performance vision tasks** with large, stable batch sizes. |
+
+
+
+🎯 Detail and Justification
+
+
+
+Layer Normalization
+
+Layer Normalization computes the mean and variance **within a single sample** (across all channels and spatial locations).
+
+- **Benefit in Transformers:** This is ideal for **Transformer** architectures because the input length (sequence length) can vary, and more importantly, small batch sizes are often used when training large models or high-resolution images. Since LN is independent of the batch size, performance doesn't degrade when the batch is small.
+- **Where it's used:** It's the standard normalization technique in the **Swin Transformer Block** and **Patch Merging/Expanding** layers because it was designed for sequential data and provides stability.
+
+
+
+Batch Normalization 
+
+Batch Normalization computes the mean and variance for **each channel separately**, but aggregates those statistics across all samples in the current batch.
+
+- **Drawback of BN:** The biggest drawback is its reliance on a **large, representative batch size**. If the batch is small (e.g., less than 32), the calculated statistics become noisy, which can significantly hurt training performance.
+- **Where it's used:** It remains a core component in many classic CNNs like **ResNet** and is known for improving convergence speed in standard computer vision tasks when large batches are available. In some modern CNNs like ConvNeXt, BN is sometimes preferred over LN for specific performance gains, provided the large-batch training regime is maintained.
+
 ​              
 
 
