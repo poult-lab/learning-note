@@ -777,6 +777,58 @@ output:
 2022-05-05 11:39:03 AM - 2575816780.py[line:30] - INFO: 打印日志
 ```
 
+## About SSH
+
+#### 1. connect
+
+```shell
+Run the basic SSH command: Replace username and ip_address
+```
+
+
+
+#### 2. Check RAM (Memory)
+
+```
+free -h
+```
+
+
+
+#### 3. Check "ROM" (Storage / Disk Space)
+
+```
+df -h
+```
+
+
+
+#### 4. Create a Folder
+
+Type `mkdir` followed by a space and the name you want to give your new folder. For example, if you want to create a folder called `project_files`, you would run:
+
+```
+mkdir project_files
+```
+
+
+
+#### 5. Go inside the folder
+
+Use the **`cd`** (change directory) command to enter it:
+
+```
+cd project_files
+```
+
+**Go back out:** If you ever need to leave that folder and return to where you were, type:
+
+```bash
+cd ..
+```
+
+
+
 
 
 ## About pickle
@@ -1469,106 +1521,183 @@ The choice of dimension depends on how you want to normalize your tensor, ensuri
 
 
 
-#### 9. about item() from pytorch/ tensor.item()
+#### 9. torch.nn.functional.interpolate()
 
-这个方法可以解决从tensor 转换成int
+It is essentially a wrapper that handles resizing for various dimensions (1D, 2D, or 3D data) using different algorithms (nearest neighbor, linear, bilinear, etc.).
 
-文档中给了例子，说是一个元素张量可以用item得到元素值，请注意这里的print(x)和print(x.item())值是不一样的，一个是打印张量，一个是打印元素的值：
+Here is a breakdown of how it works, the modes you should know, and how to use it.
 
-```bash
-x = torch.randn(1)
-print(x)
-print(x.item())
+Core Functionality
 
-#结果是
-tensor([-0.4464])
--0.44643348455429077
+It resizes an input tensor to a specific `size` (target dimensions) or by a `scale_factor` (multiplier).
+
+**Basic Syntax:**
+
+Python
+
+```
+output = torch.nn.functional.interpolate(input, size=None, scale_factor=None, mode='nearest', align_corners=None)
 ```
 
-解释:
+Key Arguments
 
-item() → number
-方法: item() 返回一个数
-    Returns the value of this tensor as a standard Python number. 
-    This only works for tensors with one element. For other cases, 
-    see tolist().
-    该方法的功能是以标准的Python数字的形式来返回这个张量的值.这个方法
-    只能用于只包含一个元素的张量.对于其他的张量,请查看方法tolist().
-    This operation is not differentiable.
-    该操作是不可微分的,即不可求导.
-    (译者注:返回的结果是普通Python数据类型,
-    自然不能调用backward()方法来进行梯度的反向传播)
+1. **`input` (Tensor):**
 
-    Example:  例子:
-    >>> x = torch.tensor([1.0])
-    >>> x.item()
-    1.0
+   - The data to resize.
+   - **Shape:** It expects a "mini-batch" shape.
+     - For 1D (e.g., audio, ECG): `(Batch, Channels, Length)`
+     - For 2D (e.g., images): `(Batch, Channels, Height, Width)`
+     - For 3D (e.g., volumetric, MRI): `(Batch, Channels, Depth, Height, Width)`
 
+2. **`size` vs `scale_factor`:**
 
+   - **`size`:** The specific output shape you want (e.g., `(256, 256)`).
+   - **`scale_factor`:** A multiplier. `2` doubles the size; `0.5` halves it.
+   - *Note:* You typically define one or the other, not both.
 
-#### 10. about torch.sort() function
+3. **`mode` (The algorithm):**
 
-***注意这里面的tensor一定要注意维度***
+   The default is `'nearest'`, but you often change this based on your data type:
 
-```python
-logits = torch.tensor(
-  [
-​    [
-​      [-0.5816, -0.3873, -1.0215, -1.0145, 0.4053],
-​      [0.7265, 1.4164, 1.3443, 1.2035, 1.8823],
-​      [-0.4451, 0.1673, 1.2590, -2.0757, 1.7255],
-​      [0.2021, 0.3041, 0.1383, 0.3849, -1.6311],
-​    ]
-  ]
-)
+   - **`'nearest'`:** Simplest, just copies the nearest pixel/value. Good for categorical masks (segmentation labels) where you don't want new values created.
+   - **`'linear'` (1D only):** Uses linear interpolation. Best for time-series/signals.
+   - **`'bilinear'` (2D only):** Standard for images. Smooths values.
+   - **`'bicubic'` (2D only):** Slower but smoother than bilinear.
+   - **`'trilinear'` (3D only):** For volumetric data.
 
+4. **`align_corners` (Boolean):**
 
+   - This is often a source of confusion. It controls how the input and output coordinates are mapped.
+   - **`False` (Default):** The interpolation aligns the *centers* of the corner pixels.
+   - **`True`:** The input and output tensors are aligned by the *corner points* of their corner pixels.
+   - *Tip:* If you are using `'bilinear'`, `'linear'`, or `'bicubic'`, standard practice in research papers is often `align_corners=False`, but usually, you must keep this consistent throughout your model to avoid shifting features.
 
-sorted_logits, sorted_indices = torch.sort(
+Common Use Cases
 
-  logits, descending=True, dim=-1
+**1. Resizing Images (2D)**
 
-) # dim=-1 按照行排序
+Used in computer vision to resize feature maps or input images.
 
-print("according to the line: ", sorted_logits)
+Python
 
-print("according to the line: ", sorted_indices)
+```
+import torch
+import torch.nn.functional as F
 
+# (Batch=1, Channels=3, Height=64, Width=64)
+x = torch.randn(1, 3, 64, 64)
 
-
-sorted_logits, sorted_indices = torch.sort(logits, descending=True, dim=1) # 按照列排序
-
-print("according to the column: ", sorted_logits)
-
-print("according to the column: ", sorted_indices)
+# Resize to 128x128 using bilinear interpolation
+out = F.interpolate(x, size=(128, 128), mode='bilinear', align_corners=False)
+print(out.shape) # torch.Size([1, 3, 128, 128])
 ```
 
+**2. Resizing Signals (1D)**
 
+Useful for temporal data (audio or time-series) to match lengths.
 
-output:
+Python
 
-```powershell
-according to the line:  tensor([[[ 0.4053, -0.3873, -0.5816, -1.0145, -1.0215],
-         [ 1.8823,  1.4164,  1.3443,  1.2035,  0.7265],
-         [ 1.7255,  1.2590,  0.1673, -0.4451, -2.0757],
-         [ 0.3849,  0.3041,  0.2021,  0.1383, -1.6311]]])
-according to the line:  tensor([[[4, 1, 0, 3, 2],
-         [4, 1, 2, 3, 0],
-         [4, 2, 1, 0, 3],
-         [3, 1, 0, 2, 4]]])
-according to the column:  tensor([[[ 0.7265,  1.4164,  1.3443,  1.2035,  1.8823],
-         [ 0.2021,  0.3041,  1.2590,  0.3849,  1.7255],
-         [-0.4451,  0.1673,  0.1383, -1.0145,  0.4053],
-         [-0.5816, -0.3873, -1.0215, -2.0757, -1.6311]]])
-according to the column:  tensor([[[1, 1, 1, 1, 1],
-         [3, 3, 2, 3, 2],
-         [2, 2, 3, 0, 0],
-         [0, 0, 0, 2, 3]]])
+```
+# (Batch=1, Channels=12, Length=1000) - e.g., an ECG signal
+x_1d = torch.randn(1, 12, 1000)
+
+# Downsample by half
+out_1d = F.interpolate(x_1d, scale_factor=0.5, mode='linear', align_corners=False)
+print(out_1d.shape) # torch.Size([1, 12, 500])
 ```
 
+**3. U-Net Architectures (Matching Dimensions)**
+
+In U-Net decoders, you often upsample a lower-resolution feature map and then concatenate it with a high-resolution feature map from the encoder (skip connection).
+
+- If the encoder map is $64 \times 64$ and the decoder map is $63 \times 63$ (due to padding issues in convolutions), `interpolate` is often used to force the decoder map to match exactly $64 \times 64$ before concatenation.
+
+A Warning on Aliasing
+
+If you downsample significantly (e.g., reducing size by 4x or 8x) without applying a low-pass filter first (standard pooling layers like `AvgPool` or `MaxPool`), `interpolate` can introduce aliasing artifacts, especially with `mode='nearest'`.
+
+Would you like to see how to implement this specifically for fixing skip-connection mismatches?
 
 
-#### 11. about **torch.randn()**  torch.mean() torch.pow() torch.matmul() torch.ones_like()
+
+#### 10.torch.nn.functional.adaptive_avg_pool2d()
+
+It is a 2D adaptive average pooling operation. It is commonly used in convolutional neural networks (CNNs), particularly before the final fully connected layers, to handle variable input image sizes.
+
+Here is a detailed breakdown of what it does and how to use it.
+
+------
+
+**What is Adaptive Pooling?**
+
+Unlike standard pooling (e.g., `AvgPool2d` or `MaxPool2d`), where you specify the **kernel size** and **stride**, in **adaptive** pooling, you specify the **output size** you want.
+
+The function automatically calculates the correct kernel size and stride required to transform your input tensor into that specific output spatial dimension.
+
+**Key Difference:**
+
+- **Standard Pooling:** "I want a $3 \times 3$ window." $\rightarrow$ Output size depends on input size.
+- **Adaptive Pooling:** "I want a $5 \times 5$ output." $\rightarrow$ Window size depends on input size.
+
+**Syntax**
+
+Python
+
+```
+torch.nn.functional.adaptive_avg_pool2d(input, output_size)
+```
+
+- **`input`**: The input tensor, usually with shape $(N, C, H_{in}, W_{in})$.
+  - $N$: Batch size
+  - $C$: Number of channels
+  - $H_{in}, W_{in}$: Height and Width of input
+- **`output_size`**: The target output size, specified as $(H_{out}, W_{out})$ or an integer $K$ (which implies $(K, K)$).
+  - You can also use `None` for a dimension to keep it the same as the input.
+
+**Common Use Cases**
+
+1. Handling Variable Input Sizes
+
+This is the most popular use case. If your network accepts images of different resolutions (e.g., $224 \times 224$ and $500 \times 500$), the feature maps at the end of the convolutional layers will have different spatial dimensions.
+
+Standard fully connected (Linear) layers require a fixed input size. Adaptive pooling forces the feature maps into a fixed size (e.g., $1 \times 1$ or $7 \times 7$) regardless of the input resolution, allowing the Linear layer to work without error.
+
+2. Global Average Pooling (GAP)
+
+A specific case of adaptive pooling where `output_size=(1, 1)`. This takes the average of the entire feature map for each channel, resulting in a single number per channel. This is often used to replace the flattening step before classification.
+
+**Example Code**
+
+Python
+
+```
+import torch
+import torch.nn.functional as F
+
+# Example 1: Creating a fixed 5x5 output from a larger input
+# Input shape: (Batch=1, Channels=64, Height=30, Width=30)
+x = torch.randn(1, 64, 30, 30)
+output = F.adaptive_avg_pool2d(x, (5, 5))
+
+print(f"Input shape: {x.shape}")   # torch.Size([1, 64, 30, 30])
+print(f"Output shape: {output.shape}") # torch.Size([1, 64, 5, 5])
+
+# Example 2: Global Average Pooling (Output size 1x1)
+# This reduces the spatial dimensions entirely
+gap_output = F.adaptive_avg_pool2d(x, (1, 1))
+print(f"GAP Output shape: {gap_output.shape}") # torch.Size([1, 64, 1, 1])
+```
+
+**Mathematical Logic**
+
+The function mathematically divides the input grid into $H_{out} \times W_{out}$ regions. For each region, it calculates the mean value.
+
+If the input size is not perfectly divisible by the output size, PyTorch handles the "overlap" or uneven bin sizes automatically to ensure the entire input is covered.
+
+
+
+#### 11. **torch.randn()**  torch.mean() torch.pow() torch.matmul()
 
 产生大小为指定的，正态分布的采样点，数据类型是tensor
 
@@ -3942,31 +4071,9 @@ tensor([[0., 0., 0., 0., 0.],
 
 
 
-#### 51.torch.cuda.amp.autocast()
+#### 
 
-`torch.cuda.amp.autocast()` is a PyTorch feature for automatic mixed precision (AMP) training. It enables automatic casting of operations to work with both float16 (or bfloat16) and float32 precision to improve training speed while maintaining model accuracy.
-
-Here's a brief explanation of how to use it:
-
-```python
-from torch.cuda.amp import autocast
-
-# Basic usage in training loop
-with autocast():
-    outputs = model(inputs)
-    loss = criterion(outputs, labels)
-```
-
-The key benefits are:
-1. Faster training by using lower precision operations where possible
-2. Lower memory usage
-3. Maintains model accuracy by automatically choosing appropriate precision
-
-Hint: do not use this on the phrase of reloading, Lessons paid for in blood, this bug took me two weeks.
-
-
-
-#### 52. torch.optim.Adam()
+#### 51. torch.optim.Adam()
 
 this part will be re-summarized in the future.
 
@@ -4093,6 +4200,12 @@ output:
 0.0005
 0.0005
 ```
+
+
+
+#### 52. torch.optim.AdamW()
+
+
 
 
 
@@ -9943,6 +10056,177 @@ So your code basically says:
 >>> ```
 
 简单理解：shifts的值为正数相当于向下挤牙膏，挤出的牙膏又从顶部塞回牙膏里面；shifts的值为负数相当于向上挤牙膏，挤出的牙膏又从底部塞回牙膏里面
+
+
+
+#### 168. `torch.rot90()` **rotates a tensor by 90 degrees** in PyTorch.
+
+**Simple explanation**
+
+`torch.rot90(x, k, dims)`
+ → **Rotate tensor `x` by 90° × k** around the axes specified in `dims`.
+
+**Key points**
+
+- `k` = number of 90° rotations
+  - `k=1` → 90°
+  - `k=2` → 180°
+  - `k=3` → 270°
+  - `k=4` → back to original
+- `dims` = the two dimensions you want to rotate around
+  - For images: `dims=(1, 2)` (height, width)
+
+**Example**
+
+```python
+import torch
+
+x = torch.tensor([[1, 2],
+                  [3, 4]])
+
+torch.rot90(x, k=1, dims=(0, 1))
+```
+
+**Output (rotated 90° counterclockwise):**
+
+```
+tensor([[2, 4],
+        [1, 3]])
+```
+
+**What it really does**
+
+It takes the matrix/tensor and **spins it** like an image:
+
+- swaps the two dimensions
+- reverses one of them
+- applies this repeatedly depending on `k`
+
+
+
+#### 169. torch.cuda.amp.autocast()
+
+`torch.cuda.amp.autocast()` is a PyTorch feature for automatic mixed precision (AMP) training. It enables automatic casting of operations to work with both float16 (or bfloat16) and float32 precision to improve training speed while maintaining model accuracy.
+
+Here's a brief explanation of how to use it:
+
+```python
+from torch.cuda.amp import autocast
+
+# Basic usage in training loop
+with autocast():
+    outputs = model(inputs)
+    loss = criterion(outputs, labels)
+```
+
+The key benefits are:
+
+1. Faster training by using lower precision operations where possible
+2. Lower memory usage
+3. Maintains model accuracy by automatically choosing appropriate precision
+
+Hint: do not use this on the phrase of reloading, Lessons paid for in blood, this bug took me two weeks.
+
+
+
+#### 170. about item() from pytorch/ tensor.item()
+
+这个方法可以解决从tensor 转换成int
+
+文档中给了例子，说是一个元素张量可以用item得到元素值，请注意这里的print(x)和print(x.item())值是不一样的，一个是打印张量，一个是打印元素的值：
+
+```bash
+x = torch.randn(1)
+print(x)
+print(x.item())
+
+#结果是
+tensor([-0.4464])
+-0.44643348455429077
+```
+
+解释:
+
+item() → number
+方法: item() 返回一个数
+    Returns the value of this tensor as a standard Python number. 
+    This only works for tensors with one element. For other cases, 
+    see tolist().
+    该方法的功能是以标准的Python数字的形式来返回这个张量的值.这个方法
+    只能用于只包含一个元素的张量.对于其他的张量,请查看方法tolist().
+    This operation is not differentiable.
+    该操作是不可微分的,即不可求导.
+    (译者注:返回的结果是普通Python数据类型,
+    自然不能调用backward()方法来进行梯度的反向传播)
+
+    Example:  例子:
+    >>> x = torch.tensor([1.0])
+    >>> x.item()
+    1.0
+
+
+
+#### 171. torch.sort() function
+
+***注意这里面的tensor一定要注意维度***
+
+```python
+logits = torch.tensor(
+  [
+​    [
+​      [-0.5816, -0.3873, -1.0215, -1.0145, 0.4053],
+​      [0.7265, 1.4164, 1.3443, 1.2035, 1.8823],
+​      [-0.4451, 0.1673, 1.2590, -2.0757, 1.7255],
+​      [0.2021, 0.3041, 0.1383, 0.3849, -1.6311],
+​    ]
+  ]
+)
+
+
+
+sorted_logits, sorted_indices = torch.sort(
+
+  logits, descending=True, dim=-1
+
+) # dim=-1 按照行排序
+
+print("according to the line: ", sorted_logits)
+
+print("according to the line: ", sorted_indices)
+
+
+
+sorted_logits, sorted_indices = torch.sort(logits, descending=True, dim=1) # 按照列排序
+
+print("according to the column: ", sorted_logits)
+
+print("according to the column: ", sorted_indices)
+```
+
+
+
+output:
+
+```powershell
+according to the line:  tensor([[[ 0.4053, -0.3873, -0.5816, -1.0145, -1.0215],
+         [ 1.8823,  1.4164,  1.3443,  1.2035,  0.7265],
+         [ 1.7255,  1.2590,  0.1673, -0.4451, -2.0757],
+         [ 0.3849,  0.3041,  0.2021,  0.1383, -1.6311]]])
+according to the line:  tensor([[[4, 1, 0, 3, 2],
+         [4, 1, 2, 3, 0],
+         [4, 2, 1, 0, 3],
+         [3, 1, 0, 2, 4]]])
+according to the column:  tensor([[[ 0.7265,  1.4164,  1.3443,  1.2035,  1.8823],
+         [ 0.2021,  0.3041,  1.2590,  0.3849,  1.7255],
+         [-0.4451,  0.1673,  0.1383, -1.0145,  0.4053],
+         [-0.5816, -0.3873, -1.0215, -2.0757, -1.6311]]])
+according to the column:  tensor([[[1, 1, 1, 1, 1],
+         [3, 3, 2, 3, 2],
+         [2, 2, 3, 0, 0],
+         [0, 0, 0, 2, 3]]])
+```
+
+
 
 
 
@@ -16690,7 +16974,114 @@ Use `C.__mro__` to check the method resolution order if needed.
 
 
 
+#### 115. __repr__
 
+ `__repr__` is a fundamental "magic method" (or dunder method) in Python. It stands for **representation**.
+
+Its primary goal is to return a string representation of the object that is **unambiguous** and, ideally, valid Python code that could be used to recreate the object.
+
+Here is a breakdown of how it works and how to use it effectively.
+
+------
+
+1. The Purpose of `__repr__`
+
+- **For Developers:** It is designed for debugging and logging. When you inspect an object in a shell, a debugger, or logs, `__repr__` is what you see.
+- **Recreatability:** The "gold standard" for `__repr__` is that if you take the output string and feed it into the `eval()` function, you should get an identical object back.
+  - *Example:* If you have a point object `p`, `eval(repr(p))` should equal `p`.
+
+2. `__repr__` vs. `__str__`
+
+It is common to confuse these two. Here is the distinction:
+
+| **Feature**    | **__repr__**                                    | **__str__**                                         |
+| -------------- | ----------------------------------------------- | --------------------------------------------------- |
+| **Audience**   | Developers (debugging)                          | End-users (readability)                             |
+| **Goal**       | Unambiguous, explicit                           | Readable, pretty                                    |
+| **Fallback**   | If `__str__` is missing, Python uses `__repr__` | If `__repr__` is missing, it uses a generic default |
+| **Invocation** | `repr(obj)`, interactive shell                  | `print(obj)`, `str(obj)`                            |
+
+> **Best Practice:** If you only implement one, implement `__repr__`. Python will automatically use it as a fallback for `__str__` if `__str__` is not defined.
+
+------
+
+3. Implementation Example
+
+Here is a standard implementation for a simple class.
+
+Python
+
+```
+class Vector2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        # We use the class name and the arguments used to create it
+        # f-strings are perfect for this
+        return f"Vector2D(x={self.x}, y={self.y})"
+
+    def __str__(self):
+        # A more 'human' readable format
+        return f"({self.x}, {self.y})"
+
+# Usage
+v = Vector2D(3, 4)
+
+print(repr(v))  # Output: Vector2D(x=3, y=4)
+print(v)        # Output: (3, 4)  <- Uses __str__
+```
+
+4. Interactive Shell Behavior
+
+One of the most useful aspects of `__repr__` is working in a Python REPL (Read-Eval-Print Loop) or a Jupyter Notebook. When you type a variable name and hit enter, Python calls `repr()` on it.
+
+**Without `__repr__`:**
+
+Python
+
+```
+>>> v
+<__main__.Vector2D object at 0x7f...>
+```
+
+*(This is not helpful for debugging.)*
+
+**With `__repr__`:**
+
+Python
+
+```
+>>> v
+Vector2D(x=3, y=4)
+```
+
+*(This tells you exactly what data the object holds.)*
+
+------
+
+5. Advanced Tip: Using `!r` in f-strings
+
+When writing your `__repr__` method for classes that contain strings, you often want to make sure the output includes quotes around those strings so it remains valid Python code. You can use the `!r` flag in f-strings to automatically call `repr()` on the attribute.
+
+Python
+
+```
+class User:
+    def __init__(self, username, id):
+        self.username = username
+        self.id = id
+
+    def __repr__(self):
+        # Notice the !r after self.username
+        return f"User(username={self.username!r}, id={self.id})"
+
+u = User("Alice", 101)
+print(repr(u))
+# Output: User(username='Alice', id=101)
+# Note the quotes around 'Alice' were added automatically.
+```
 
 
 
@@ -18039,106 +18430,158 @@ output:
 
 
 
-#### 16. np.isnan
+#### 16. numpy.dot()
 
-Test element-wise for NaN and return result as a boolean array.
+Here is a breakdown of how it works in different scenarios:
 
-Example 1: 
+1. The Behaviors of `numpy.dot(a, b)`
 
-```python
-import numpy as np
+| **Input Dimensions**     | **Operation Performed**   | **Mathematical Concept**                                     |
+| ------------------------ | ------------------------- | ------------------------------------------------------------ |
+| **1D Arrays** (Vectors)  | Inner product of vectors. | $a \cdot b = \sum a_i b_i$ (Result is a scalar)              |
+| **2D Arrays** (Matrices) | Matrix multiplication.    | Standard row-by-column multiplication.                       |
+| **Scalars** (0D)         | Basic multiplication.     | Same as `a * b`.                                             |
+| **N-D Arrays**           | Tensor contraction.       | Sum product over the last axis of `a` and the second-to-last axis of `b`. |
 
-print("NaN value  - : ", np.isnan(933), "n")  # Scalar Values
-print("NaN value  - : ", np.isnan(444), "n")
-print("NaN value  - : ", np.isnan(np.inf), "n")  
-# checking for infinity value
-print("NaN value  - : ", np.isnan(np.NINF), "n")
-print("NaN value  - : ", np.isnan(np.nan))  # Checking for nan values
-```
+------
 
-output:
+2. Code Examples
 
-```bash
-NaN value  - :  False n 
-NaN value  - :  False n 
-NaN value  - :  False n 
-NaN value  - :  False n 
-NaN value  - :  True
-```
+A. 1D Arrays (Vector Dot Product)
 
+If both `a` and `b` are 1-D arrays, it is the inner product of vectors (without complex conjugation).
 
-
-Example 2: 
+Python
 
 ```python
 import numpy as np
 
-np.random.seed(100)
-array = np.random.rand(10, 6)
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
 
-array[0][0] = np.nan
-array[1][0] = np.nan
-array[0][3] = np.nan
-array[5][2] = 0
-array[5][4] = np.nan
-
-print(array)
-print(np.isnan(array))
+result = np.dot(a, b)
+# Calculation: (1*4) + (2*5) + (3*6) = 4 + 10 + 18 = 32
+print(result) # Output: 32
 ```
 
-output:
+B. 2D Arrays (Matrix Multiplication)
 
-```
-[[       nan 0.27836939 0.42451759        nan 0.00471886 0.12156912] 
-[       nan 0.82585276 0.13670659 0.57509333 0.89132195 0.20920212] [0.18532822 0.10837689 0.21969749 0.97862378 0.81168315 0.17194101] [0.81622475 0.27407375 0.43170418 0.94002982 0.81764938 0.33611195] [0.17541045 0.37283205 0.00568851 0.25242635 0.79566251 0.01525497] [0.59884338 0.60380454 0.         0.38194344        nan 0.89041156] [0.98092086 0.05994199 0.89054594 0.5769015  0.74247969 0.63018394] [0.58184219 0.02043913 0.21002658 0.54468488 0.76911517 0.25069523] [0.28589569 0.85239509 0.97500649 0.88485329 0.35950784 0.59885895] [0.35479561 0.34019022 0.17808099 0.23769421 0.04486228 0.50543143]] 
-[[ True False False  True False False] 
-[ True False False False False False] 
-[False False False False False False] 
-[False False False False False False] 
-[False False False False False False] 
-[False False False False  True False] 
-[False False False False False False] 
-[False False False False False False] 
-[False False False False False False] 
-[False False False False False False]]
-```
+If both are 2-D arrays, it performs standard matrix multiplication.
 
-
-
-#### 17. numpy.arange()
-
-Return evenly spaced values within a given interval.
-
-Example 1:
+Python
 
 ```python
-import numpy
+A = np.array([[1, 2], 
+              [3, 4]])
+B = np.array([[5, 6], 
+              [7, 8]])
 
-thresholds=numpy.arange(start=0.2, stop=0.7, step=0.05)
-print("threshold:",thresholds)
+result = np.dot(A, B)
+# Calculation for top-left cell: (1*5) + (2*7) = 19
+print(result)
+# Output:
+# [[19 22]
+#  [43 50]]
 ```
 
-output:
+------
 
-```
-threshold: [0.2  0.25 0.3  0.35 0.4  0.45 0.5  0.55 0.6  0.65]
-```
+3. Important Distinctions
+
+It is crucial not to confuse `np.dot` with element-wise multiplication or modern matrix multiplication operators.
+
+- **`np.dot(a, b)` vs `a \* b`:**
+  - `a * b` performs **element-wise** multiplication (Hadamard product). The arrays must have compatible shapes (broadcasting rules apply).
+  - `np.dot` performs geometric/algebraic accumulation.
+- **`np.dot` vs `@` (The At Operator):**
+  - Since Python 3.5 (and NumPy 1.10), the `@` operator is preferred for matrix multiplication.
+  - `C = A @ B` is cleaner and generally equivalent to `np.dot(A, B)` for 2D matrices.
+- **`np.dot` vs `np.matmul`:**
+  - For standard 2D matrices, they are the same.
+  - For high-dimensional arrays (stacks of matrices), `np.matmul` (or `@`) treats the arrays as a stack of matrices residing in the last two indexes and broadcasts accordingly. `np.dot` behaves differently with high dimensions (tensor contraction) and is often strictly less useful for batch matrix multiplication in Deep Learning.
+
+Summary
+
+If you are doing standard Deep Learning or Linear Algebra work:
+
+1. Use **`@`** or **`np.matmul`** for Matrix Multiplication.
+2. Use **`np.dot`** specifically when you need a vector inner product or specific tensor contraction.
 
 
 
-Example 2:
+#### 17. numpy.diag()
+
+1. **Extracting** a diagonal from a matrix (2D array).
+2. **Constructing** a 2D matrix with a given 1D array as its diagonal.
+
+------
+
+1. Extracting a Diagonal from a Matrix
+
+When given a 2D array (a matrix), `np.diag()` returns a 1D array containing the elements along a specified diagonal.
+
+Python
 
 ```python
 import numpy as np
 
-print(np.arange(20))
+M = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+
+# Extract the main diagonal (k=0 is default)
+main_diag = np.diag(M) 
+print(main_diag) 
+# Output: [1 5 9]
 ```
 
-output:
+The `k` Parameter (Offset)
 
+The optional parameter **`k`** allows you to specify an offset from the main diagonal:1
+
+
+
+- **`k = 0` (Default):** The main diagonal.
+
+- **`k > 0`:** Diagonals **above** the main diagonal.
+
+- **`k < 0`:** Diagonals **below** the main diagonal.2
+
+  
+
+```python
+# Extract the diagonal immediately above the main one (k=1)
+diag_k1 = np.diag(M, k=1)
+print(diag_k1)
+# Output: [2 6]
+
+# Extract the diagonal immediately below the main one (k=-1)
+diag_k_neg1 = np.diag(M, k=-1)
+print(diag_k_neg1)
+# Output: [4 8]
 ```
-[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19]
+
+------
+
+2. Constructing a Diagonal Matrix
+
+When given a 1D array (a vector), `np.diag()` returns a 2D square matrix with the elements of the 1D array placed on its main diagonal, and zeros everywhere else.
+
+```python
+v = np.array([10, 20, 30])
+
+# Construct a matrix using the vector v as the diagonal
+D = np.diag(v)
+print(D)
+# Output:
+# [[10  0  0]
+#  [ 0 20  0]
+#  [ 0  0 30]]
 ```
+
+
+
+
 
 
 
@@ -18665,6 +19108,24 @@ np.sum([[0, 1], [0, 5]], axis=0)
 array([0, 6])
 np.sum([[0, 1], [0, 5]], axis=1)
 array([1, 5])
+```
+
+
+
+```python
+import numpy as np
+
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+rowsum = A.sum(1)
+print(rowsum)
+```
+
+output:
+
+```
+[ 6 15 24]
 ```
 
 
@@ -19524,6 +19985,204 @@ print("This is a new input: ",input)
 ```
 
 
+
+#### 51. np.isnan
+
+Test element-wise for NaN and return result as a boolean array.
+
+Example 1: 
+
+```python
+import numpy as np
+
+print("NaN value  - : ", np.isnan(933), "n")  # Scalar Values
+print("NaN value  - : ", np.isnan(444), "n")
+print("NaN value  - : ", np.isnan(np.inf), "n")  
+# checking for infinity value
+print("NaN value  - : ", np.isnan(np.NINF), "n")
+print("NaN value  - : ", np.isnan(np.nan))  # Checking for nan values
+```
+
+output:
+
+```bash
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  False n 
+NaN value  - :  True
+```
+
+
+
+Example 2: 
+
+```python
+import numpy as np
+
+np.random.seed(100)
+array = np.random.rand(10, 6)
+
+array[0][0] = np.nan
+array[1][0] = np.nan
+array[0][3] = np.nan
+array[5][2] = 0
+array[5][4] = np.nan
+
+print(array)
+print(np.isnan(array))
+```
+
+output:
+
+```
+[[       nan 0.27836939 0.42451759        nan 0.00471886 0.12156912] 
+[       nan 0.82585276 0.13670659 0.57509333 0.89132195 0.20920212] [0.18532822 0.10837689 0.21969749 0.97862378 0.81168315 0.17194101] [0.81622475 0.27407375 0.43170418 0.94002982 0.81764938 0.33611195] [0.17541045 0.37283205 0.00568851 0.25242635 0.79566251 0.01525497] [0.59884338 0.60380454 0.         0.38194344        nan 0.89041156] [0.98092086 0.05994199 0.89054594 0.5769015  0.74247969 0.63018394] [0.58184219 0.02043913 0.21002658 0.54468488 0.76911517 0.25069523] [0.28589569 0.85239509 0.97500649 0.88485329 0.35950784 0.59885895] [0.35479561 0.34019022 0.17808099 0.23769421 0.04486228 0.50543143]] 
+[[ True False False  True False False] 
+[ True False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False  True False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False] 
+[False False False False False False]]
+```
+
+#### 52. numpy.arange()
+
+Return evenly spaced values within a given interval.
+
+Example 1:
+
+```python
+import numpy
+
+thresholds=numpy.arange(start=0.2, stop=0.7, step=0.05)
+print("threshold:",thresholds)
+```
+
+output:
+
+```
+threshold: [0.2  0.25 0.3  0.35 0.4  0.45 0.5  0.55 0.6  0.65]
+```
+
+
+
+Example 2:
+
+```python
+import numpy as np
+
+print(np.arange(20))
+```
+
+output:
+
+```
+[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19]
+```
+
+
+
+#### 53. numpy.fill_diagonal(a, val)
+
+It is a NumPy function used to **modify an array in-place** by setting its diagonal elements to a specific value. In your specific example, `numpy.fill_diagonal(A, 0)`, it sets the main diagonal of the array `A` to `0`.
+
+Here are the key details about how it works:
+
+1. Basic Usage (2D Arrays)
+
+If `A` is a standard 2D matrix (square or rectangular), it fills the diagonal where row index equals column index ($i = j$).
+
+Python
+
+```python
+import numpy as np
+
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+
+np.fill_diagonal(A, 0)
+
+print(A)
+# Output:
+# [[0 2 3]   <-- (0,0) became 0
+#  [4 0 6]   <-- (1,1) became 0
+#  [7 8 0]]  <-- (2,2) became 0
+```
+
+2. It Operates In-Place
+
+Crucially, **it does not return a new array**. It returns `None` and modifies the array `A` directly.
+
+- **Wrong:** `A = np.fill_diagonal(A, 0)` (This sets `A` to `None`)
+- **Right:** `np.fill_diagonal(A, 0)`
+
+3. Rectangular Matrices
+
+It works on non-square matrices as well. It will fill the diagonal until it hits the boundary of the smallest dimension.
+
+Python
+
+```python
+B = np.zeros((3, 5), int)
+np.fill_diagonal(B, 1)
+
+# Output:
+# [[1 0 0 0 0]
+#  [0 1 0 0 0]
+#  [0 0 1 0 0]]
+```
+
+4. High-Dimensional Arrays ( > 2D)
+
+This is where `fill_diagonal` behaves differently than standard linear algebra expectations. It fills elements where indices are **all equal** (i.e., `A[i, i, i]`).
+
+This is different from `np.diag` or `np.diagonal`, which usually operate on the first two dimensions by default.
+
+
+
+#### 54. numpy.power()
+
+`numpy.power(x1, x2)` is the NumPy function for element-wise exponentiation. It raises the elements in the first array (`x1`) to the powers indicated in the second array (`x2`).
+
+Here is what you need to know, specifically looking out for **types** and **broadcasting**, which are common pain points in data science.
+
+1. Basic Usage
+
+It works element-wise. If you pass two arrays of the same size, it matches them index-by-index.
+
+```python
+import numpy as np
+
+bases = np.array([2, 3, 4])
+exponents = np.array([3, 2, 1])
+
+result = np.power(bases, exponents)
+print(result)
+# Output: [8 9 4]  <-- (2^3, 3^2, 4^1)
+```
+
+
+
+#### 55. numpy.flatten()
+
+```python
+# Imagine rowsum came from a calculation that kept it as a column vector
+rowsum_2d = np.array([[6.0], 
+                      [15.0], 
+                      [24.0]]) 
+print(rowsum_2d.shape) # Output: (3, 1)  <-- It is 2D
+
+# Using flatten()
+answer = rowsum_2d.flatten()
+print(answer.shape)    # Output: (3,)    <-- It is now 1D
+print(answer)          # Output: [ 6. 15. 24.]
+```
 
 
 
